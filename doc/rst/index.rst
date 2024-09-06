@@ -14,13 +14,13 @@
 
 |
 
-\ **Hy**\drogen in \ **S**\hort-\ **T**\erm \ **E**\lectricity \ **M**\arkets
+\ **o**\ptimized \ **Hy**\brid in \ **S**\ystems for \ **E**\nergy and \ **M**\arket management
 
 “*Simplicity and Transparency in Power Systems Operation*”
 
 |
 
-**HySTEM** is a multi-stage stochastic optimization model for the optimal operation scheduling of a Hydrogen-based Virtual Power Plant (H-VPP), which contains hydrogen-based energy storage systems (ESS), renewable energy sources (RES), and battery energy storage systems (BESS).
+**oHySEM** is a multi-stage stochastic optimization model for the optimal operation scheduling of a Hydrogen-based Virtual Power Plant (H-VPP), which contains hydrogen-based energy storage systems (ESS), renewable energy sources (RES), and battery energy storage systems (BESS).
 
 The model has been developed at the `Instituto de Investigación Tecnológica (IIT) <https://www.iit.comillas.edu/index.php.en>`_ of
 the `Universidad Pontificia Comillas <https://www.comillas.edu/en/>`_.
