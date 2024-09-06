@@ -1,6 +1,7 @@
-# HYSEM – Hybrid Systems for Energy management and Market strategies
+# oHYSEM – <span style="color:blue;">H</span>ybrid <span style="color:blue;">S</span>ystems for <span style="color:blue;">E</span>nergy management and <span style="color:blue;">M</span>arket strategies
 
-**HYSEM** is a Python library designed to provide optimal planning, operation, and management strategies for hybrid renewable electricity-hydrogen systems. It enables both stand-alone and grid-connected systems to participate in energy and hydrogen markets, ensuring the integration of new assets and efficient system scheduling.
+
+**oHYSEM** is an open-source model distributed as a Python library, designed to provide optimal planning, operation, and management strategies for hybrid renewable electricity-hydrogen systems. It supports both stand-alone and grid-connected systems in participating in energy and hydrogen markets, ensuring the seamless integration of new assets and efficient system scheduling.
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -16,13 +17,14 @@
 
 ## Overview
 
-**HYSEM** provides a robust framework for optimizing hybrid energy systems, incorporating renewable electricity and hydrogen networks. The library is designed for users needing advanced tools for integrated resource planning, asset integration, system scheduling, and market participation in electricity and hydrogen markets.
+**oHYSEM** provides a robust framework for optimizing hybrid energy systems, incorporating renewable electricity and hydrogen networks. The library is designed for users needing advanced tools for integrated resource planning, asset integration, system scheduling, and market participation in electricity and hydrogen markets.
 
 ### Key Applications:
 - **Optimal Planning & Scheduling**: Ensure efficient energy resource management in hybrid systems.
 - **Integrated Resource Planning (IRP)**: Plan long-term energy strategies integrating multiple energy sources.
 - **Market Participation**: Engage in real-time electricity markets and future hydrogen markets.
 - **Asset Integration**: Seamlessly incorporate new assets (e.g., renewable generators, storage units) into the system.
+- **Self-scheduling**: Operation planning of the hybrid system. 
 
 ---
 
@@ -38,25 +40,25 @@
 
 ## Installation
 
-Install **HYSEM** using pip:
+Install **oHYSEM** using pip:
 
 ```bash
-pip install hysem
+pip install ohysem
 ```
 Alternatively, clone the GitHub repository and install it manually:
 ```
-git clone https://github.com/yourusername/hysem.git
-cd hysem
+git clone https://github.com/yourusername/ohysem.git
+cd oHYSEM
 pip install .
 ```
 
 ---
 
 ## Getting Started
-Here’s a basic example of how to create and run an optimization model using HYSEM:
+Here’s a basic example of how to create and run an optimization model using oHYSEM:
 
 ```
-import hysem as hs
+import oHYSEM as hs
 
 # Define your hybrid system
 system = hs.HybridSystem()
@@ -106,16 +108,16 @@ Please refer to the full API documentation for more detailed usage and advanced 
 
 ## Use Cases
 Grid-connected Hybrid Systems: Optimize energy flows between electricity and hydrogen markets while meeting grid regulations.
-Stand-alone VPPs: Use HYSEM to ensure optimal operation for off-grid renewable systems.
+Stand-alone VPPs: Use oHYSEM to ensure optimal operation for off-grid renewable systems.
 Integrated Resource Planning (IRP): Plan the addition of new renewable assets and storage units to meet long-term energy goals.
 Market Participation: Optimize market bids for both electricity and future hydrogen markets.
 
 ---
 
 ## Contributing
-Contributions to HYSEM are welcome! Please refer to our Contributing Guide for more information on how to contribute to the project.
+Contributions to oHYSEM are welcome! Please refer to our Contributing Guide for more information on how to contribute to the project.
 
 ---
 
 ## License
-HYSEM is licensed under the MIT License. See the LICENSE file for details.
+oHYSEM is licensed under the MIT License. See the LICENSE file for details.
