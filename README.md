@@ -7,7 +7,7 @@
   </tr>
 </table>
 
-## <span style="color:blue;">O</span>ptimized <span style="color:blue;">Hy</span>brid <span style="color:blue;">S</span>ystems for <span style="color:blue;">E</span>nergy and <span style="color:blue;">M</span>arket management
+## <span style="color:#FF4500;">O</span>ptimized <span style="color:#2E8B57;">Hy</span>brid <span style="color:#00FFFF;">S</span>ystems for <span style="color:#FFD700;">E</span>nergy and <span style="color:#008000;">M</span>arket Management
 
 ``Simplicity and Transparency in Power Systems Operation and Planning``
 
