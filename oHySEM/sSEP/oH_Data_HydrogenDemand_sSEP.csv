@@ -407,30 +407,30 @@ period1,sc01,t0405,,,,
 period1,sc01,t0406,,,,
 period1,sc01,t0407,,,,
 period1,sc01,t0408,,,,
-period1,sc01,t0409,,,, 39.9999999999999 
-period1,sc01,t0410,,,, 129.999999999999 
-period1,sc01,t0411,,,, 39.9999999999999 
-period1,sc01,t0412,,,, 129.999999999999 
-period1,sc01,t0413,,,, 220 
-period1,sc01,t0414,,,, 129.999999999999 
-period1,sc01,t0415,,,, 39.9999999999999 
-period1,sc01,t0416,,,, 129.999999999999 
-period1,sc01,t0417,,,, 39.9999999999999 
-period1,sc01,t0418,,,, 129.999999999999 
-period1,sc01,t0419,,,, 220 
-period1,sc01,t0420,,,, 129.999999999999 
-period1,sc01,t0421,,,, 50 
-period1,sc01,t0422,,,, 129.999999999999 
-period1,sc01,t0423,,,, 220 
-period1,sc01,t0424,,,, 129.999999999999 
-period1,sc01,t0425,,,, 129.999999999999 
-period1,sc01,t0426,,,, 39.9999999999999 
-period1,sc01,t0427,,,, 129.999999999999 
-period1,sc01,t0428,,,, 219.999999999999 
-period1,sc01,t0429,,,, 129.999999999999 
-period1,sc01,t0430,,,, 220 
-period1,sc01,t0431,,,, 129.999999999999 
-period1,sc01,t0432,,,, 90 
+period1,sc01,t0409,,,, 0.001 
+period1,sc01,t0410,,,,
+period1,sc01,t0411,,,,
+period1,sc01,t0412,,,,
+period1,sc01,t0413,,,,
+period1,sc01,t0414,,,,
+period1,sc01,t0415,,,,
+period1,sc01,t0416,,,,
+period1,sc01,t0417,,,,
+period1,sc01,t0418,,,,
+period1,sc01,t0419,,,,
+period1,sc01,t0420,,,,
+period1,sc01,t0421,,,,
+period1,sc01,t0422,,,,
+period1,sc01,t0423,,,,
+period1,sc01,t0424,,,,
+period1,sc01,t0425,,,,
+period1,sc01,t0426,,,,
+period1,sc01,t0427,,,,
+period1,sc01,t0428,,,,
+period1,sc01,t0429,,,,
+period1,sc01,t0430,,,,
+period1,sc01,t0431,,,,
+period1,sc01,t0432,,,,
 period1,sc01,t0433,,,,
 period1,sc01,t0434,,,,
 period1,sc01,t0435,,,,

@@ -1,5 +1,5 @@
 ,,,Type,Switching,InitialPeriod,FinalPeriod,Length,SecurityFactor,TTC,TTCBck,FixedChargeRate,FixedInvestmentCost,BinaryInvestment,InvestmentLo,InvestmentUp
-Node2,Node3,p1,,, 2020 , 2050 ,, 0.67 , 600 , 0.0001 ,,,,,
-Node2,Node3,p2,,, 2049 , 2050 ,, 0.67 , 600 , 0.0001 ,,,,,
-Node3,Node4,p1,,, 2020 , 2050 ,, 0.67 , 600 , 0.0001 ,,,,,
-Node2,Node4,p1,,, 2020 , 2050 ,, 0.67 , 600 , 0.0001 ,,,,,
+Node2,Node3,p1,,, 2020 , 2050 ,, 0.67 , 1000 , 0.0001 ,,,,,
+Node2,Node3,p2,,, 2049 , 2050 ,, 0.67 , 1000 , 0.0001 ,,,,,
+Node3,Node4,p1,,, 2020 , 2050 ,, 0.67 , 1000 , 0.0001 ,,,,,
+Node2,Node4,p1,,, 2020 , 2050 ,, 0.67 , 1000 , 0.0001 ,,,,,
