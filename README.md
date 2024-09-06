@@ -1,8 +1,17 @@
-# oHYSEM – <span style="color:blue;">H</span>ybrid <span style="color:blue;">S</span>ystems for <span style="color:blue;">E</span>nergy management and <span style="color:blue;">M</span>arket strategies
+<table style="border: none;">
+  <tr>
+    <td style="border: none;"><img src="https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/doc/img/HySTEM.svg" alt="logo" style="width:100px;"></td>
+    <td style="border: none;">
+      <h1>oHySEM </h1>
+    </td>
+  </tr>
+</table>
+
+## <span style="color:blue;">O</span>ptimized <span style="color:blue;">H</span>ybrid <span style="color:blue;">S</span>ystems for <span style="color:blue;">E</span>nergy and <span style="color:blue;">M</span>arket management
 
 ``Simplicity and Transparency in Power Systems Operation and Planning``
 
-**oHYSEM** is an open-source model distributed as a Python library, designed to provide optimal planning, operation, and management strategies for hybrid renewable electricity-hydrogen systems. It supports both stand-alone and grid-connected systems in participating in energy and hydrogen markets, ensuring the seamless integration of new assets and efficient system scheduling.
+**oHySEM** is an open-source model distributed as a Python library, designed to provide optimal planning, operation, and management strategies for hybrid renewable electricity-hydrogen systems. It supports both stand-alone and grid-connected systems in participating in energy and hydrogen markets, ensuring the seamless integration of new assets and efficient system scheduling.
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -18,7 +27,7 @@
 
 ## Overview
 
-**oHYSEM** provides a robust framework for optimizing hybrid energy systems, incorporating renewable electricity and hydrogen networks. The library is designed for users needing advanced tools for integrated resource planning, asset integration, system scheduling, and market participation in electricity and hydrogen markets.
+**oHySEM** provides a robust framework for optimizing hybrid energy systems, incorporating renewable electricity and hydrogen networks. The library is designed for users needing advanced tools for integrated resource planning, asset integration, system scheduling, and market participation in electricity and hydrogen markets.
 
 ### Key Applications:
 - **Optimal Planning & Scheduling**: Ensure efficient energy resource management in hybrid systems.
@@ -41,7 +50,7 @@
 
 ## Installation
 
-Install **oHYSEM** using pip:
+Install **oHySEM** using pip:
 
 ```bash
 pip install ohysem
@@ -49,28 +58,28 @@ pip install ohysem
 Alternatively, clone the GitHub repository and install it manually:
 ```
 git clone https://github.com/yourusername/ohysem.git
-cd oHYSEM
+cd oHySEM
 pip install .
 ```
 
 ---
 
 ## Getting Started
-Here’s a basic example of how to create and run an optimization model using oHYSEM:
+Here’s a basic example of how to create and run an optimization model using oHySEM:
 
 ```
-import oHYSEM as hs
+import oHySEM as oH
 
 # Define your hybrid system
-system = hs.HybridSystem()
+system = oH.HybridSystem()
 
 # Add energy assets
-system.add_asset(hs.SolarPlant(capacity=100))  # 100 MW solar plant
-system.add_asset(hs.HydrogenStorage(capacity=50))  # 50 MWh hydrogen storage
+system.add_asset(oH.SolarPlant(capacity=100))  # 100 MW solar plant
+system.add_asset(oH.HydrogenStorage(capacity=50))  # 50 MWh hydrogen storage
 
 # Define market participation and scheduling parameters
-market = hs.MarketParticipation()
-scheduler = hs.Scheduler(system, market)
+market = oH.MarketParticipation()
+scheduler = oH.Scheduler(system, market)
 
 # Run optimization
 results = scheduler.optimize()
@@ -109,16 +118,17 @@ Please refer to the full API documentation for more detailed usage and advanced 
 
 ## Use Cases
 Grid-connected Hybrid Systems: Optimize energy flows between electricity and hydrogen markets while meeting grid regulations.
-Stand-alone VPPs: Use oHYSEM to ensure optimal operation for off-grid renewable systems.
+Stand-alone VPPs: Use oHySEM to ensure optimal operation for off-grid renewable systems.
 Integrated Resource Planning (IRP): Plan the addition of new renewable assets and storage units to meet long-term energy goals.
 Market Participation: Optimize market bids for both electricity and future hydrogen markets.
 
 ---
 
 ## Contributing
-Contributions to oHYSEM are welcome! Please refer to our Contributing Guide for more information on how to contribute to the project.
+Contributions to oHySEM are welcome! Please refer to our Contributing Guide for more information on how to contribute to the project.
 
 ---
 
 ## License
-oHYSEM is licensed under the MIT License. See the LICENSE file for details.
+oHySEM is licensed under the MIT License. See the [LICENSE](https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/LICENSE)
+ file for details.
