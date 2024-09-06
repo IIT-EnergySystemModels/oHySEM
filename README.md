@@ -1,6 +1,6 @@
 <table style="border: none;">
   <tr>
-    <td style="border: none;"><img src="https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/doc/img/HySTEM.svg" alt="logo" style="width:100px;"></td>
+    <td style="border: none;"><img src="https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/doc/img/oHySEM.svg" alt="logo" style="width:100px;"></td>
     <td style="border: none;">
       <h1>oHySEM </h1>
     </td>
