@@ -1,8 +1,17 @@
-# oHYSEM – <span style="color:blue;">H</span>ybrid <span style="color:blue;">S</span>ystems for <span style="color:blue;">E</span>nergy management and <span style="color:blue;">M</span>arket strategies
+<table style="border: none;">
+  <tr>
+    <td style="border: none;"><img src="https://github.com/IIT-EnergySystemModels/oHYSEM/blob/main/doc/img/HySTEM.svg" alt="logo" style="width:100px;"></td>
+    <td style="border: none;">
+      <h1>oHySEM </h1>
+    </td>
+  </tr>
+</table>
+
+## <span style="color:blue;">O</span>ptimized <span style="color:blue;">H</span>ybrid <span style="color:blue;">S</span>ystems for <span style="color:blue;">E</span>nergy and <span style="color:blue;">M</span>arket management
 
 ``Simplicity and Transparency in Power Systems Operation and Planning``
 
-**oHYSEM** is an open-source model distributed as a Python library, designed to provide optimal planning, operation, and management strategies for hybrid renewable electricity-hydrogen systems. It supports both stand-alone and grid-connected systems in participating in energy and hydrogen markets, ensuring the seamless integration of new assets and efficient system scheduling.
+**OHYSEM** is an open-source model distributed as a Python library, designed to provide optimal planning, operation, and management strategies for hybrid renewable electricity-hydrogen systems. It supports both stand-alone and grid-connected systems in participating in energy and hydrogen markets, ensuring the seamless integration of new assets and efficient system scheduling.
 
 ## Table of Contents
 1. [Overview](#overview)
