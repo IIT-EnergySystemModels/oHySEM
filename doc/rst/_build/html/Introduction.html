@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Introduction &#8212; version 1.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/../custom.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Input Data" href="InputData.html" />
+    <link rel="prev" title="Index" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h1>
+<p>The <em>Hydrogen in Short-Term Electricity Markets</em> <strong>(HySTEM)</strong> model determines the optimal participation in the short-term electricity market of a hydrogen-based virtual power plant (H-VPP).
+The H-VPP is an association of hydrogen-based energy storage systems (ESS), a power generation unit (PG: a Solar PV, Wind, or CCGT), and battery energy storage systems (BESS) that can participate in the market as a single entity.</p>
+<a class="reference internal image-reference" href="_images/H-VPP.png"><img alt="_images/H-VPP.png" class="align-center" src="_images/H-VPP.png" style="width: 500.8px; height: 384.0px;" /></a>
+<p>The model aims at optimizing the operation scheduling of the H-VPP in the short-term electricity market within a multi-stage stochastic framework (day-ahead, intra-day, real-time, and secondary reserve markets), which considers the uncertainty of the renewable production and the day-ahead, intra-day, and secondary reserve market prices.
+Short-term operation concerns time horizons of 1-7 days with high temporal granularity (5 min-1 h). Its objective is to maximize the expected value of the total profit of the H-VPP.
+The main results are the bids of the H-VPP in the day-ahead market and the guidelines for the operation of the H-VPP in the other markets.</p>
+<p>The <strong>HySTEM</strong> model presents a decision support system for defining the optimal participation of an H-VPP in the short-term electricity market, defined as a set of energy and reserve decisions for one or multiple future days with high temporal granularity.
+The user pre-defined the H-VPP structure, so the model determines the optimal decisions among those specified by the user.</p>
+<p>It automatically determines the optimal operation scheduling that satisfies several attributes simultaneously. Its main characteristics are:</p>
+<ul>
+<li><p><strong>Markets</strong>:
+This work considers the operation of the H-VPP in three different electricity markets: the <em>day-ahead market</em> <strong>(DA)</strong>, the <em>intraday market</em> <strong>(ID)</strong>, and the <em>secondary reserve market</em> <strong>(SR)</strong> plus the imbalance settlement:</p>
+<ol class="arabic simple">
+<li><p><strong>Day-ahead market (DA)</strong>: handles electricity transactions for the following day by presenting 24-hour electricity sales and purchase bids by market participants. The result of the <strong>DA</strong> clearing can be modified subsequently by the ISO/TSO to guarantee the safety and reliability of the supply.</p></li>
+<li><p><strong>Secondary reserve market (SR)</strong>: ancillary service that aims to maintain the generation-demand balance by correcting deviations to fill the gap between forecasted and actual energy consumption. Market agents can submit their upward and downward reserve availability (reserve band) to this 24-hour auction market.</p></li>
+<li><p><strong>Intraday market (ID)</strong>: The purpose of the intraday market is to respond a) to the adjustments that the ISO/TSO makes to either the results of the <strong>DA</strong> or b) to its own deviations from the expected generation availability. This is done through the presentation of electricity power sales and purchase bids by market agents (again, organized through hourly auctions).</p></li>
+<li><p><strong>Imbalance settlement (IB)</strong>: After day <strong>D</strong>, the actual deviations between the true real-time generation of the H-VPP and the energy cleared in the <strong>DA</strong> and <strong>IM</strong> are calculated. Should the real generation exceed the cleared energy, some collection rights will be paid to the H-VPP owner. Otherwise, if the real generation is less than the cleared energy, the H-VPP owner must face some payment obligations.</p></li>
+</ol>
+</li>
+<li><p><strong>Multiperiod</strong>: The model’s scope  corresponds to several periods of the day-ahead (from 1-7 days: 24-168 hours, for example) with high temporal granularity that can be every 5 min or equivalent to the period (1 hour).</p>
+<p>It represents hierarchically the different time scopes to make decisions in an electric system:</p>
+<ol class="arabic simple">
+<li><p>Day-ahead level: every 1 hour,         e.g., 01-01 00:00:00+01:00 to 01-07 23:00:00+01:00</p></li>
+<li><p>Secondary reserve level: every 1 hour, e.g., 01-01 00:00:00+01:00 to 01-07 23:00:00+01:00</p></li>
+<li><p>Intra-day level: every 3 hours,        e.g., 01-01 00:00:00+01:00 to 01-07 21:00:00+01:00</p></li>
+<li><p>Real-time level: every 15 minutes,     e.g., 01-01 00:00:00+01:00 to 01-07 23:45:00+01:00</p></li>
+</ol>
+<p>The time division allows a user-defined flexible representation of the periods for evaluating the system operation.
+The model can be run with a single period (day) or with several periods (days) to allow the analysis of the system evolution, as well as the number of intra-day and real-time levels per period.</p>
+</li>
+<li><p><strong>Stochastic</strong>: Several stochastic parameters that can influence the optimal operation decisions are considered. The model considers uncertainties (scenarios) related to the system operation. These operation scenarios are associated with renewable energy sources, operating reserves, and market prices.</p>
+<p>Therefore, the optimal operation of the H-VPP in electricity markets is a multi-stage decision-making process in which the different operational recourse decisions are taken once random variables (prices and solar/wind production) are known since the first stage decision is taken before that.</p>
+<p>The sequence of events involved in the H-VPP decision-making process is the following:</p>
+<ul class="simple">
+<li><p><strong>Day D-1</strong>: During day D-1, the bid to the three electricity markets (DA, SR, and ID) is submitted, and the markets are cleared:</p>
+<ol class="arabic simple">
+<li><p>The price accepting selling bid to the DA for day D, the first stage variables, are submitted no later than 12:00.</p></li>
+<li><p>At 12:00 the DA closes, and the 24 DA’s clearing prices are made public simultaneously before 13:00 <strong>(stage 1)</strong>.</p></li>
+<li><p>The bidding period in the SR for day D opens at 12:00, and the price accepting bid to the SR can be submitted until 14:00.</p></li>
+<li><p>The 24 SR’s prices are disclosed simultaneously before 15:00 <strong>(stage 2)</strong>.</p></li>
+<li><p>The bidding period in the ID of day D opens at 17:00, and the H-VPP’s price accepting bid (either selling or purchase) to the ID can be submitted until 18:45.</p></li>
+<li><p>The 24 ID’s prices are published simultaneously before 19:30 <strong>(stage 3)</strong>.</p></li>
+</ol>
+</li>
+<li><p><strong>Day D</strong>: During day D, the BESS must operate hourly by the real PG production to deliver the amounts (energies and reserve) cleared in the auctions of day D-1:</p>
+<ol class="arabic simple" start="7">
+<li><p>At every hour <span class="math notranslate nohighlight">\(h \in \{1, \hdots, 24 \}\)</span> of day D, the charges and discharges are decided before observing the value of the actual generation of the PG, according to the state of the BESS at the end of hour <span class="math notranslate nohighlight">\(h−1\)</span> and the energy and reserve commitment of the H-VPP for hour <span class="math notranslate nohighlight">\(h\)</span>. Then, the actual generation of the PG is disclosed, and the value of the imbalances is set <strong>(stages 4–27)</strong>.</p></li>
+</ol>
+</li>
+<li><p><strong>Day D+1</strong>:</p>
+<ol class="arabic simple" start="8">
+<li><p>Finally, after day D, the prices to be applied to imbalances are published <strong>(stage 28)</strong>.</p></li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>The objective function incorporates the four types of profits related to the participation of the H-VPP in the short-term electricity market: <strong>day-ahead market profit</strong>, <strong>secondary reserve market profit</strong>, <strong>intra-day market profit</strong>, and <strong>real-time market profit</strong>.</p>
+<p>The main results of the model can be structured in these items:</p>
+<ul class="simple">
+<li><p><strong>Electricity</strong>: Energy of the price accepting bid per period (24-168 hours equivalent to auctions) of the day-ahead market, operating reserve of the price accepting bid per period of the reserve market, energy of the price accepting bid per period of the intra-day market, charges/discharges of the BESS per period, imbalances (positive and negative) of the H-VPP per period.</p></li>
+<li><p><strong>Hydrogen</strong>: Hydrogen production of the H-VPP per period, hydrogen consumption of the H-VPP per period, hydrogen storage of the H-VPP per period, hydrogen imbalances (positive and negative) of the H-VPP per period.</p></li>
+</ul>
+<p>Results are shown in CSV files and graphical plots.</p>
+<p>A careful implementation has been done to avoid numerical problems by scaling parameters, variables and equations of the optimization problem, allowing the model to be used for different time scopes under a stochastic framework.</p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">HySTEM</a></h1>
+
+
+
+<p class="blurb">version 1.0.0</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="InputData.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Projects.html">Research projects</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Universidad Pontificia Comillas.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/Introduction.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-515200-2']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

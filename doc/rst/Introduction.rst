@@ -1,54 +1,75 @@
-.. openTEPES documentation master file, created by Andres Ramos
+.. HySTEM documentation master file, created by Erik Alvarez
 
+------------
 Introduction
-============
-The *Open Generation, Storage, and Transmission Operation and Expansion Planning Model with RES and ESS* **(openTEPES)** determines the investment plans of new facilities (generators, ESS, and electric lines, hydrogen pipelines, and heat pipes)
-to meet the forecasted demand at minimum cost. The objective is to evaluate the future generation, storage, and electric, hydrogen, and heat network needs.
-The main results are the guidelines for the future structure of the generation, storage, and transmission systems.
+------------
 
-The **openTEPES** model represents a decision support system for defining the **integrated generation, storage, and transmission resource planning** (IRP, GEP+SEP+TEP) of a **large-scale electric system** at the tactical level (i.e., time horizons of 10-20 years),
-defined as a set of **generation, storage, and (electricity, hydrogen, and heat) networks dynamic investment decisions for several future years**. The user pre-defines the expansion candidates, so the model determines the optimal decisions among those specified by the user.
+The *Hydrogen in Short-Term Electricity Markets* **(HySTEM)** model determines the optimal participation in the short-term electricity market of a hydrogen-based virtual power plant (H-VPP).
+The H-VPP is an association of hydrogen-based energy storage systems (ESS), a power generation unit (PG: a Solar PV, Wind, or CCGT), and battery energy storage systems (BESS) that can participate in the market as a single entity.
 
-It automatically determines optimal expansion plans that satisfy multiple attributes simultaneously. Its main features are:
+.. image:: /../img/H-VPP.png
+   :scale: 40%
+   :align: center
 
-- **Dynamic (perfect foresight)**: the scope of the model corresponds to several periods (years) on a long-term horizon, for example 2030, 2035 and 2040.
+The model aims at optimizing the operation scheduling of the H-VPP in the short-term electricity market within a multi-stage stochastic framework (day-ahead, intra-day, real-time, and secondary reserve markets), which considers the uncertainty of the renewable production and the day-ahead, intra-day, and secondary reserve market prices.
+Short-term operation concerns time scopes of 1-7 days with high temporal granularity (15 min-1 h). Its objective is to maximize the expected value of the total profit of the H-VPP.
+The main results are the schedules of the H-VPP in the day-ahead and secondary reserve market and the guidelines for the operation of the H-VPP in the others.
 
-  It hierarchically represents the different time horizons for decision making in an electricity system:
+The **HySTEM** model presents a decision support system for defining the optimal participation of an H-VPP in the short-term electricity market, defined as a set of energy and reserve decisions for one or multiple future days with high temporal granularity.
+The user pre-defines the H-VPP structure, so the model determines the optimal decisions among those specified by the user.
+
+It automatically determines the optimal operation scheduling that satisfies several attributes simultaneously. Its main characteristics are:
+
+- **Markets**:
+  This work considers the operation of the H-VPP in three different electricity markets: the *day-ahead market* **(DA)**, the *secondary reserve market* **(SR)**, and the *intraday markets* **(ID)** plus the imbalance settlement:
+
+  1. **Day-ahead market (DA)**: handles electricity transactions for the following day by presenting 24-hour electricity sales and purchase bids by market participants. The **DA** market result can be modified subsequently by the ISO/TSO to guarantee the safety and reliability of the supply.
+  2. **Secondary reserve market (SR)**: ancillary service that aims to maintain the generation-demand balance by correcting deviations to fill the gap between forecasted and actual energy consumption or generation. Market agents can submit their upward and downward reserve availability (reserve band) to this 24-hour auction market.
+  3. **Intraday market (ID)**: The purpose of the intraday market is to respond a) to the adjustments that the ISO/TSO makes to the results of the **DA** or b) to its own deviations from the expected generation availability. This is done through the presentation of electricity power sales and purchase bids by market agents (again, organized through hourly auctions).
+  4. **Imbalance settlement (IB)**: After day **D**, the actual deviations between the true real-time generation of the H-VPP and the energy cleared in the **DA** and **IM** are calculated. Should the real generation exceed the cleared energy, some collection rights will be paid to the H-VPP owner. Otherwise, if the real generation is less than the cleared energy, the H-VPP owner must face some payment obligations.
+
+- **Multiperiod**: The model’s scope  corresponds to several periods of the day-ahead (from 1-7 days: 24-168 hours, for example) with high temporal granularity that can be every 15 min or equivalent to the period (1 hour).
+
+  It represents hierarchically the different time scopes to make decisions in an electric system:
   
-  - Load level: one hour, e.g., 01-01 00:00:00+01:00 to 12-30 23:00:00+01:00
+  1. Day-ahead level: every 1 hour,         e.g., 01-01 00:00:00+01:00 to 01-07 23:00:00+01:00
+  2. Secondary reserve level: every 1 hour, e.g., 01-01 00:00:00+01:00 to 01-07 23:00:00+01:00
+  3. Intra-day level: every 3 hours,        e.g., 01-01 00:00:00+01:00 to 01-07 21:00:00+01:00
+  4. Real-time level: every 15 minutes,     e.g., 01-01 00:00:00+01:00 to 01-07 23:45:00+01:00
 
-  Time division allows a user-defined flexible representation of time periods for evaluating system operation. It can also be run with chronological periods of several consecutive hours (two-hour, three-hour resolution) to reduce the computational burden without sacrificing accuracy.
-  The model can be run with a single period (year) or with multiple periods (years) to allow analysis of system evolution.
-  The time definition also allows the specification of disconnected representative periods (e.g., days, weeks) to evaluate system operation. The model can be run with a single period (year) or with multiple periods (years) to allow analysis of system evolution.
-  The time definition can also specify unrelated representative periods (e.g., days, weeks) to evaluate system operation. The period (year) must be represented by 8736 hours because several model concepts representing the system operation are based on weeks (168 hours) or months (made of 4 weeks, 672 hours)
+  The time division allows a user-defined flexible representation of the periods for evaluating the system operation.
+  The model can be run with a single period (day) or with several periods (days) to allow the analysis of the system evolution, as well as the number of intra-day and real-time levels per period.
 
-- **Stochastic**: several stochastic parameters are considered that can influence the optimal generation, storage and transmission expansion decisions. The model considers stochastic
-  medium-term annual uncertainties (scenarios) related to the system operation. These operational scenarios are associated with renewable energy sources, energy inflows and outflows, natural water inflows, operating reserves, inertia, and electricity, hydrogen, and heat demand.
-  
-The objective function includes the two main quantifiable costs: the **investment costs for generation, storage, and transmission (CAPEX)** and the **expected variable operation costs (including generation, consumption, emissions, and reliability costs) (system OPEX)**.
-  
-The model formulates a **two-stage stochastic optimization** problem, including binary generation, storage, and electricity, hydrogen, and heat network investment/retirement decisions, generation operation decisions (commitment, startup, and shutdown decisions are also binary), and electric line-switching decisions.
-Capacity expansion takes into account the adequacy system reserve margin and minimum and maximum energy constraints.
+- **Stochastic**: Several stochastic parameters that can influence the optimal operation decisions are considered. The model considers uncertainties (scenarios) related to the system operation. These operation scenarios are associated with renewable energy sources, operating reserves, and market prices.
 
-The highly detailed operation model is an electric **network-constrained unit commitment (NCUC)** based on a **tight and compact** formulation, including **operating reserves** with a
-**DC power flow (DCPF)**, including electric **line-switching** decisions. The **ohmic losses of the electricity network** are considered proportional to the electric line flow. It considers different **energy storage systems (ESS)**, such us pumped-hydro storage,
-battery, demand response, electric vehicles, solar thermal, electrolyzer, etc. It allows analysis of the trade-off between the investment in generation/transmission/pipeline and the investment and/or use of storage capacity.
+  Therefore, the optimal operation of the H-VPP in electricity markets is a multi-stage decision-making process in which the different operational recourse decisions are taken once random variables (prices and solar/wind production) are known since the first stage decision is taken before that.
 
-The model also allows a representation of the **hydro system** based on volume and water inflow data considering the water stream topology (hydro cascade basins). If they are not available it runs with an energy-based representation of the hydro system.
+  The sequence of events involved in the H-VPP decision-making process is the following:
 
-Also, it includes a representation of **Power to Hydrogen (P2H2)** by setting the **hydrogen demand** satisfied by the production of hydrogen with electrolyzers (consume electricity to produce hydrogen) and a **hydrogen network** to distribute it.
-Besides, it includes a representation of **Power to Heat (P2H)** by setting the **heat demand** satisfied by the production of heat with heat pumps or electric heater (consume electricity to produce heat) and a **heat network** to distribute it. If they are not available it runs with just the other energy carriers.
+  - **Day D-1**: During day D-1, the bid to the three electricity markets (DA, SR, and ID) is submitted, and the markets are cleared:
 
-The main results of the model can be structured in these topics:
-  
-- **Investment**: (generation, storage, hydro reservoirs, electric lines, hydrogen pipelines, and heat pipes) investment decisions and cost
-- **Operation**: unit commitment, startup, and shutdown of non-renewable units, unit output and aggregation by technologies (thermal, storage hydro, pumped-hydro storage, RES), RES curtailment, electric line, hydrogen pipeline, and heat pipe flows, line ohmic losses, node voltage angles, upward and downward operating reserves, ESS inventory levels, hydro reservoir volumes, power, hydrogen, and heat not served
-- **Emissions**: CO2 emissions by unit
-- **Marginal**: Locational Short-Run Marginal Costs (LSRMC), stored energy value, water volume value
-- **Economic**: operation, emission, and reliability costs and revenues from operation and operating reserves
-- **Flexibility**: flexibility provided by demand, by the different generation and consumption technologies, and by power not served
+    1. The price accepting selling bid to the DA for day D, the first stage variables, are submitted no later than 12:00.
+    2. At 12:00 the DA closes, and the 24 DA's clearing prices are made public simultaneously before 13:00 **(stage 1)**.
+    3. The bidding period in the SR for day D opens at 12:00, and the price accepting bid to the SR can be submitted until 14:00.
+    4. The 24 SR's prices are disclosed simultaneously before 15:00 **(stage 2)**.
+    5. The bidding period in the ID of day D opens at 17:00, and the price accepting bid (either selling or purchase) to the ID can be submitted until 18:45.
+    6. The 24 ID's prices are published simultaneously before 19:30 **(stage 3)**.
 
-Results are shown in csv files and graphical plots.
+  - **Day D**: During day D, the BESS must operate hourly by the real PG production to deliver the amounts (energies and reserve) cleared in the auctions of day D-1:
 
-openTEPES is being used by `investors, market participants, system planners, and consultants <https://opentepes.readthedocs.io/en/latest/Projects.html>`_. A careful implementation has been done to avoid numerical problems by scaling parameters, variables and equations of the optimization problem allowing the model to be used for very large-scale cases, e.g., the European system with hourly detail.
-For example, a European operation case study with hourly detail has reached 39.7 million constraints and 34.7 million variables of an LP problem. The mainland Spain operation case has reached 5.2 million constraints and 6.8 million variables (1.3 million binary).
+    7. At every hour :math:`h \in \{1, \ldots, 24 \}` of day D, the charges and discharges are decided before observing the value of the actual generation of the PG, according to the state of the BESS at the end of hour :math:`h−1` and the energy and reserve commitment of the H-VPP for hour :math:`h`. Then, the actual generation of the PG is disclosed, and the value of the imbalances is set **(stages 4–27)**.
+
+  - **Day D+1**:
+
+    8. Finally, after day D, the prices to be applied to imbalances are published **(stage 28)**.
+
+The objective function incorporates the four types of profits related to the participation of the H-VPP in the short-term electricity market: **day-ahead**, **secondary reserve**, **intra-day**, and **real-time market profit**.
+
+The main results of the model can be structured in these items:
+
+- **Electricity**: Energy of the price accepting bid per period (24-168 hours equivalent to auctions) of the day-ahead market, operating reserve of the price accepting bid per period of the reserve market, energy of the price accepting bid per period of the intra-day market, charges/discharges of the BESS per period, imbalances (positive and negative) of the H-VPP per period.
+- **Hydrogen**: Hydrogen production, consumption, storage, and imbalances (positive and negative) of the H-VPP per period.
+
+Results are shown in CSV files and graphical plots.
+
+A careful implementation has been done to avoid numerical problems by scaling parameters, variables and equations of the optimization problem, allowing the model to be used for different time scopes under a stochastic framework.

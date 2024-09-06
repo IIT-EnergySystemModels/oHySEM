@@ -1,689 +1,602 @@
-.. openTEPES documentation master file, created by Andres Ramos
+.. HySTEM documentation master file, created by Erik Alvarez
 
 Mathematical Formulation
 ========================
-Here we present the mathematical formulation of the optimization problem solved by the **openTEPES** model. See also some TEP-related publications:
+Here we present the mathematical formulation of the optimization problem solved by the **HySTEM** model.
 
-* E.F. Álvarez, J.C. López, L. Olmos, A. Ramos "An Optimal Expansion Planning of Power Systems Considering Cycle-Based AC Optimal Power Flow" Sustainable Energy, Grids and Networks, May 2024. `10.1016/j.segan.2024.101413 <https://doi.org/10.1016/j.segan.2024.101413>`_
+Acronyms
+--------
 
-* E.F. Álvarez, L. Olmos, A. Ramos, K. Antoniadou-Plytaria, D. Steen, and L.A. Tuan “Values and Impacts of Incorporating Local Flexibility Services in Transmission Expansion Planning” Electric Power Systems Research 212, July 2022. `10.1016/j.epsr.2022.108480 <https://doi.org/10.1016/j.epsr.2022.108480>`_
-
-* A. Ramos, E. Quispe, S. Lumbreras "`OpenTEPES: Open-source Transmission and Generation Expansion Planning <https://www.sciencedirect.com/science/article/pii/S235271102200053X/pdfft?md5=ece8d3328c853a4795eda29acd2ad140&pid=1-s2.0-S235271102200053X-main.pdf>`_"
-  *SoftwareX* 18: June 2022. `10.1016/j.softx.2022.101070 <https://doi.org/10.1016/j.softx.2022.101070>`_
-
-* S. Lumbreras, H. Abdi, A. Ramos, and M. Moradi "Introduction: The Key Role of the Transmission Network" in the book S. Lumbreras, H. Abdi, A. Ramos (eds.) "Transmission Expansion Planning: The Network Challenges of the Energy Transition" Springer, 2020 ISBN 9783030494278 `10.1007/978-3-030-49428-5_1 <https://link.springer.com/chapter/10.1007/978-3-030-49428-5_1>`_
-
-* S. Lumbreras, F. Banez-Chicharro, A. Ramos "Optimal Transmission Expansion Planning in Real-Sized Power Systems with High Renewable Penetration" Electric Power Systems Research 49, 76-88, Aug 2017 `10.1016/j.epsr.2017.04.020 <https://doi.org/10.1016/j.epsr.2017.04.020>`_
-
-* S. Lumbreras, A. Ramos "The new challenges to transmission expansion planning. Survey of recent practice and literature review" Electric Power Systems Research 134: 19-29, May 2016 `10.1016/j.epsr.2015.10.013 <https://doi.org/10.1016/j.epsr.2015.10.013>`_
-
-* Q. Ploussard, L. Olmos and A. Ramos "A search space reduction method for transmission expansion planning using an iterative refinement of the DC Load Flow model" IEEE Transactions on Power Systems 35 (1): 152-162, Jan 2020 `10.1109/TPWRS.2019.2930719 <https://doi.org/10.1109/TPWRS.2019.2930719>`_
-
-* Q. Ploussard, L. Olmos and A. Ramos "An efficient network reduction method for transmission expansion planning using multicut problem and Kron" reduction IEEE Transactions on Power Systems 33 (6): 6120-6130, Nov 2018 `10.1109/TPWRS.2018.2842301 <https://doi.org/10.1109/TPWRS.2018.2842301>`_
-
-* Q. Ploussard, L. Olmos and A. Ramos "An operational state aggregation technique for transmission expansion planning based on line benefits" IEEE Transactions on Power Systems 32 (4): 2744-2755, Oct 2017 `10.1109/TPWRS.2016.2614368 <https://doi.org/10.1109/TPWRS.2016.2614368>`_
+===========  ====================================================================
+**Acronym**  **Description**
+===========  ====================================================================
+BESS         Battery Energy Storage System
+DA           Day-Ahead Market
+ESS          Energy Storage System (includes BESS and HESS)
+H-VPP        Hydrogen-based Virtual Power Plant
+HESS         Hydrogen Energy Storage System
+ID           Intraday Markets
+RT           Real Time Market
+SoC          State of Charge
+VRE          Variable Renewable Energy
+===========  ====================================================================
 
 Indices
 -------
-=======================  ===============================================================================================
-:math:`p`                Period (e.g., year)
-:math:`\omega`           Scenario
-:math:`n`                Load level (e.g., hour)
-:math:`g`                Generator (thermal or hydro unit or energy storage system)
-:math:`t`                Thermal unit
-:math:`e`                Energy Storage System (ESS)
-:math:`h`                Hydropower or pumped-storage hydro plant (associated to a reservoir modeled in water units)
-:math:`e',e''`           Reservoir (natural water inflows in m\ :sup:`3`/s and volume in hm\ :sup:`3`)
-:math:`h \in up(e')`     Hydro or pumped-storage hydropower plant :math:`h` upstream of reservoir :math:`e'`
-:math:`h \in dw(e')`     Hydro or pumped-storage hydropower plant :math:`h` downstream of reservoir :math:`e'`
-:math:`e'' \in up(e')`   Reservoir :math:`e''` upstream of reservoir :math:`e'`
-:math:`i, j`             Node
-:math:`z`                Zone. Each node belongs to a zone :math:`i \in z`
-:math:`a`                Area. Each zone belongs to an area :math:`z \in a`
-:math:`r`                Region. Each area belongs to a region :math:`a \in r`
-:math:`c`                Circuit
-:math:`ijc`              Line (initial node, final node, circuit)
-:math:`cy`               Electricity network cycle
-:math:`CY`               Electricity network cycle basis
-:math:`CLC`              AC candidate electricity transmission lines in a certain cycle
-:math:`EG, CG`           Set of existing and candidate generators
-:math:`EB, CB`           Set of existing and candidate fuel heaters
-:math:`EE, CE`           Set of existing and candidate ESS
-:math:`ER, CR`           Set of existing and candidate reservoirs
-:math:`EL, CL`           Set of existing and non-switchable, and candidate and switchable electric transmission lines
-:math:`EP, CP`           Set of existing and candidate pipelines
-=======================  ===============================================================================================
+
+============  =======================================================================================================================
+**Index**     **Description**
+============  =======================================================================================================================
+:math:`ω`     Scenario (e.g., solar generation, ID prices, etc.)
+:math:`nd`    Node
+:math:`n`     Load level
+:math:`\nu`   Duration of the time step for the load levels (e.g., 0.25 h for 15 min load levels, 0.5 h for half an hour load levels)
+:math:`eg`    Electricity unit (thermal or hydro unit or ESS)
+:math:`et`    Electricity thermal unit
+:math:`es`    Electricity energy storage system (eESS)
+:math:`hg`    Hydrogen unit (e.g., electrolyzer, hydrogen tank)
+:math:`hz`    Hydrogen electrolyzer
+:math:`hs`    Hydrogen energy storage system (e.g., hydrogen tank)
+:math:`R_i`   Reserve market number :math:`i` (secondary and tertiary)
+============  =======================================================================================================================
 
 Parameters
 ----------
 
 They are written in **uppercase** letters.
 
-==================  =======================================================  =======
-**General**
-------------------------------------------------------------------------------------
-:math:`T`           Base period (year)                                       year
-:math:`\nu`         Time step. Duration of the load levels (e.g., 2 h, 3 h)
-:math:`\delta`      Annual discount rate                                     p.u.
-:math:`WG^p`        Period (year) weight                                     p.u.
-:math:`DF^p`        Discount factor for each period (year)                   p.u.
-==================  =======================================================  =======
+=============================================  ===================================================================  ========
+**Demand**                                     **Description**                                                      **Unit**
+---------------------------------------------  -------------------------------------------------------------------  --------
+:math:`ED_{nnd}`                               Electricity demand                                                   GW
+:math:`HD_{nnd}`                               Hydrogen demand                                                      kgH2
+:math:`DUR_n`                                  Duration of each load level                                          h
+:math:`CEB_{nnd},    PES^{DA}_{nnd}`           Cost/price of electricity bought/sold                                €/MWh
+:math:`CHB_{nnd},    PHS^{DA}_{nnd}`           Cost/price of hydrogen bought/sold                                   €/kgH2
+:math:`UP^{SR}_{n},  DP^{SR}_{n}`              Price of :math:`SR` upward and downward secondary reserve            €/MW
+:math:`UR^{SR}_{n},  DR^{SR}_{n}`              Requirement for :math:`SR` upward and downward secondary reserve     €/MW
+:math:`UEI^{TR}_{n}, DEI^{TR}_{n}`             Expected income of :math:`TR` upward and downward tertiary reserve   €/MW
+:math:`CENS`                                   Cost of electricity not served. Value of Lost Load (VoLL)            €/MWh
+:math:`CHNS`                                   Cost of hydrogen not served.                                         €/tH2
+=============================================  ===================================================================  ========
 
-========================  ====================================================  =======
-**Electricity demand**
----------------------------------------------------------------------------------------
-:math:`D^p_{\omega ni}`   Electricity demand in each node                       GW
-:math:`PD_{pa}`           Peak demand in each area                              GW
-:math:`DUR^p_{\omega n}`             Duration of each load level                           h
-:math:`CENS`              Cost of energy not served. Value of Lost Load (VoLL)  €/MWh
-========================  ====================================================  =======
+==============  =============================  ========
+**Scenarios**   **Description**                **Unit**
+--------------  -----------------------------  --------
+:math:`P^ω`     Probability of each scenario   p.u.
+==============  =============================  ========
 
-========================  ====================================================  =======
-**Hydrogen demand**
----------------------------------------------------------------------------------------
-:math:`DH^p_{\omega ni}`  Hydrogen demand in each node                          tH2
-:math:`CHNS`              Cost of hydrogen not served                           €/tH2
-========================  ====================================================  =======
+==========================================================================================  =======================================================================================================  ===========
+**Generation system**                                                                       **Description**                                                                                          **Unit**
+------------------------------------------------------------------------------------------  -------------------------------------------------------------------------------------------------------  -----------
+:math:`\underline{EP}_{neg},     \overline{EP}_{neg}`                                       Minimum and maximum electricity generation  of a generator                                               MWh
+:math:`\widehat{EP}_{neg}`                                                                  Last update of the position in the market of the electricity generation of a generator                   MWh
+:math:`\underline{EC}_{neg},     \overline{EC}_{neg}`                                       Minimum and maximum electricity consumption of an ESS                                                    MWh
+:math:`\overline{EC}^{comp}_{nhs}`                                                          Maximum electricity consumption of a compressor unit to compress hydrogen                                MWh
+:math:`\overline{EC}^{standby}_{nhz}`                                                       Maximum electricity consumption of an electrolyzer unit during the standby mode                          MWh
+:math:`\widehat{EC}_{neg}`                                                                  Last update of the position in the market of the electricity consumption of a generator                  MWh
+:math:`\underline{EI}_{neg},     \overline{EI}_{neg}`                                       Maximum and minimum electricity storage  of an ESS                                                       MWh
+:math:`\underline{EEO}_{neg},    \overline{EEO}_{neg}`                                      Maximum and minimum electricity outflows of an ESS (e.g., kg of H2)                                      MW
+:math:`\underline{EEI}_{neg},    \overline{EEI}_{neg}`                                      Maximum and minimum electricity inflows  of an ESS                                                       MW
+:math:`\underline{HP}_{nhg},     \overline{HP}_{nhg}`                                       Minimum and maximum hydrogen generation  of a generator                                                  kgH2
+:math:`\widehat{HP}_{nhg}`                                                                  Last update of the position in the market of the hydrogen generation of a generator                      MWh
+:math:`\underline{HC}_{nhg},     \overline{HC}_{nhg}`                                       Minimum and maximum hydrogen consumption of an ESS                                                       kgH2
+:math:`\widehat{HC}_{nhg}`                                                                  Last update of the position in the market of the hydrogen consumption of a generator                     kgH2
+:math:`\underline{HI}_{nhg},     \overline{HI}_{nhg}`                                       Maximum and minimum hydrogen storage     of an ESS                                                       kgH2
+:math:`\underline{HEO}_{nhg},    \overline{HEO}_{nhg}`                                      Maximum and minimum hydrogen outflows    of an ESS                                                       kgH2
+:math:`\underline{HEI}_{nhg},    \overline{HEI}_{nhg}`                                      Maximum and minimum hydrogen inflows     of an ESS (e.g., kg of H2)                                      kgH2
+:math:`\underline{EP}_{neg},     \overline{EP}_{neg}`                                       Minimum and maximum electricity generation  of a generator                                               MWh
+:math:`CF_g, CV_g`                                                                          Fixed and variable cost of an electricity generator. Variable cost includes fuel, O&M and emission cost  €/h, €/MWh
+:math:`RU_t, RD_t`                                                                          Ramp up and ramp down of an electricity thermal unit                                                     MW/h
+:math:`RC^{+}_{hz}, RC^{-}_{hz}`                                                            Ramp up and ramp down of a hydrogen unit                                                                 kgH2/h
+:math:`TU_t, TD_t`                                                                          Minimum uptime and downtime of an electricity thermal unit                                               h
+:math:`CSU_g, CSD_g`                                                                        Startup and shutdown cost of an electricity committed unit                                               M€
+:math:`CRU_h, CRD_h`                                                                        Ramp up and ramp down cost of a hydrogen unit                                                            M€/MWh
+:math:`EF_e`                                                                                Round-trip efficiency of the charge/discharge of an electricity ESS                                      p.u.
+:math:`EF_h`                                                                                Round-trip efficiency of the charge/discharge of a hydrogen ESS                                          p.u.
+:math:`PF_{he}`                                                                             Production function of electricity from hydrogen                                                         kWh/kgH2
+:math:`PF_{eh}`                                                                             Production function of hydrogen from electricity                                                         kgH2/kWh
+:math:`URA^{SR}_{n}, DRA^{SR}_{n}`                                                          :math:`SR` upward and downward activation                                                                p.u.
+:math:`URA^{TR}_{n}, DRA^{TR}_{n}`                                                          :math:`TR` upward and downward activation                                                                p.u.
+==========================================================================================  =======================================================================================================  ===========
 
-=========================  ====================================================  =======
-**Heat demand**
-----------------------------------------------------------------------------------------
-:math:`DHt^p_{\omega ni}`  Heat demand in each node                              GW
-:math:`CHtNS`              Cost of heat not served                               €/MWh
-=========================  ====================================================  =======
-
-===========================  ====================================================  =======
-**Scenarios**
-------------------------------------------------------------------------------------------
-:math:`P^p_{\omega}`         Probability of each scenario in each period           p.u.
-===========================  ====================================================  =======
-
-==========================================  ==================================================================  ====
-**Operating reserves**
---------------------------------------------------------------------------------------------------------------------
-:math:`URA, DRA`                            Upward and downward reserve activation                              p.u.
-:math:`\underline{DtUR}, \overline{DtUR}`   Minimum and maximum ratios downward to upward operating reserves    p.u.
-:math:`UR^p_{\omega na}, DR^p_{\omega na}`  Upward and downward operating reserves for each area                GW
-==========================================  ==================================================================  ====
-
-==================================  ================================================================  ====
-**Adequacy system reserve margin**
-----------------------------------------------------------------------------------------------------------
-:math:`RM_{pa}`                     Minimum adequacy system reserve margin for each period and area   p.u.
-==================================  ================================================================  ====
-
-==================================  ================================================================  =====
-**Maximum CO2 emission**
------------------------------------------------------------------------------------------------------------
-:math:`EL_{pa}`                     Maximum CO2 emission for each period, scenario, and area          MtCO2
-==================================  ================================================================  =====
-
-==================================  ================================================================  =====
-**Minimum RES energy**
------------------------------------------------------------------------------------------------------------
-:math:`RL_{pa}`                     Minimum RES energy for each period, scenario, and area            GWh
-==================================  ================================================================  =====
-
-==============================  ========================================================  ====
-**System inertia**
-----------------------------------------------------------------------------------------------
-:math:`SI^p_{\omega na}`        System inertia for each area                              s
-==============================  ========================================================  ====
-
-=================================================================  ========================================================================================================================  ================
-**Generation system**
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  ----------------
-:math:`CFG_g`                                                      Annualized fixed cost of a candidate generator                                                                            M€/yr
-:math:`CFR_g`                                                      Annualized fixed cost of a candidate generator to be retired                                                              M€/yr
-:math:`A_g`                                                        Availability of each generator for adequacy reserve margin                                                                p.u.
-:math:`\underline{GP}_g, \overline{GP}_g`                          Rated minimum load and maximum output of a generator                                                                      GW
-:math:`\underline{GP}^p_{\omega ng}, \overline{GP}^p_{\omega ng}`  Minimum load and maximum output of a generator                                                                            GW
-:math:`\underline{GC}^p_{\omega ne}, \overline{GC}^p_{\omega ne}`  Minimum and maximum consumption of an ESS                                                                                 GW
-:math:`\underline{GH}_g, \overline{GH}_g`                          Rated minimum and maximum heat of a CHP or a fuel heater                                                                  GW
-:math:`CF^p_{\omega ng}, CV^p_{\omega ng}`                         Fixed (no load) and variable cost of a generator. Variable cost includes fuel and O&M                                     €/h, €/MWh
-:math:`CE^p_{\omega ng}`                                           Emission cost of a generator                                                                                              €/MWh
-:math:`ER_g`                                                       Emission rate of a generator                                                                                              tCO2/MWh
-:math:`CV_e`                                                       Variable cost of an ESS or pumped-storage hydropower plant when charging                                                  €/MWh
-:math:`RU_g, RD_g`                                                 Ramp up/down of a non-renewable unit or maximum discharge/charge rate for ESS discharge/charge                            MW/h
-:math:`TU_t, TD_t`                                                 Minimum uptime and downtime of a thermal unit                                                                             h
-:math:`TS_t`                                                       Minimum stable time of a thermal unit                                                                                     h
-:math:`ST_e`                                                       Maximum shift time of an ESS unit (in particular, for demand side management)                                             h
-:math:`CSU_g, CSD_g`                                               Startup and shutdown cost of a committed unit                                                                             M€
-:math:`\tau_e`                                                     Storage cycle of the ESS (e.g., 1, 24, 168, 8736 h -for daily, weekly, monthly, yearly-)                                  h
-:math:`\rho_e`                                                     Outflow cycle of the ESS (e.g., 1, 24, 168, 8736 h -for hourly, daily, weekly, monthly, yearly-)                          h
-:math:`\sigma_g`                                                   Energy cycle of the unit (e.g., 24, 168, 672, 8736 h -for daily, weekly, monthly, yearly-)                                h
-:math:`GI_g`                                                       Generator inertia                                                                                                         s
-:math:`EF_e`                                                       Round-trip efficiency of the pump/turbine cycle of a pumped-storage hydro plant or charge/discharge of a battery          p.u.
-:math:`PF_h`                                                       Production function from water inflows to electricity                                                                     kWh/m\ :sup:`3`
-:math:`PF'_e`                                                      Production function from electricity to hydrogen of an electrolyzer                                                       kWh/kgH2
-:math:`PF''_e`                                                     Production function from electricity to heat of a heat pump or an electrical heater                                       kWh/kWh
-:math:`PH''_g`                                                     Power to heat ratio for a CHP :math:`\frac{\overline{GP}_g - \underline{GP}_g}{\overline{GH}_g - \underline{GH}_g}`       kWh/kWh
-:math:`\underline{I}^p_{\omega ne}, \overline{I}^p_{\omega ne}`    Minimum and maximum storage of an ESS (e.g., hydropower plant, closed-/open-loop pumped-storage hydro)                    GWh
-:math:`I^p_{\omega e}`                                             Initial storage of an ESS (e.g., hydropower plant, closed-/open-loop pumped-storage hydro)                                GWh
-:math:`\underline{E}^p_{\omega ne}, \overline{E}^p_{\omega ne}`    Minimum and maximum energy produced by a unit in an interval defined                                                      GW
-:math:`EI^p_{\omega ne}`                                           Energy inflows of an ESS (e.g., hydropower plant)                                                                         GW
-:math:`EO^p_{\omega ne}`                                           Energy outflows of an ESS (e.g., hydrogen, electric vehicle, hydropower plant, demand response)                           GW
-=================================================================  ========================================================================================================================  ================
-
-=====================================================================  =======================================================================================================  ================
-**Hydropower system**
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-:math:`CFE_{e'}`                                                       Annualized fixed cost of a candidate reservoir                                                           M€/yr
-:math:`\underline{I'}^p_{\omega ne'}, \overline{I'}^p_{\omega ne'}`    Minimum and maximum volume of a reservoir                                                                hm\ :sup:`3`
-:math:`HI^p_{\omega ne'}`                                              Natural water inflows of a reservoir                                                                     m\ :sup:`3`/s
-:math:`HO^p_{\omega ne'}`                                              Hydro outflows of a reservoir (e.g., irrigation)                                                         m\ :sup:`3`/s
-=====================================================================  =======================================================================================================  ================
-
-=========================================  =========================================================================================================================================  =====
-**Electricity transmission system**
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-:math:`CFT_{ijc}`                          Annualized fixed cost of a candidate electricity transmission line                                                                         M€/yr
-:math:`\overline{F}_{ijc}`                 Net transfer capacity (total transfer capacity multiplied by the security coefficient) of a transmission line                              GW
-:math:`\overline{F}'_{ijc}`                Maximum power flow used in the Kirchhoff's 2nd law constraint (e.g., disjunctive constraint for the candidate AC lines)                    GW
-:math:`L_{ijc}`                            Loss factor of an electric transmission line                                                                                               p.u.
-:math:`X_{ijc}`                            Reactance of an electric transmission line                                                                                                 p.u.
-:math:`SON_{ijc}, SOF_{ijc}`               Minimum switch-on and switch-off state of a line                                                                                           h
-:math:`S_B`                                Base power                                                                                                                                 GW
-:math:`\overline{θ}'_{cy,i'j'c'}`          Maximum angle used in the cycle Kirchhoff's 2nd law constraint (i.e., disjunctive constraint for a cycle with some AC candidate lines)     rad
-=========================================  =========================================================================================================================================  =====
-
-The net transfer capacity of an electric transmission line can be different in each direction. However, here it is presented as equal for simplicity.
-
-=========================================  =================================================================================================================  =====
-**Hydrogen transmission system**
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-:math:`CFH_{ijc}`                          Annualized fixed cost of a candidate hydrogen transmission pipeline                                                M€/yr
-:math:`\overline{FH}_{ijc}`                Net transfer capacity (total transfer capacity multiplied by the security coefficient) of a pipeline               tH2
-=========================================  =================================================================================================================  =====
-
-The net transfer capacity of a hydrogen transmission pipeline can be different in each direction. However, here it is presented as equal for simplicity.
-
-=========================================  =================================================================================================================  ======
-**Heat transmission system**
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-:math:`CFP_{ijc}`                          Annualized fixed cost of a candidate heat pipe                                                                     M€/yr
-:math:`\overline{FP}_{ijc}`                Net transfer capacity (total transfer capacity multiplied by the security coefficient) of a heat pipe              GW
-=========================================  =================================================================================================================  ======
-
-The net transfer capacity of a heat pipe can be different in each direction. However, here it is presented as equal for simplicity.
+==========================================================================================  =======================================================================================================  ===========
+**Network system**                                                                          **Description**                                                                                          **Unit**
+------------------------------------------------------------------------------------------  -------------------------------------------------------------------------------------------------------  -----------
+:math:`\underline{ENF}_{nijc}, \overline{ENF}_{nijc}`                                       Minimum and maximum electricity network flow through the line ijc                                        MWh
+:math:`\underline{HNF}_{nijc}, \overline{HNF}_{nijc}`                                       Minimum and maximum hydrogen network flow through the line ijc                                           MWh
+:math:`\overline{X}_{nijc}`                                                                 Reactance of the line ijc                                                                                p.u.
+==========================================================================================  =======================================================================================================  ===========
 
 Variables
 ---------
 
 They are written in **lowercase** letters.
 
-==========================  ==================  ===
-**Electricity demand**
----------------------------------------------------
-:math:`ens^p_{\omega ni}`   Energy not served   GW
-==========================  ==================  ===
+==========================================    ======================================================  ========  ============================================
+**Demand**                                    **Description**                                         **Unit**  **oHySTEM.py variable**
+------------------------------------------    ------------------------------------------------------  --------  --------------------------------------------
+:math:`e^{b}_{nnd}, e^{s}_{nnd}`              Electricity bought and sold in the electricity market   GW        «``vElectricityBuy``, ``vElectricitySell``»
+:math:`ens_{nnd}`                             Electricity not served                                  GW        «``vENS``»
+:math:`ed_{nnd}`                              Electricity demand                                      GW        «``vEleTotalDemand``»
+:math:`ed^{\Delta}_{nnd}`                     Electricity demand due to market correction             GW        «``vEleTotalDemandDelta``»
+:math:`h^{b}_{nnd}, h^{s}_{nnd}`              Hydrogen bought and sold in the hydrogen market         kgH2      «``vHydrogenBuy``, ``vHydrogenSell``»
+:math:`hns_{nnd}`                             Hydrogen not served                                     kgH2      «``vHNS``»
+:math:`hd_{nnd}`                              Hydrogen demand                                         kgH2      «``vHydTotalDemand``»
+:math:`hd^{\Delta}_{nnd}`                     Hydrogen demand due to market correction                kgH2      «``vHydTotalDemandDelta``»
+==========================================    ======================================================  ========  ============================================
 
-==========================  ===================  ===
-**Hydrogen demand**
-----------------------------------------------------
-:math:`hns^p_{\omega ni}`   Hydrogen not served  tH2
-==========================  ===================  ===
+==============================================  ==========================================================================================  ========  ==========================================================
+**Generation system**                           **Description**                                                                             **Unit**  **oHySTEM.py variable**
+----------------------------------------------  ------------------------------------------------------------------------------------------  --------  ----------------------------------------------------------
+:math:`ep_{neg}`                                Electricity production (discharge if an ESS)                                                GW        «``vEleTotalOutput``»
+:math:`ec_{nes}, ec_{nhz}`                      Electricity consumption of electricity ESS and electrolyzer units                           GW        «``vEleTotalCharge``»
+:math:`ep2b_{neg}`                              Electricity production of the second block (i.e., above the minimum load)                   GW        «``vEleTotalOutput2ndBlock``»
+:math:`ec2b_{nes}, ec2b_{nhz}`                  Electricity charge of the second block (i.e., above the minimum charge)                     GW        «``vEleTotalCharge2ndBlock``»
+:math:`ep^{\Delta}_{neg}`                       Electricity production (discharge if an ESS) for market correction                          GW        «``vEleTotalOutputDelta``»
+:math:`ec^{\Delta}_{nes}, ec^{\Delta}_{nhz}`    Electricity consumption of electricity ESS and electrolyzer units for market correction     GW        «``vEleTotalChargeDelta``»
+:math:`ec^{R+}_{nes}, ec^{R+}_{nhz}`            Positive ramp of electricity consumption of an ESS and electrolyzer                         GW        «``vEleTotalChargeRampPos``»
+:math:`ec^{R-}_{nes}, ec^{R-}_{nhz}`            Negative ramp of electricity consumption of an ESS and electrolyzer                         GW        «``vEleTotalChargeRampNeg``»
+:math:`eei_{nes}`                               Electricity inflows of an ESS                                                               GWh       «``vEleEnergyInflows``»
+:math:`eeo_{nes}`                               Electricity outflows of an ESS                                                              GWh       «``vEleEnergyOutflows``»
+:math:`esi_{nes}`                               Electricity ESS stored energy (inventory, SoC for batteries)                                GWh       «``vEleInventory``»
+:math:`ess_{nes}`                               Electricity ESS spilled energy                                                              GWh       «``vEleSpillage``»
+:math:`hp_{nhg}`                                Hydrogen production (discharge if an ESS)                                                   kgH2      «``vHydTotalOutput``»
+:math:`hc_{nhs}, hc_{neg}`                      Hydrogen consumption of hydrogen ESS and electricity thermal units                          kgH2      «``vHydTotalCharge``»
+:math:`hp2b_{nhg}`                              Hydrogen production of the second block (i.e., above the minimum load)                      kgH2      «``vHydTotalOutput2ndBlock``»
+:math:`hc2b_{nhs}, hc2b_{neg}`                  Hydrogen charge of the second block (i.e., above the minimum charge)                        kgH2      «``vHydTotalCharge2ndBlock``»
+:math:`hp^{\Delta}_{nhg}`                       Hydrogen production (discharge if an ESS) for market correction                             kgH2      «``vHydTotalOutputDelta``»
+:math:`hc^{\Delta}_{nhs}, hc^{\Delta}_{neg}`    Hydrogen consumption of hydrogen ESS and electricity thermal units for market correction    kgH2      «``vHydTotalChargeDelta``»
+:math:`hei_{nhs}`                               Hydrogen inflows of an ESS                                                                  GWh       «``vHydEnergyInflows``»
+:math:`heo_{nhs}`                               Hydrogen outflows of an ESS                                                                 GWh       «``vHydEnergyOutflows``»
+:math:`hsi_{nhs}`                               Hydrogen ESS stored energy (inventory, SoC for batteries)                                   GWh       «``vHydInventory``»
+:math:`hss_{nhs}`                               Hydrogen ESS spilled energy                                                                 GWh       «``vHydSpillage``»
+:math:`ec^{Comp}_{nhs}`                         Electricity consumption of a compressor unit to compress hydrogen                           kgH2      «``vHydCompressorConsumption``»
+:math:`ec^{StandBy}_{nhz}`                      Electricity consumption of a electrolyzer unit during the standby mode                      kgH2      «``vHydStandByConsumption``»
+:math:`up^{SR}_{neg}, dp^{SR}_{neg}`            Upward and downward :math:`SR` operating reserves of a generating or ESS unit               GW        «``vEleReserveProd_Up_SR``, ``vEleReserveProd_Down_SR``»
+:math:`uc^{SR}_{nes}, dc^{SR}_{nes}`            Upward and downward :math:`SR` operating reserves of an ESS as a consumption unit           GW        «``vEleReserveCons_Up_SR``, ``vEleReserveCons_Down_SR``»
+:math:`up^{TR}_{ωneg}, dp^{TR}_{ωneg}`          Upward and downward :math:`TR` operating reserves of a generating or ESS unit               GW        «``vEleReserveProd_Up_TR``, ``vEleReserveProd_Down_TR``»
+:math:`uc^{TR}_{ωnes}, dc^{TR}_{ωnes}`          Upward and downward :math:`TR` operating reserves of an ESS as a consumption unit           GW        «``vEleReserveCons_Up_TR``, ``vEleReserveCons_Down_TR``»
+:math:`euc_{neg}, esu_{neg}, esd_{neg}`         Commitment, startup and shutdown of electricity generation unit per load level              {0,1}     «``vGenCommitment``, ``vGenStartup``, ``vGenShutdown``»
+:math:`euc^{max}_{neg}`                         Maximum commitment of electricity generation unit per load level                            {0,1}     «``vGenMaxCommitment``»
+:math:`huc_{nhg}`                               Commitment of hydrogen generation unit per load level                                       {0,1}     «``vHydCommitment``, ``vHydStartup``, ``vHydShutdown``»
+:math:`huc^{max}_{nhg}`                         Maximum commitment of hydrogen generation unit per load level                                {0,1}     «``vHydMaxCommitment``»
+:math:`esf_{nes}`                               Electricity ESS energy functioning per load level, charging or discharging                  {0,1}     «``vEleStorOperat``»
+:math:`hsf_{nhs}`                               Hydrogen ESS energy functioning per load level, charging or discharging                     {0,1}     «``vHydStorOperat``»
+:math:`hcf_{nhs}`                               Hydrogen compressor functioning, off or on                                                  {0,1}     «``vHydCompressorOperat``»
+:math:`hsb_{nhg}`                               Hydrogen electrolyzer StandBy mode, off or on                                               {0,1}     «``vHydStandBy``»
+==============================================  ==========================================================================================  ========  ==========================================================
 
-==========================  ===================  ===
-**Heat demand**
-----------------------------------------------------
-:math:`htns^p_{\omega ni}`  Heat not served      GW
-==========================  ===================  ===
-
-===============================================================  ================================================================================================  ======
-**Generation system**
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-:math:`icg^p_g`                                                  Candidate generator or ESS installed or not                                                       {0,1}
-:math:`rcg^p_g`                                                  Candidate generator or ESS retired   or not                                                       {0,1}
-:math:`gp^p_{\omega ng}, gc^p_{\omega ng}`                       Generator output (discharge if an ESS) and consumption (charge if an ESS)                         GW
-:math:`go^p_{\omega ne}`                                         Generator outflows of an ESS                                                                      GW
-:math:`p^p_{\omega ng}`                                          Generator output of the second block (i.e., above the minimum load)                               GW
-:math:`c^p_{\omega ne}`                                          Generator charge                                                                                  GW
-:math:`gh^p_{\omega ng}`                                         Heat output of a fuel heater                                                                      GW
-:math:`ur^p_{\omega ng}, dr^p_{\omega ng}`                       Upward and downward operating reserves of a non-renewable generating unit                         GW
-:math:`ur'^p_{\omega ne}, dr'^p_{\omega ne}`                     Upward and downward operating reserves of an ESS as a consumption unit                            GW
-:math:`ei^p_{\omega ne}`                                         Variable energy inflows of a candidate ESS (e.g., hydropower plant)                               GW
-:math:`i^p_{\omega ne}`                                          ESS stored energy (inventory, reservoir energy, state of charge)                                  GWh
-:math:`s^p_{\omega ne}`                                          ESS spilled energy                                                                                GWh
-:math:`uc^p_{\omega ng}, su^p_{\omega ng}, sd^p_{\omega ng}`     Commitment, startup, and shutdown of generation unit per load level                               {0,1}
-:math:`rss^p_{\omega ng}, rsu^p_{\omega ng}, rsd^p_{\omega ng}`  Stable, ramp up, and ramp down states of generation unit with minimum stable time per load level  {0,1}
-:math:`uc'_g`                                                    Maximum commitment of a generation unit for all the load levels                                   {0,1}
-===============================================================  ================================================================================================  ======
-
-======================================  ==========================================================================  ==============
-**Hydropower system**
-----------------------------------------------------------------------------------------------------------------------------------
-:math:`icr^p_{e'}`                      Candidate reservoir installed or not                                        {0,1}
-:math:`hi^p_{\omega ne'}`               Variable water inflows of a candidate reservoir (e.g., hydropower plant)    m\ :sup:`3`/s
-:math:`ho^p_{\omega ne'}`               Hydro outflows of a reservoir                                               m\ :sup:`3`/s
-:math:`i'^p_{\omega ne'}`               Reservoir volume                                                            hm\ :sup:`3`
-:math:`s'^p_{\omega ne'}`               Reservoir spilled water                                                     hm\ :sup:`3`
-======================================  ==========================================================================  ==============
-
-========================================================================  =================================================================  =====
-**Electricity transmission system**
---------------------------------------------------------------------------------------------------------------------------------------------------
-:math:`ict^p_{ijc}`                                                       Candidate transmission installed or not                            {0,1}
-:math:`swt^p_{\omega nijc}, son^p_{\omega nijc}, sof^p_{\omega nijc}`     Switching state, switch-on and switch-off of an electric line      {0,1}
-:math:`f^p_{\omega nijc}`                                                 Power flow through an electric line                                GW
-:math:`l^p_{\omega nijc}`                                                 Half ohmic losses of an electric line                              GW
-:math:`\theta^p_{\omega ni}`                                              Voltage angle of a node                                            rad
-========================================================================  =================================================================  =====
-
-========================================================================  ==============================================================  =====
-**Hydrogen transmission system**
------------------------------------------------------------------------------------------------------------------------------------------------
-:math:`ich^p_{ijc}`                                                       Candidate hydrogen pipeline installed or not                    {0,1}
-:math:`fh^p_{\omega nijc}`                                                Hydrogen flow through a hydrogen pipeline                       tH2
-========================================================================  ==============================================================  =====
-
-========================================================================  ==============================================================  ======
-**Heat transmission system**
-------------------------------------------------------------------------------------------------------------------------------------------------
-:math:`icp^p_{ijc}`                                                       Candidate heat pipe installed or not                            {0,1}
-:math:`fp^p_{\omega nijc}`                                                Heat flow through a heat pipe                                   GW
-========================================================================  ==============================================================  ======
+==========================================  ==========================================================================================  ========  ============================================
+**Network system**                          **Description**                                                                             **Unit**  **oHySTEM.py variable**
+------------------------------------------  ------------------------------------------------------------------------------------------  --------  --------------------------------------------
+:math:`ef_{nijc}`                           Electricity transmission flow through a line                                                GW        «``vEleNetFlow``»
+:math:`hf_{nijc}`                           Hydrogen transmission flow through a pipeline                                               kgH2      «``vHydNetFlow``
+:math:`theta_{ni}`                          Voltage angle of a node                                                                     rad       «``vEleNetTheta``»
+==========================================  ==========================================================================================  ========  ============================================
 
 Equations
 ---------
 
-The names between parenthesis correspond to the names of the constraints in the code.
+This formulation corresponds to a **Rolling horizon optimization problem** to schedule the operation of the electricity and hydrogen systems in a multi-energy system. The model is enabled to consider previous information from the Day-Ahead (DA) market, Intraday (ID) markets, and Real-Time (RT) market, and correct the market positions of the systems.
+The model is solved using a rolling horizon approach: once the DA market is cleared, the model is solved for the next ID markets, and so on.
 
-**Objective function**: minimization of total (investment and operation) cost for the multi-period scope of the model
+**Objective function**: minimization of operation cost for the scope of the model
 
-Electricity, heat, and hydrogen generation, (energy and reservoir) storage and (electricity, hydrogen, and heat) network investment cost plus retirement cost [M€] «``eTotalFCost``» «``eTotalICost``»
+Market variable cost in [M€] («``eTotalMCost``»)
 
-:math:`\sum_{pg} DF^p CFG_g icg^p_g + \sum_{pg} DF^p CFR_g rcg^p_g + \sum_{pe'} DF^p CFE_{e'} icr^p_{e'} +`
-:math:`\sum_{pijc} DF^p CFT_{ijc} ict^p_{ijc} + \sum_{pijc} DF^p CFH_{ijc} ich^p_{ijc} + \sum_{pijc} DF^p CFP_{ijc} icp^p_{ijc} +`
+:math:`\sum_{nnd}DUR_n (CEB_{nnd} e^{b}_{nnd} - PES_{nnd} e^{s}_{nnd} + CHB_{nnd} h^{b}_{nnd} - PHS_{nnd} h^{s}_{nnd} + CENS ens_{nnd} + CHNS hns_{nnd}) +`
 
-Electricity, heat, and hydrogen generation operation cost [M€] «``eTotalGCost``»
+Generation operation cost [M€] («``eTotalGCost``»)
 
-:math:`\sum_{p \omega ng} {[DF^p P^p_{\omega} DUR^p_{\omega n} (CV^p_{\omega ng} gp^p_{\omega ng} + CF^p_{\omega ng} uc^p_{\omega ng}) + DF^p CSU_g su^p_{\omega ng} + DF^p CSD_g sd^p_{\omega ng}]} +`
+:math:`\sum_{neg}DUR_n (CV_g ep_{neg} + CF_g euc_{neg} + CF_h (huc_{nhz} - hsb_{nhz}) + CRU_h ec^{R+}_{nhz} + CSU_g esu_{neg} + CSD_g esd_{neg} + CSU_h hsu_{nhz} + CSD_h hsd_{nhz}) +`
 
-Generation emission cost [M€] «``eTotalECost``» «``eTotalECostArea``»
+Generation emission cost [M€] («``eTotalECost``»)
 
-:math:`\sum_{p \omega ng} {DF^p P^p_{\omega} DUR^p_{\omega n} CE^p_{\omega ng} gp^p_{\omega ng}} +`
+:math:`\sum_{neg}DUR_n CE_g ep_{neg} +`
 
-Variable consumption operation cost [M€] «``eTotalCCost``»
+Consumption operation cost [M€] («``eTotalCCost``»)
 
-:math:`\sum_{p \omega ne}{DF^p P^p_{\omega} DUR^p_{\omega n} CV_e gc^p_{\omega ne}} +`
+:math:`\sum_{n}DUR_n (\sum_{es} CV_{es} ec_{nes} + \sum_{hz} CV_{hz}  ec_{nhz}) -`
 
-Electricity, hydrogen, and heat reliability cost [M€] «``eTotalRCost``»
+Operation reserve revenue [M€] («``eTotalRCost``»)operation
 
-:math:`\sum_{p \omega ni}{DF^p P^p_{\omega} DUR^p_{\omega n} CENS  ens^p_{\omega ni}} + \sum_{p \omega ni}{DF^p P^p_{\omega} DUR^p_{\omega n} CHNS  hns^p_{\omega ni}} + \sum_{p \omega ni}{DF^p P^p_{\omega} DUR^p_{\omega n} CHtNS htns^p_{\omega ni}}`
+:math:`\sum_{neg}  UP^{SR}_{n} up^{SR}_{neg}  + DP^{SR}_{n} dp^{SR}_{neg}  + DUR_n (UEI^{SR}_{n} URA^{SR}_{n} up^{SR}_{neg}  + DEI^{SR}_{n} DRA^{SR}_{n} dp^{SR}_{neg}  + UEI^{TR}_{n} URA^{TR}_{n} up^{TR}_{neg}  + DEI^{TR}_{n} DRA^{TR}_{n} dp^{TR}_{neg}) +`
 
-All the periodical (annual) costs of a period :math:`p` are updated considering that the period (e.g., 2030) is replicated for a number of years defined by its weight :math:`WG^p` (e.g., 5 times) and discounted to the base year :math:`T` (e.g., 2020) with this discount factor :math:`DF^p = \frac{(1+\delta)^{WG^p}-1}{\delta(1+\delta)^{WG^p-1+p-T}}`.
+:math:`\sum_{nes} UP^{SR}_{n} uc^{SR}_{nes} + DP^{SR}_{n} dc^{SR}_{nes} + DUR_n (UEI^{SR}_{n} URA^{SR}_{n} uc^{SR}_{nes} + DEI^{SR}_{n} DRA^{SR}_{n} dc^{SR}_{nes} + UEI^{TR}_{n} URA^{TR}_{n} uc^{TR}_{nes} + DEI^{TR}_{n} DRA^{TR}_{n} dc^{TR}_{nes}) +`
 
 **Constraints**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Generation and network investment and retirement**
+Corrections of the units in the electricity and hydrogen markets:
 
-Investment and retirement decisions in consecutive years «``eConsecutiveGenInvest``» «``eConsecutiveGenRetire``» «``eConsecutiveRsrInvest``» «``eConsecutiveNetInvest``» «``eConsecutiveNetH2Invest``» «``eConsecutiveNetHeatInvest``»
+- Electricity production («``eMarketCorrectionEleProd``»)
 
-:math:`icg^{p-1}_g \leq icg^p_g \quad \forall pg, g \in CG`
+:math:`ep_{neg} = \widehat{EP}_{neg} + ep^{\Delta}_{neg} \quad \forall neg`
 
-:math:`rcg^{p-1}_g \leq rcg^p_g \quad \forall pg, g \in CG`
+- Electricity consumption («``eMarketCorrectionEleCharge``»)
 
-:math:`icr^{p-1}_{e'} \leq icr^p_{e'} \quad \forall pe', e' \in CR`
+:math:`ec_{nes} = \widehat{EC}_{nes} + ec^{\Delta}_{nes} \quad \forall nes`
 
-:math:`ict^{p-1}_{ijc} \leq ict^p_{ijc} \quad \forall pijc, ijc \in CL`
+- Hydrogen production («``eMarketCorrectionHydProd``»)
 
-:math:`ich^{p-1}_{ijc} \leq ich^p_{ijc} \quad \forall pijc, ijc \in CH`
+:math:`ec_{nhz} = \widehat{EC}_{nhz} + ec^{\Delta}_{nhz} \quad \forall nhz`
 
-:math:`icp^{p-1}_{ijc} \leq icp^p_{ijc} \quad \forall pijc, ijc \in CP`
+- Hydrogen consumption («``eMarketCorrectionHydCharge``»)
 
-**Generation operation**
+:math:`hp_{neg} = \widehat{HP}_{nhg} + hp^{\Delta}_{nhg} \quad \forall nhg`
 
-Commitment decision bounded by the investment decision for candidate committed units (all except the VRE units) [p.u.] «``eInstallGenComm``»
+- Electricity consumption («``eMarketCorrectionEleCharge``»)
 
-:math:`uc^p_{\omega ng} \leq icg^p_g \quad \forall p \omega ng, g \in CG`
+:math:`hc_{nes} = \widehat{HC}_{nhs} + hc^{\Delta}_{nhs} \quad \forall nhs`
 
-Commitment decision bounded by the investment or retirement decision for candidate ESS [p.u.] «``eInstallESSComm``» «``eUninstallGenComm``»
+- Hydrogen demand («``eMarketCorrectionHydDemand``»)
 
-:math:`uc^p_{\omega ne} \leq icg^p_e \quad \forall p \omega ne, e \in CE`
+:math:`hc_{net} = \widehat{HC}_{net} + hc^{\Delta}_{net} \quad \forall net`
 
-:math:`uc^p_{\omega ne} \leq 1-rcg^p_e \quad \forall p \omega ne, e \in CE`
+Electricity balance of generation and demand [GW] («``eElectricityBalance``»)
 
-Output and consumption bounded by investment or retirement decision for candidate ESS [p.u.] «``eInstallGenCap``» «``eUninstallGenCap``» «``eInstallConESS``»
+:math:`\sum_{g\in nd} ep_{neg} - \sum_{es\in nd} ec_{nes} - \sum_{hz\in nd} (ec_{nhz} + ec^{StandBy}_{nhz}) - \sum_{hs\in nd} (ec^{Comp}_{nhs}) + ens_{nnd} + eb_{nnd} - es_{nnd} = ED_{nnd} + \sum_{jc} ef_{nndjc} - \sum_{jc} ef_{njndc} \quad \forall nnd`
 
-:math:`\frac{gp^p_{\omega ng}}{\overline{GP}^p_{\omega ng}} \leq icg^p_g \quad \forall p \omega ng, g \in CG`
+Hydrogen balance of generation and demand [GW] («``eHydrogenBalance``»)
 
-:math:`\frac{gp^p_{\omega ng}}{\overline{GP}^p_{\omega ng}} \leq 1 - rcg^p_g \quad \forall p \omega ng, g \in CG`
+:math:`\sum_{h\in nd} hp_{nhg} - \sum_{hs\in nd} hc_{nhs} - \sum_{g\in nd} hc_{net} + hns_{nnd} + hb_{nnd} - hs_{nnd} = HD_{nnd} + \sum_{jc} hf_{nndjc} - \sum_{jc} hf_{njndc} \quad \forall nnd`
 
-:math:`\frac{gc^p_{\omega ne}}{\overline{GP}^p_{\omega ne}} \leq icg^p_e \quad \forall p \omega ne, e \in CE`
+Upward and downward operating secondary reserves provided by non-renewable generators, and ESS when charging for each area [GW] («``eReserveRequire_Up_SR``, ``eReserveRequire_Dw_SR``»)
 
-Heat production with fuel heater bounded by investment decision for candidate fuel heater [p.u.] «``eInstallFHUCap``»
+:math:`\sum_{neg} up^{SR}_{neg} + \sum_{nes} uc^{SR}_{nes} \leq UR^{SR}_{n} \quad \forall n`
 
-:math:`\frac{gh^p_{\omega ng}}{\overline{GH}^p_{\omega ng}} \leq icg^p_g \quad \forall p \omega ng, g \in CB`
+:math:`\sum_{neg} dp^{SR}_{neg} + \sum_{nes} dc^{SR}_{nes} \leq DR^{SR}_{n} \quad \forall n`
 
-Adequacy system reserve margin [p.u.] «``eAdequacyReserveMargin``»
+Upward and downward operating tertiary reserves provided by non-renewable generators, and ESS when charging for each area [GW] («``eReserveRequire_Up_TR``, ``eReserveRequire_Dw_TR``»)
 
-:math:`\sum_{g \in a, EG} \overline{GP}_g A_g + \sum_{g \in a, CG} icg^p_g \overline{GP}_g A_g \geq PD_{pa} RM_{pa} \quad \forall pa`
+:math:`\sum_{neg} up^{TR}_{neg} + \sum_{nes} uc^{TR}_{nes} \leq UR^{TR}_{n} \quad \forall n`
 
-Maximum CO2 emission [MtC02] «``eMaxSystemEmission``»
+:math:`\sum_{neg} dp^{TR}_{neg} + \sum_{nes} dc^{TR}_{nes} \leq DR^{TR}_{n} \quad \forall n`
 
-:math:`\sum_{ng} {DUR^p_{\omega n} CE^p_{\omega ng} gp^p_{\omega ng}} \leq EL_{pa} \quad \forall p \omega a`
+operating reserves from ESS can only be provided if enough energy is available for producing [GW] («``eReserveUpIfEnergyProd``, ``eReserveDwIfEnergyProd``»)
 
-Minimum RES energy [GW] «``eMinSystemRESEnergy``» «``eTotalRESEnergyArea``»
+:math:`URA^{SR}_{n}up^{SR}_{nes} + URA^{TR}_{n}up^{TR}_{nes} \leq \frac{                      esi_{nes}}{DUR_n} \quad \forall nes`
 
-:math:`\frac{\sum_{ng} {DUR^p_{\omega n} gp^p_{\omega ng}}}{\sum_{n} {DUR^p_{\omega n}}} \geq \frac{RL_{pa}}{\sum_{n} {DUR^p_{\omega n}}}  \quad \forall p \omega a`
+:math:`DRA^{SR}_{n}dp^{SR}_{nes} + DRA^{TR}_{n}dp^{TR}_{nes} \leq \frac{\overline{EI}_{nes} - esi_{nes}}{DUR_n} \quad \forall nes`
 
-Balance of electricity generation and demand at each node with ohmic losses [GW] «``eBalanceElec``»
+or for storing [GW] («``eReserveUpIfEnergyCons``, ``eReserveDwIfEnergyCons``»)
 
-:math:`\sum_{g \in i} gp^p_{\omega ng} - \sum_{e \in i} gc^p_{\omega ne} + ens^p_{\omega ni} = D^p_{\omega ni} + \sum_{jc} l^p_{\omega nijc} + \sum_{jc} l^p_{\omega njic} + \sum_{jc} f^p_{\omega nijc} - \sum_{jc} f^p_{\omega njic} \quad \forall p \omega ni`
+:math:`URA^{SR}_{n}uc^{SR}_{nes} + URA^{TR}_{n}uc^{TR}_{nes} \leq \frac{\overline{EI}_{nes} - esi_{nes}}{DUR_n} \quad \forall nes`
 
-The sum of the inertia of the committed units must satisfy the system inertia for each area [s] «``eSystemInertia``»
+:math:`DRA^{SR}_{n}dc^{SR}_{nes} + DRA^{TR}_{n}dc^{TR}_{nes} \leq \frac{                      esi_{nes}}{DUR_n} \quad \forall nes`
 
-:math:`\sum_{g \in a} GI_g uc^p_{\omega ng} \geq SI^p_{\omega na} \quad \forall p \omega na`
+Maximum and minimum relative inventory of ESS (only for load levels multiple of 1, 24, 168, 8736 h depending on the ESS storage type) constrained by the ESS commitment decision times the maximum capacity [p.u.] («``eMaxInventory2Comm``, ``eMinInventory2Comm``»)
 
-Upward and downward operating reserves provided by non-renewable generators, and ESS when charging for each area [GW] «``eOperReserveUp``» «``eOperReserveDw``»
+:math:`\frac{esi_{nes}}{\overline{EI}_{nes}}  \leq euc_{nes} \quad \forall nes`
 
-:math:`\sum_{g \in a} ur^p_{\omega ng} + \sum_{e \in a} ur'^p_{\omega ne} = UR^p_{\omega na} \quad \forall p \omega na`
+:math:`\frac{esi_{nes}}{\underline{EI}_{nes}} \geq euc_{nes} \quad \forall nes`
 
-:math:`\sum_{g \in a} dr^p_{\omega ng} + \sum_{e \in a} dr'^p_{\omega ne} = DR^p_{\omega na} \quad \forall p \omega na`
+:math:`\frac{hsi_{nhs}}{\overline{HI}_{nhs}}  \leq huc_{nhs} \quad \forall nhs`
 
-Ratio between downward and upward operating reserves provided by non-renewable generators, and ESS when charging for each area [GW] «``eReserveMinRatioDwUp``» «``eReserveMaxRatioDwUp``» «``eRsrvMinRatioDwUpESS``» «``eRsrvMaxRatioDwUpESS``»
+:math:`\frac{hsi_{nhs}}{\underline{HI}_{nhs}} \geq huc_{nhs} \quad \forall nhs`
 
-:math:`\underline{DtUR} \: ur^p_{\omega ng}  \leq dr^p_{\omega ng}  \leq \overline{DtUR} \: ur^p_{\omega ng}  \quad \forall p \omega ng`
+Energy inflows of ESS (only for load levels multiple of 1, 24, 168, 8736 h depending on the ESS storage type) constrained by the ESS commitment decision times the inflows data [p.u.] («``eMaxInflows2Commitment``, ``eMinInflows2Commitment``»)
 
-:math:`\underline{DtUR} \: ur'^p_{\omega ne} \leq dr'^p_{\omega ne} \leq \overline{DtUR} \: ur'^p_{\omega ne} \quad \forall p \omega ne`
+:math:`\frac{eei_{nes}}{EEI_{nes}} \leq euc_{nes} \quad \forall nes`
 
-VRES units (i.e., those with linear variable cost equal to 0 and no storage capacity) do not contribute to the the operating reserves.
+:math:`\frac{hei_{nhs}}{HEI_{nhs}} \leq huc_{nhs} \quad \forall nhs`
 
-Operating reserves from ESS can only be provided if enough energy is available for producing [GW] «``eReserveUpIfEnergy``» «``eReserveDwIfEnergy``»
+ESS energy inventory (only for load levels multiple of 1, 24, 168 h depending on the ESS storage type) [GWh] («``eEleInventory``, ``eHydInventory``»)
 
-:math:`ur^p_{\omega ne} \leq \frac{                             i^p_{\omega ne}}{DUR^p_{\omega n}} \quad \forall p \omega ne`
+:math:`esi_{n-\frac{\tau_e}{\nu},es} + \sum_{n' = n-\frac{\tau_e}{\nu}}^n DUR_{n'} (eei_{n'es} - eeo_{n'es} - ep_{n'es} + EF_{es} ec_{n'es}) = esi_{nes} + ess_{nes} \quad \forall nes`
 
-:math:`dr^p_{\omega ne} \leq \frac{\overline{I}^p_{\omega ne} - i^p_{\omega ne}}{DUR^p_{\omega n}} \quad \forall p \omega ne`
+:math:`hsi_{n-\frac{\tau_h}{\nu},hs} + \sum_{n' = n-\frac{\tau_h}{\nu}}^n DUR_{n'} (hei_{n'hs} - heo_{n'hs} - hp_{n'hs} + EF_{hs} hc_{n'hs}) = hsi_{nhs} + hss_{nhs} \quad \forall nhs`
 
-or for storing [GW] «``eESSReserveUpIfEnergy``» «``eESSReserveDwIfEnergy``»
+Energy conversion from energy from electricity to hydrogen and vice versa [p.u.] («``eAllEnergy2Ele``, ``eAllEnergy2Hyd``»)
 
-:math:`ur'^p_{\omega ne} \leq \frac{\overline{I}^p_{\omega ne} - i^p_{\omega ne}}{DUR^p_{\omega n}} \quad \forall p \omega ne`
+:math:`ep_{neg} = PF_{he} hc_{neg} \quad \forall neg`
 
-:math:`dr'^p_{\omega ne} \leq \frac{                             i^p_{\omega ne}}{DUR^p_{\omega n}} \quad \forall p \omega ne`
+:math:`hp_{nhz} = PF_{eh} gc_{nhz} \quad \forall nhz`
 
-Maximum and minimum relative inventory of ESS candidates (only for load levels multiple of 1, 24, 168, 8736 h depending on the ESS storage type) constrained by the ESS commitment decision times the maximum capacity [p.u.] «``eMaxInventory2Comm``» «``eMinInventory2Comm``»
+Relationship between electricity outflows and commitment of the units [p.u.] («``eMaxEleOutflows2Commitment``, ``eMinEleOutflows2Commitment``»)
 
-:math:`\frac{i^p_{\omega ne}}{\overline{I}^p_{\omega ne}}  \leq uc^p_{\omega ne} \quad \forall p \omega ne, e \in CE`
+:math:`\frac{eeo_{nes}}{\overline{EEO}_{nes}} \leq euc_{nes} \quad \forall nes`
 
-:math:`\frac{i^p_{\omega ne}}{\underline{I}^p_{\omega ne}} \geq uc^p_{\omega ne} \quad \forall p \omega ne, e \in CE`
+:math:`\frac{eeo_{nes}}{\underline{EEO}_{nes}} \geq euc_{nes} \quad \forall nes`
 
-Energy inflows of ESS candidates (only for load levels multiple of 1, 24, 168, 8736 h depending on the ESS storage type) constrained by the ESS commitment decision times the energy inflows data [p.u.] «``eInflows2Comm``»
+Relationship between hydrogen outflows and commitment of the units [p.u.] («``eMaxHydOutflows2Commitment``, ``eMinHydOutflows2Commitment``»)
 
-:math:`\frac{ei^p_{\omega ne}}{EI^p_{\omega ne}} \leq uc^p_{\omega ne} \quad \forall p \omega ne, e \in CE`
+:math:`\frac{heo_{nhs}}{\overline{HEO}_{nhs}} \leq huc_{nhs} \quad \forall nhs`
 
-ESS energy inventory (only for load levels multiple of 1, 24, 168 h depending on the ESS storage type) [GWh] «``eESSInventory``»
+:math:`\frac{heo_{nhs}}{\underline{HEO}_{nhs}} \geq huc_{nhs} \quad \forall nhs`
 
-:math:`i^p_{\omega,n-\frac{\tau_e}{\nu,e}} + \sum_{n' = n-\frac{\tau_e}{\nu}}^n DUR^p_{\omega n'} (EI^p_{\omega n'e} - go^p_{\omega n'e} - gp^p_{\omega n'e} + EF_e gc^p_{\omega n'e}) = i^p_{\omega ne} + s^p_{\omega ne} \quad \forall p \omega ne, e \in EE`
+ESS electricity outflows (only for load levels multiple of 1, 24, 168, 672, and 8736 h depending on the ESS outflow cycle) must be satisfied [GWh] («``eEleEnergyOutflows``»)
 
-:math:`i^p_{\omega,n-\frac{\tau_e}{\nu,e}} + \sum_{n' = n-\frac{\tau_e}{\nu}}^n DUR^p_{\omega n'} (ei^p_{\omega n'e} - go^p_{\omega n'e} - gp^p_{\omega n'e} + EF_e gc^p_{\omega n'e}) = i^p_{\omega ne} + s^p_{\omega ne} \quad \forall p \omega ne, e \in CE`
+:math:`\sum_{n' = n-\frac{\tau_e}{\rho_e}}^n DUR_{n'} (eeo_{n'es} - EEO_{n'es}) = 0 \quad \forall nes, n \in \rho_e`
 
-The initial inventory of the ESS candidates divided by its initial storage :math:`I^p_{\omega e}` is equal to the final reservoir divide by its initial storage [p.u.] «``eIniFinInventory``».
+ESS hydrogen minimum and maximum outflows (only for load levels multiple of 1, 24, 168, 672, and 8736 h depending on the ESS outflow cycle) must be satisfied [GWh] («``eHydMinEnergyOutflows``, ``eHydMaxEnergyOutflows``»)
 
-:math:`\frac{i^p_{\omega,0,e}}{I^p_{\omega e}} = \frac{i^p_{\omega,N,e}}{I^p_{\omega e}} \quad \forall p \omega e, e \in CE`
+:math:`\sum_{n' = n-\frac{\tau_h}{\rho_h}}^n DUR_{n'} (heo_{n'hs} - HEO_{n'hs}) \geq 0 \quad \forall nhs, n \in \rho_h`
 
-The initial inventory of the ESS candidates divided by their initial storage :math:`I^p_{\omega e}` is fixed to the commitment decision [p.u.] «``eIniInventory``».
+:math:`\sum_{n' = n-\frac{\tau_h}{\rho_h}}^n DUR_{n'} (heo_{n'hs} - HEO_{n'hs}) \leq 0 \quad \forall nhs, n \in \rho_h`
 
-:math:`\frac{i^p_{\omega,0,e}}{I^p_{\omega e}} \leq uc^p_{\omega ne} \quad \forall p \omega ne, e \in CE`
+Demand cycle target [GWh] («``eHydDemandCycleTarget``»)
 
-Maximum shift time of stored energy [GWh]. It is thought to be applied to demand side management «``eMaxShiftTime``»
+:math:`\sum_{n' = n-\frac{\tau_d}{\nu}}^n DUR_{n'} (hd_{n'nd} - HD_{n'nd}) = 0 \quad \forall nnd, n \in \rho_d`
 
-:math:`DUR^p_{\omega n} EF_e gc^p_{\omega ne} \leq \sum_{n' = n+1}^{n+\frac{ST_e}{\nu}} DUR^p_{\omega n'} gp^p_{\omega n'e} \quad \forall p \omega ne`
+Maximum and minimum electricity generation of the second block of a committed unit (all except the VRE and ESS units) [p.u.] («``eMaxEleOutput2ndBlock``, ``eMinEleOutput2ndBlock``»)
 
-ESS outflows (only for load levels multiple of 1, 24, 168, 672, and 8736 h depending on the ESS outflow cycle) must be satisfied [GWh] «``eEnergyOutflows``»
+* D.A. Tejada-Aranego, S. Lumbreras, P. Sánchez-Martín, and A. Ramos "Which Unit-Commitment Formulation is Best? A Systematic Comparison" IEEE Transactions on Power Systems 35 (4):2926-2936 Jul 2020 `10.1109/TPWRS.2019.2962024 <https://doi.org/10.1109/TPWRS.2019.2962024>`_
 
-:math:`\sum_{n' = n-\frac{\tau_e}{\rho_e}}^n (go^p_{\omega n'e} - EO^p_{\omega n'e}) DUR^p_{\omega n'} = 0 \quad \forall p \omega ne, n \in \rho_e`
-
-Maximum and minimum energy production (only for load levels multiple of 24, 168, 672, 8736 h depending on the unit energy type) must be satisfied [GWh] «``eMaximumEnergy``»  «``eMinimumEnergy``»
-
-:math:`\sum_{n' = n-\sigma_g}^n (gp^p_{\omega n'g} - \overline{E}^p_{\omega n'g})  DUR^p_{\omega n'} \leq 0 \quad \forall p \omega ng, n \in \sigma_g`
-
-:math:`\sum_{n' = n-\sigma_g}^n (gp^p_{\omega n'g} - \underline{E}^p_{\omega n'g}) DUR^p_{\omega n'} \geq 0 \quad \forall p \omega ng, n \in \sigma_g`
-
-Maximum and minimum output of the second block of a committed unit (all except the VRES units) [p.u.] «``eMaxOutput2ndBlock``» «``eMinOutput2ndBlock``»
-
-* D.A. Tejada-Arango, S. Lumbreras, P. Sánchez-Martín, and A. Ramos "Which Unit-Commitment Formulation is Best? A Systematic Comparison" IEEE Transactions on Power Systems 35 (4): 2926-2936, Jul 2020 `10.1109/TPWRS.2019.2962024 <https://doi.org/10.1109/TPWRS.2019.2962024>`_
-
-* C. Gentile, G. Morales-España, and A. Ramos "A tight MIP formulation of the unit commitment problem with start-up and shut-down constraints" EURO Journal on Computational Optimization 5 (1), 177-201, Mar 2017. `10.1007/s13675-016-0066-y <https://doi.org/10.1007/s13675-016-0066-y>`_
+* C. Gentile, G. Morales-España, and A. Ramos "A tight MIP formulation of the unit commitment problem with start-up and shut-down constraints" EURO Journal on Computational Optimization 5 (1), 177-201 Mar 2017. `10.1007/s13675-016-0066-y <https://doi.org/10.1007/s13675-016-0066-y>`_
 
 * G. Morales-España, A. Ramos, and J. Garcia-Gonzalez "An MIP Formulation for Joint Market-Clearing of Energy and Reserves Based on Ramp Scheduling" IEEE Transactions on Power Systems 29 (1): 476-488, Jan 2014. `10.1109/TPWRS.2013.2259601 <https://doi.org/10.1109/TPWRS.2013.2259601>`_
 
 * G. Morales-España, J.M. Latorre, and A. Ramos "Tight and Compact MILP Formulation for the Thermal Unit Commitment Problem" IEEE Transactions on Power Systems 28 (4): 4897-4908, Nov 2013. `10.1109/TPWRS.2013.2251373 <https://doi.org/10.1109/TPWRS.2013.2251373>`_
 
-:math:`\frac{p^p_{\omega ng} + ur^p_{\omega ng}}{\overline{GP}^p_{\omega ng} - \underline{GP}^p_{\omega ng}} \leq uc^p_{\omega ng} - su^p_{\omega ng} - sd^p_{\omega,n+\nu,g} \quad \forall p \omega ng`
+:math:`\frac{ep2b_{net} + up^{SR}_{net} + up^{TR}_{net}}{\overline{EP}_{net} - \underline{EP}_{net}} \leq euc_{net} \quad \forall net`
 
-:math:`p^p_{\omega ng} - dr^p_{\omega ng} \geq 0                \quad \forall p \omega ng`
+:math:`\frac{ep2b_{net} - dp^{SR}_{net} - dp^{TR}_{net}}{\overline{EP}_{net} - \underline{EP}_{net}} \geq 0         \quad \forall net`
 
-Maximum and minimum charge of an ESS [p.u.] «``eMaxCharge``» «``eMinCharge``»
+Maximum and minimum hydrogen generation of the second block of a committed unit [p.u.] («``eMaxHydOutput2ndBlock``, ``eMinHydOutput2ndBlock``»)
 
-:math:`\frac{c^p_{\omega ne} + dr'^p_{\omega ne}}{\overline{GC}^p_{\omega ne} - \underline{GC}^p_{\omega ne}} \leq 1 \quad \forall p \omega ne`
+:math:`\frac{hp2b_{nhg}}{\overline{HP}_{nhg} - \underline{HP}_{nhg}} \leq huc_{nhg} \quad \forall nhg`
 
-:math:`c^p_{\omega ne} - ur'^p_{\omega ne} \geq 0 \quad \forall p \omega ne`
+:math:`\frac{hp2b_{nhg}}{\overline{HP}_{nhg} - \underline{HP}_{nhg}} \geq 0         \quad \forall nhg`
 
-Incompatibility between charge and discharge of an ESS [p.u.] «``eChargeDischarge``»
+Maximum and minimum discharge of the second block of an electricity ESS [p.u.] («``eMaxEleESSOutput2ndBlock``, ``eMinEleESSOutput2ndBlock``»)
 
-:math:`\frac{p^p_{\omega ne} + URA \: ur'^p_{\omega ne}}{\overline{GP}^p_{\omega ne} - \underline{GP}^p_{\omega ne}} + \frac{c^p_{\omega ne} + DRA \: dr'^p_{\omega ne}}{\overline{GC}^p_{\omega ne} - \underline{GC}^p_{\omega ne}} \leq 1 \quad \forall p \omega ne, e \in EE, CE`
+:math:`\frac{ep2b_{nes} + up^{SR}_{nes} + up^{TR}_{nes}}{\overline{EP}_{nes} - \underline{EP}_{nes}} \leq 1 \quad \forall nes`
 
-Total output of a committed unit (all except the VRES units) [GW] «``eTotalOutput``»
+:math:`\frac{ep2b_{nes} - dp^{SR}_{nes} - dp^{TR}_{nes}}{\overline{EP}_{nes} - \underline{EP}_{nes}} \geq 0 \quad \forall nes`
 
-:math:`\frac{gp^p_{\omega ng}}{\underline{GP}^p_{\omega ng}} = uc^p_{\omega ng} + \frac{p^p_{\omega ng} + URA \: ur^p_{\omega ng} - DRA \: dr^p_{\omega ng}}{\underline{GP}^p_{\omega ng}} \quad \forall p \omega ng`
+Maximum and minimum discharge of the second block of a hydrogen ESS [p.u.] («``eMaxHydESSOutput2ndBlock``, ``eMinHydESSOutput2ndBlock``»)
 
-Total charge of an ESS [GW] «``eESSTotalCharge``»
+:math:`\frac{hp2b_{nhs}}{\overline{HP}_{nhs} - \underline{HP}_{nhs}} \leq 1 \quad \forall nhs`
 
-:math:`\frac{gc^p_{\omega ne}}{\underline{GC}^p_{\omega ne}} = 1 + \frac{c^p_{\omega ne} + URA \: ur'^p_{\omega ne} - DRA \: dr'^p_{\omega ne}}{\underline{GC}^p_{\omega ne}} \quad \forall p \omega ne, e \in EE, CE`
+:math:`\frac{hp2b_{nhs}}{\overline{HP}_{nhs} - \underline{HP}_{nhs}} \geq 0 \quad \forall nhs`
 
-Incompatibility between charge and outflows use of an ESS [p.u.] «``eChargeOutflows``»
+Maximum and minimum charge of the second block of an electricity ESS [p.u.] («``eMaxEleESSCharge2ndBlock``, ``eMinEleESSCharge2ndBlock``»)
 
-:math:`\frac{go^p_{\omega ne} + c^p_{\omega ne}}{\overline{GC}^p_{\omega ne} - \underline{GC}^p_{\omega ne}} \leq 1 \quad \forall p \omega ne, e \in EE, CE`
+:math:`\frac{ec2b_{nes} + dc^{SR}_{nes} + dc^{TR}_{nes}}{\overline{EC}_{nes} - \underline{EC}_{nes}} \leq 1 \quad \forall nes`
 
-Logical relation between commitment, startup and shutdown status of a committed unit (all except the VRES units) [p.u.] «``eUCStrShut``»
+:math:`\frac{ec2b_{nes} - uc^{SR}_{nes} - uc^{TR}_{nes}}{\overline{EC}_{nes} - \underline{EC}_{nes}} \geq 0 \quad \forall nes`
 
-:math:`uc^p_{\omega ng} - uc^p_{\omega,n-\nu,g} = su^p_{\omega ng} - sd^p_{\omega ng} \quad \forall p \omega ng`
+Maximum and minimum charge of the second block of a hydrogen unit due to the energy conversion [p.u.] («``eMaxEle2HydCharge2ndBlock``, ``eMinEle2HydCharge2ndBlock``»)
 
-Logical relation between stable, ramp up, and ramp down states (units with stable time) [p.u.] «``eStableStates``»
+:math:`\frac{ec2b_{nhz} + dc^{SR}_{nhz} + dc^{TR}_{nhz}}{\overline{EC}_{nhz}} \leq 1 \quad \forall nhz`
 
-:math:`rss^p_{\omega ng} + rsu^p_{\omega ng} + rsd^p_{\omega ng} = uc^p_{\omega ng} \quad \forall p \omega ng`
+:math:`\frac{ec2b_{nhz} - uc^{SR}_{nhz} - uc^{TR}_{nhz}}{\overline{EC}_{nhz}} \geq 0 \quad \forall nhz`
 
-Maximum commitment of a committable unit (all except the VRES units) [p.u.] «``eMaxCommitment``»
+Maximum and minimum charge of the second block of a hydrogen ESS [p.u.] («``eMaxHydESSCharge2ndBlock``, ``eMinHydESSCharge2ndBlock``»)
 
-:math:`uc^p_{\omega ng} \leq uc'_g \quad \forall p \omega ng`
+:math:`\frac{hc2b_{nhs}}{\overline{HC}_{nhs} - \underline{HC}_{nhs}} \leq 1 \quad \forall nhs`
 
-Maximum commitment of any unit [p.u.] «``eMaxCommitGen``»
+:math:`\frac{hc2b_{nhs}}{\overline{HC}_{nhs} - \underline{HC}_{nhs}} \geq 0 \quad \forall nhs`
 
-:math:`\sum_{p \omega n} \frac{gp^p_{\omega ng}}{\overline{GP}_g} \leq uc'_g \quad \forall p \omega ng`
+Incompatibility between charge and discharge of an ESS [p.u.] («``eEleChargingDecision``, ``eEleDischargingDecision``»)
 
-Mutually exclusive :math:`g` and :math:`g'` units (e.g., thermal, ESS, VRES units) [p.u.] «``eExclusiveGens``»
+:math:`\frac{ec_{nes}}{\overline{EC}_{nes}} \leq esf_{nes} \quad \forall nes`
 
-:math:`uc'_g + uc'_{g'} \leq 1 \quad \forall g, g'`
+:math:`\frac{ep_{nes}}{\overline{EP}_{nes}} \leq 1 - esf_{nes} \quad \forall nes`
 
-Initial commitment of the units is determined by the model based on the merit order loading, including the VRES and ESS units.
+Upward operating reserve decision of an ESS when it is consuming and constrained by charging and discharging itself [p.u.] («``eReserveConsChargingDecision_Up``»)
 
-Maximum ramp up and ramp down for the second block of a non-renewable (thermal, hydro) unit [p.u.] «``eRampUp``» «``eRampDw``»
+:math:`\frac{uc^{SR}_{nes} + uc^{TR}_{nes}}{\overline{EC}_{nes}} \leq esf_{nes} \quad \forall nes`
+
+Upward operating reserve decision of an ESS when it is producing and constrained by charging and discharging itself [p.u.] («``eReserveProdDischargingDecision_Up``»)
+
+:math:`\frac{up^{SR}_{nes} + up^{TR}_{nes}}{\overline{EP}_{nes}} \leq esf_{nes} \quad \forall nes`
+
+Downward operating reserve decision of an ESS when it is consuming and constrained by charging and discharging itself [p.u.] («``eReserveConsChargingDecision_Dw``»)
+
+:math:`\frac{dc^{SR}_{nes} + dc^{TR}_{nes}}{\overline{EC}_{nes}} \leq 1 - esf_{nes} \quad \forall nes`
+
+Downward operating reserve decision of an ESS when it is producing and constrained by charging and discharging itself [p.u.] («``eReserveProdDischargingDecision_Dw``»)
+
+:math:`\frac{dp^{SR}_{nes} + dp^{TR}_{nes}}{\overline{EP}_{nes}} \leq 1 - esf_{nes} \quad \forall nes`
+
+Energy stored for upward operating reserve in consecutive time steps when ESS is consuming [GWh] («``eReserveConsUpConsecutiveTime``»)
+
+:math:`\sum_{n' = n-\frac{\tau_e}{\nu}}^n DUR_{n'} (uc^{SR}_{nes} + uc^{TR}_{nes}) \leq \overline{EC}_{nes} - esi_{nes} \quad \forall nes`
+
+Energy stored for downward operating reserve in consecutive time steps when ESS is consuming [GWh] («``eReserveConsDwConsecutiveTime``»)
+
+:math:`\sum_{n' = n-\frac{\tau_e}{\nu}}^n DUR_{n'} (dc^{SR}_{nes} + dc^{TR}_{nes}) \leq esi_{nes} - \underline{EC}_{nes} \quad \forall nes`
+
+Energy stored for upward operating reserve in consecutive time steps when ESS is producing [GWh] («``eReserveProdUpConsecutiveTime``»)
+
+:math:`\sum_{n' = n-\frac{\tau_e}{\nu}}^n DUR_{n'} (up^{SR}_{nes} + up^{TR}_{nes}) \leq \overline{EP}_{nes} - esi_{nes} \quad \forall nes`
+
+Energy stored for downward operating reserve in consecutive time steps when ESS is producing [GWh] («``eReserveProdDwConsecutiveTime``»)
+
+:math:`\sum_{n' = n-\frac{\tau_e}{\nu}}^n DUR_{n'} (dp^{SR}_{nes} + dp^{TR}_{nes}) \leq esi_{nes} - \underline{EP}_{nes} \quad \forall nes`
+
+Incompatibility between charge and discharge of a hydrogen ESS [p.u.] («``eHydChargingDecision``, ``eHydDischargingDecision``»)
+
+:math:`\frac{hc_{nhs}}{\overline{HC}_{nhs}} \leq hsf_{nhs} \quad \forall nhs`
+
+:math:`\frac{hp_{nhs}}{\overline{HP}_{nhs}} \leq 1 - hsf_{nhs} \quad \forall nhs`
+
+Total generation of an electricity unit (all except the VRE units) [GW] («``eEleTotalOutput``»)
+
+:math:`\frac{ep_{neg}}{\underline{EP}_{neg}} = euc_{neg} + \frac{ep2b_{neg} + URA^{SR}_{n}up^{SR}_{nes} + URA^{TR}_{n}up^{TR}_{nes} - DRA^{SR}_{n}dp^{SR}_{nes} - DRA^{TR}_{n}dp^{TR}_{nes}}{\underline{EP}_{neg}} \quad \forall neg`
+
+Total generation of a hydrogen unit [kgH2] («``eHydTotalOutput``»)
+
+:math:`\frac{hp_{nhg}}{\underline{HP}_{nhg}} = huc_{nhg} + \frac{hp2b_{nhz}}{\underline{HP}_{nhg}} \quad \forall nh`
+
+Total charge of an electricity ESS [GW,kgH2] («``eEleTotalCharge``»)
+
+:math:`\frac{ec_{nes}}{\underline{EC}_{nes}} = 1 + \frac{ec2b_{nes} - URA^{SR}_{n}uc^{SR}_{nes} - URA^{TR}_{n}uc^{TR}_{nes} + DRA^{SR}_{n}dc^{SR}_{nes} + DRA^{TR}_{n}dc^{TR}_{nes}}{\underline{EC}_{nes}} \quad \forall nes`
+
+Total charge of a hydrogen unit [kgH2] («``eHydTotalCharge``»)
+
+:math:`\frac{hc_{nhs}}{\underline{HC}_{nhs}} = 1 + \frac{hc2b_{nhs}}{\underline{EC}_{nhs}} \quad \forall nhs`
+
+Incompatibility between charge and outflows use of an electricity ESS [p.u.] («``eIncompatibilityEleChargeOutflows``»)
+
+:math:`\frac{eeo_{nes} + ec2b_{nes}}{\overline{EC}_{nes} - \underline{EC}_{nes}} \leq 1 \quad \forall nes`
+
+Incompatibility between charge and outflows use of a hydrogen ESS [p.u.] («``eIncompatibilityHydChargeOutflows``»)
+
+:math:`\frac{heo_{nhs} + hc2b_{nhs}}{\overline{HC}_{nhs} - \underline{HC}_{nhs}} \leq 1 \quad \forall nhs`
+
+Logical relation between commitment, startup and shutdown status of a committed electricity unit (all except the VRE units) [p.u.] («``eEleCommitmentStartupShutdown``»)
+Initial commitment of the units is determined by the model based on the merit order loading, including the VRE and ESS units.
+
+:math:`euc_{neg} - euc_{n-\nu,g} = esu_{neg} - esd_{neg} \quad \forall neg`
+
+Maximum commitment of an electricity unit (all except the VRE units) [p.u.] («``eEleMaxCommitment``»)
+
+:math:`euc_{neg} \leq sum_{n' = n-\nu-TU_t}^n euc^{max}_{n't} \quad \forall neg`
+
+Logical relation between commitment, startup and shutdown status of a committed hydrogen unit [p.u.] («``eHydCommitmentStartupShutdown``»)
+
+:math:`huc_{nhg} - huc_{n-\nu,hg} = hsu_{nhg} - hsd_{nhg} \quad \forall nhg`
+
+Maximum ramp up and ramp down for the second block of a non-renewable (thermal, hydro) electricity unit [p.u.] («``eMaxRampUpEleOutput``, ``eMaxRampDwEleOutput``»)
 
 * P. Damcı-Kurt, S. Küçükyavuz, D. Rajan, and A. Atamtürk, “A polyhedral study of production ramping,” Math. Program., vol. 158, no. 1–2, pp. 175–205, Jul. 2016. `10.1007/s10107-015-0919-9 <https://doi.org/10.1007/s10107-015-0919-9>`_
 
-:math:`\frac{- p^p_{\omega,n-\nu,g} - dr^p_{\omega,n-\nu,g} + p^p_{\omega ng} + ur^p_{\omega ng}}{DUR^p_{\omega n} RU_g} \leq   uc^p_{\omega ng}      - su^p_{\omega ng} \quad \forall p \omega ng`
+:math:`\frac{- ep2b_{n-\nu,g} - dp^{SR}_{n-\nu,g} - dp^{TR}_{n-\nu,g} + ep2b_{neg} + up^{SR}_{neg} + up^{TR}_{neg}}{DUR_n RU_g} \leq   euc_{neg}      - esu_{neg} \quad \forall neg`
 
-:math:`\frac{- p^p_{\omega,n-\nu,g} + ur^p_{\omega,n-\nu,g} + p^p_{\omega ng} - dr^p_{\omega ng}}{DUR^p_{\omega n} RD_g} \geq - uc^p_{\omega,n-\nu,g} + sd^p_{\omega ng} \quad \forall p \omega ng`
+:math:`\frac{- ep2b_{n-\nu,g} + up^{SR}_{n-\nu,g} + up^{TR}_{n-\nu,g} + ep2b_{neg} - dp^{SR}_{neg} - dp^{TR}_{neg}}{DUR_n RD_g} \geq - euc_{n-\nu,g} + esd_{neg} \quad \forall neg`
 
-Maximum ramp down and ramp up for the charge of an ESS [p.u.] «``eRampUpCharge``» «``eRampDwCharge``»
+Maximum ramp down and ramp up for the charge of an electricity ESS [p.u.] («``eMaxRampUpEleCharge``, ``eMaxRampDwEleCharge``»)
 
-:math:`\frac{- c^p_{\omega,n-\nu,e} - ur^p_{\omega,n-\nu,e} + c^p_{\omega ne} + dr^p_{\omega ne}}{DUR^p_{\omega n} RD_e} \leq   1 \quad \forall p \omega ne`
+:math:`\frac{- ec2b_{n-\nu,es} + dc^{SR}_{n-\nu,es} + dc^{TR}_{n-\nu,es} + ec2b_{nes} - uc^{SR}_{nes} - uc^{TR}_{nes}}{DUR_n RU_es} \geq - 1 \quad \forall nes`
 
-:math:`\frac{- c^p_{\omega,n-\nu,e} + dr^p_{\omega,n-\nu,e} + c^p_{\omega ne} - ur^p_{\omega ne}}{DUR^p_{\omega n} RU_e} \geq - 1 \quad \forall p \omega ne`
+:math:`\frac{- ec2b_{n-\nu,es} - uc^{SR}_{n-\nu,es} - uc^{TR}_{n-\nu,es} + ec2b_{nes} + dc^{SR}_{nes} + dc^{TR}_{nes}}{DUR_n RD_es} \leq   1 \quad \forall nes`
 
-Detection of ramp up and ramp down state for the second block of a non-renewable (thermal) unit with minimum stable time [p.u.] «``eRampUpState``» «``eRampDwState``»
+Maximum ramp up and ramp down for the  second block of a hydrogen unit [p.u.] («``eMaxRampUpHydOutput``, ``eMaxRampDwHydOutput``»)
 
-:math:`\frac{- p^p_{\omega,n-\nu,g} + p^p_{\omega ng}}{DUR^p_{\omega n} RU_g} \leq rsu^p_{\omega ng} - \epsilon \cdot rsd^p_{\omega ng} \quad \forall p \omega ng`
+:math:`\frac{- hp2b_{n-\nu,hg} + hp2b_{nhg}}{DUR_n RU_hg} \leq   huc_{nhg}      - hsu_{nhg} \quad \forall nhg`
 
-:math:`\frac{  p^p_{\omega,n-\nu,g} - p^p_{\omega ng}}{DUR^p_{\omega n} RD_g} \leq rsd^p_{\omega ng} - \epsilon \cdot rsu^p_{\omega ng} \quad \forall p \omega ng`
+:math:`\frac{- hp2b_{n-\nu,hg} + hp2b_{nhg}}{DUR_n RD_hg} \geq - huc_{n-\nu,hg} + hsd_{nhg} \quad \forall nhg`
 
-Minimum up time and down time of thermal unit [p.u.] «``eMinUpTime``» «``eMinDownTime``»
+Maximum ramp down and ramp up for the charge of a hydrogen ESS [p.u.] («``eMaxRampUpHydCharge``, ``eMaxRampDwHydCharge``»)
 
-* D. Rajan and S. Takriti, “Minimum up/down polytopes of the unit commitment problem with start-up costs,” IBM, New York, Technical Report RC23628, 2005. https://pdfs.semanticscholar.org/b886/42e36b414d5929fed48593d0ac46ae3e2070.pdf
+:math:`\frac{- hc2b_{n-\nu,hs} + hc2b_{nhs}}{DUR_n RU_hs} \geq - 1 \quad \forall nhs`
 
-:math:`\sum_{n'=n+\nu-TU_t}^n su^p_{\omega n't} \leq     uc^p_{\omega nt} \quad \forall p \omega nt`
+:math:`\frac{- hc2b_{n-\nu,hs} + hc2b_{nhs}}{DUR_n RD_hs} \leq   1 \quad \forall nhs`
 
-:math:`\sum_{n'=n+\nu-TD_t}^n sd^p_{\omega n't} \leq 1 - uc^p_{\omega nt} \quad \forall p \omega nt`
+Maximum ramp up and ramp down for the outflows of a hydrogen ESS [p.u.] («``eMaxRampUpHydOutflows``, ``eMaxRampDwHydOutflows``»)
 
-Minimum stable time of thermal unit [p.u.] «``eMinStableTime``»
+:math:`\frac{- heo_{n-\nu,hs} + heo_{nhs}}{DUR_n RU_hs} \leq   1 \quad \forall nhs`
 
-:math:`rsu^p_{\omega nt} \leq 1 - rsd^p_{\omega n't} \quad \forall p \omega nn't, n' \in [n-TS_t,n-1]`
+:math:`\frac{- heo_{n-\nu,hs} + heo_{nhs}}{DUR_n RD_hs} \geq - 1 \quad \forall nhs`
 
-**Reservoir operation**
+Ramp up and ramp down for the provision of demand to the hydrogen customers [p.u.] («``eMaxRampUpHydDemand``, ``eMaxRampDwHydDemand``»)
 
-Maximum and minimum relative volume of reservoir candidates (only for load levels multiple of 1, 24, 168, 8736 h depending on the reservoir volume type) constrained by the hydro commitment decision times the maximum capacity [p.u.] «``eMaxVolume2Comm``» «``eMinVolume2Comm``»
+:math:`\frac{- hd_{n-\nu,nd} + hd_{nnd}}{DUR_n RU_nd} \leq   1 \quad \forall nnd`
 
-:math:`\frac{i'^p_{\omega ne'}}{\overline{I'}^p_{\omega ne'}}  \leq \sum_{h \in dw(e')} uc^p_{\omega nh} \quad \forall p \omega ne', e' \in CR`
+:math:`\frac{- hd_{n-\nu,nd} + hd_{nnd}}{DUR_n RD_nd} \geq - 1 \quad \forall nnd`
 
-:math:`\frac{i'^p_{\omega ne'}}{\underline{I'}^p_{\omega ne'}} \geq \sum_{h \in dw(e')} uc^p_{\omega nh} \quad \forall p \omega ne', e' \in CR`
+Differences between electricity consumption of two consecutive hours [GW] («``eEleConsumptionDiff``»)
 
-Operating reserves from a hydropower plant can only be provided if enough energy is available for turbining at the upstream reservoir [GW] «``eTrbReserveUpIfEnergy``» «``eTrbReserveDwIfEnergy``»
+:math:`-ec_{n-\nu,es} + ec_{nes} = RC^{+}_{hz} - RC^{-}_{hz}`
 
-:math:`ur^p_{\omega nh} \leq \frac{\sum_{e' \in up(h)}                                i'^p_{\omega ne'}}{DUR^p_{\omega n}} \quad \forall p \omega nh`
+Minimum up time and down time of thermal unit [h] («``eMinUpTimeEle``, ``eMinDownTimeEle``»)
 
-:math:`dr^p_{\omega nh} \leq \frac{\sum_{e' \in up(h)} \overline{I'}^p_{\omega ne'} - i'^p_{\omega ne'}}{DUR^p_{\omega n}} \quad \forall p \omega nh`
+- D. Rajan and S. Takriti, “Minimum up/down polytopes of the unit commitment problem with start-up costs,” IBM, New York, Technical Report RC23628, 2005. https://pdfs.semanticscholar.org/b886/42e36b414d5929fed48593d0ac46ae3e2070.pdf
 
-or for pumping [GW] «``ePmpReserveUpIfEnergy``» «``ePmpReserveDwIfEnergy``»
+:math:`\sum_{n'=n+\nu-TU_t}^n esu_{n't} \leq     euc_{net} \quad \forall net`
 
-:math:`ur'^p_{\omega nh} \leq \frac{\sum_{e' \in up(h)} \overline{I'}^p_{\omega ne'} - i'^p_{\omega ne'}}{DUR^p_{\omega n}} \quad \forall p \omega nh`
+:math:`\sum_{n'=n+\nu-TD_t}^n esd_{n't} \leq 1 - euc_{net} \quad \forall net`
 
-:math:`dr'^p_{\omega nh} \leq \frac{\sum_{e' \in up(h)}                                i'^p_{\omega ne'}}{DUR^p_{\omega n}} \quad \forall p \omega nh`
+Minimum up time and down time of hydrogen unit [h] («``eMinUpTimeHyd``, ``eMinDownTimeHyd``»)
 
-Water volume for each hydro reservoir (only for load levels multiple of 1, 24, 168 h depending on the reservoir storage type) [hm\ :sup:`3`] «``eHydroInventory``»
+:math:`\sum_{n'=n+\nu-TU_h}^n hsu_{n'hg} \leq     huc_{nhg} \quad \forall nhg`
 
-:math:`i'^p_{\omega,n-\frac{\tau_e'}{\nu,e'}} + \sum_{n' = n-\frac{\tau_e'}{\nu}}^n DUR^p_{\omega n'} (0.0036 HI^p_{\omega n'e'} - 0.0036 ho^p_{\omega n'e'} - \sum_{h \in dw(e')} gp^p_{\omega n'h} / PF_h + \sum_{h \in up(e')} gp^p_{\omega n'h} / PF_h +`
-:math:`+ \sum_{h \in up(e')} EF_e' gc^p_{\omega n'h} / PF_h - \sum_{h \in dw(h)} EF_e' gc^p_{\omega n'h} / PF_h) = i'^p_{\omega ne'} + s'^p_{\omega ne'} - \sum_{e'' \in up(e')} s'^p_{\omega ne''} \quad \forall p \omega ne', e' \in ER`
+:math:`\sum_{n'=n+\nu-TD_h}^n hsd_{n'hg} \leq 1 - huc_{nhg} \quad \forall nhg`
 
-:math:`i'^p_{\omega,n-\frac{\tau_e'}{\nu,e'}} + \sum_{n' = n-\frac{\tau_e'}{\nu}}^n DUR^p_{\omega n'} (0.0036 hi^p_{\omega n'e'} - 0.0036 ho^p_{\omega n'e'} - \sum_{h \in dw(e')} gp^p_{\omega n'h} / PF_h + \sum_{h \in up(e')} gp^p_{\omega n'h} / PF_h +`
-:math:`+ \sum_{h \in up(e')} EF_e' gc^p_{\omega n'h} / PF_h - \sum_{h \in dw(h)} EF_e' gc^p_{\omega n'h} / PF_h) = i'^p_{\omega ne'} + s'^p_{\omega ne'} - \sum_{e'' \in up(e')} s'^p_{\omega ne''} \quad \forall p \omega ne', e' \in CR`
+Decision variable of the operation of the compressor conditioned by the on/off status variable of itself [GWh] («``eCompressorOperStatus``»)
 
-The initial volume of the hydro reservoir divided by its initial volume :math:`I^p_{\omega e'}` is equal to the final reservoir divide by its initial volume [p.u.] «``eIniFinVolume``».
+:math:`ec^{Comp}_{nhs} \geq hp_{nhz}/\overline{HP}_{nhz} \overline{EC}^{comp}_{nhs} - 1e-3 (1 - hcf_{nhs}) \quad \forall nhs`
 
-:math:`\frac{i'^p_{\omega,0,e'}}{I^p_{\omega e'}} = \frac{i'^p_{\omega,N,e'}}{I^p_{\omega e'}} \quad \forall p \omega e', e' \in CE`
+Decision variable of the operation of the compressor conditioned by the status of energy of the hydrogen tank [kgH2] («``eCompressorOperInventory``»)
 
-Hydro outflows (only for load levels multiple of 1, 24, 168, 672, and 8736 h depending on the ESS outflow cycle) must be satisfied [m\ :sup:`3`/s] «``eHydroOutflows``»
+:math:`hsi_{nhs} \leq \underline{HI}_{nhs} + (\overline{HI}_{nhs} - \underline{HI}_{nhs}) hcf_{nhs} \quad \forall nhs`
 
-:math:`\sum_{n' = n-\frac{\tau_e'}{\rho_e'}}^n (ho^p_{\omega n'e'} - HO^p_{\omega n'e'}) DUR^p_{\omega n'} = 0 \quad \forall p \omega ne', n \in \rho_e'`
+StandBy status of the electrolyzer conditioning its electricity consumption [GWh] («``eEleStandBy_consumption_UpperBound``, ``eEleStandBy_consumption_LowerBound``»)
 
-**Electricity network operation**
+:math:`ec^{StandBy}_{nhz} \geq \overline{EC}_{nhz} hsf_{nhz} \quad \forall nhz`
 
-Logical relation between transmission investment and switching {0,1} «``eLineStateCand``»
+:math:`ec^{StandBy}_{nhz} \leq \overline{EC}_{nhz} hsf_{nhz} \quad \forall nhz`
 
-:math:`swt^p_{\omega nijc} \leq ict^p_{ijc} \quad \forall p \omega nijc, ijc \in CL`
+StandBy status of the electrolyzer conditioning its hydrogen production [GWh] («``eHydStandBy_production_UpperBound``, ``eHydStandBy_production_LowerBound``»)
 
-Logical relation between switching state, switch-on and switch-off status of a line [p.u.] «``eSWOnOff``»
+:math:`ec^{StandBy}_{nhz} \geq \overline{EC}_{nhz} (1 - hsf_{nhz}) \quad \forall nhz`
 
-:math:`swt^p_{\omega nijc} - swt^p_{\omega,n-\nu,ijc} = son^p_{\omega nijc} - sof^p_{\omega nijc} \quad \forall p \omega nijc`
+:math:`ec^{StandBy}_{nhz} \leq \underline{EC}_{nhz} (1 - hsf_{nhz}) \quad \forall nhz`
 
-The initial status of the lines is pre-defined as switched on.
+Avoid transition status from off to StandBy of the electrolyzer [p.u.] («``eHydAvoidTransitionOff2StandBy``»)
 
-Minimum switch-on and switch-off state of a line [h] «``eMinSwOnState``» «``eMinSwOffState``»
+:math:`hsf_{nhz} \leq huc_{nhz} \quad \forall nhz`
 
-:math:`\sum_{n'=n+\nu-SON_{ijc}}^n son^p_{\omega n'ijc} \leq     swt^p_{\omega nijc} \quad \forall p \omega nijc`
+Second Kirchhoff's law for the electricity network [kgH2] («``eKirchhoff2ndLaw``»)
 
-:math:`\sum_{n'=n+\nu-SOF_{ijc}}^n sof^p_{\omega n'ijc} \leq 1 - swt^p_{\omega nijc} \quad \forall p \omega nijc`
+:math:`\frac{ef_{nijc}}{\overline{ENF}_{nijc}} - \frac{\theta_{ni} - \theta_{nj}}{\overline{X}_{nijc}\overline{ENF}_{nijc}} == 0 \quad \forall nijc`
 
-Power flow limit in transmission lines [p.u.] «``eNetCapacity1``» «``eNetCapacity2``»
+Bounds on variables [GW, kgH2]
 
-:math:`- swt^p_{\omega nijc} \leq \frac{f^p_{\omega nijc}}{\overline{F}_{ijc}} \leq swt^p_{\omega nijc} \quad \forall p \omega nijc`
+:math:`0 \leq ep_{neg}                               \leq \overline{EP}_{neg}                              \quad \forall neg`
 
-DC Optimal power flow for existing and non-switchable, and candidate and switchable AC-type lines (Kirchhoff's second law) [rad] «``eKirchhoff2ndLaw1``» «``eKirchhoff2ndLaw2``»
+:math:`-\widehat{EP}_{neg} \leq ep^{\Delta}_{neg}   \leq \overline{EP}_{neg} - \widehat{EP}_{neg}         \quad \forall neg`
 
-:math:`\frac{f^p_{\omega nijc}}{\overline{F}'_{ijc}} - (\theta^p_{\omega ni} - \theta^p_{\omega nj})\frac{S_B}{X_{ijc}\overline{F}'_{ijc}} = 0 \quad \forall p \omega nijc, ijc \in EL`
+:math:`0 \leq hp_{nhg}   \leq \overline{HP}_{nhg}                                                          \quad \forall nhg`
 
-:math:`-1+swt^p_{\omega nijc} \leq \frac{f^p_{\omega nijc}}{\overline{F}'_{ijc}} - (\theta^p_{\omega ni} - \theta^p_{\omega nj})\frac{S_B}{X_{ijc}\overline{F}'_{ijc}} \leq 1-swt^p_{\omega nijc} \quad \forall p \omega nijc, ijc \in CL`
+:math:`-\widehat{HP}_{nhg} \leq hp^{\Delta}_{nhg}   \leq \overline{HP}_{nhg} - \widehat{HP}_{nhg}          \quad \forall nhg`
 
-Half ohmic losses are linearly approximated as a function of the power flow [GW] «``eLineLosses1``» «``eLineLosses2``»
+:math:`0 \leq ec_{nes}  \leq \overline{EC}_{nes}                                                           \quad \forall nes`
 
-:math:`- \frac{L_{ijc}}{2} f^p_{\omega nijc} \leq l^p_{\omega nijc} \geq \frac{L_{ijc}}{2} f^p_{\omega nijc} \quad \forall p \omega nijc`
+:math:`-\widehat{EC}_{nes} \leq ec^{\Delta}_{nes}  \leq \overline{EC}_{nes} - \widehat{EC}_{nes}           \quad \forall nes`
 
-Cycle constraints for AC existing lines with DC optimal power flow formulation [rad] «``eCycleKirchhoff2ndLawCnd1``» «``eCycleKirchhoff2ndLawCnd2``».
-See the cycle constraints for the AC power flow formulation in the following reference:
+:math:`0 \leq ec_{nhz}  \leq \overline{EC}_{nhz}                                                           \quad \forall nhz`
 
-* E.F. Álvarez, J.C. López, L. Olmos, A. Ramos "An Optimal Expansion Planning of Power Systems Considering Cycle-Based AC Optimal Power Flow" Sustainable Energy, Grids and Networks, May 2024. `10.1016/j.segan.2024.101413 <https://doi.org/10.1016/j.segan.2024.101413>`_
+:math:`-\widehat{EC}_{nhz} \leq ec^{\Delta}_{nhz}  \leq \overline{EC}_{nhz} - \widehat{EC}_{nhz}           \quad \forall nhz`
 
-Kirchhoff's second law is substituted by a cycle power flow formulation for cycles with only AC existing lines [rad]
+:math:`0 \leq hc_{nhs}   \leq \overline{HC}_{nhs}                                                          \quad \forall nhs`
 
-:math:`\sum_{ijc \in cy} f_{ωpnijc} \frac{X_{ijc}}{S_B} = 0 \quad \forall ωpn,cy, cy \in CY`
+:math:`-\widehat{HC}_{nhs} \leq hc^{\Delta}_{nhs}  \leq \overline{HC}_{nhs} - \widehat{HC}_{nhs}           \quad \forall nhs`
 
-and disjunctive constraints for cycles with some AC candidate line [rad]
+:math:`0 \leq hc_{net}   \leq \overline{HC}_{net}                                                          \quad \forall net`
 
-:math:`-1+ict_{i'j'c'}  \leq \frac{\sum_{ijc \in cy} f_{ωpnijc} \frac{X_{ijc}}{S_B}}{\overline{θ}'_{cy,i'j'c'}} \leq 1-ict_{i'j'c'} \quad \forall ωpn,cy,i'j'c', cy \in CY, i'j'c' \in CLC`
+:math:`-\widehat{HC}_{net}\leq hc^{\Delta}_{net}  \leq \overline{HC}_{net} -\widehat{HC}_{net}             \quad \forall net`
 
-Flows in AC existing parallel circuits are inversely proportional to their reactances [GW] «``eFlowParallelCandidate1``» «``eFlowParallelCandidate2``»
+:math:`0 \leq ep2b_{neg} \leq \overline{EP}_{neg} - \underline{EP}_{neg}                                   \quad \forall neg`
 
-:math:`f_{ωpnijc} = \frac{X_{ijc'}}{X_{ijc}} f_{ωpnijc'} \quad \forall ωpnijcc', ijc \in EL, ijc' \in EL`
+:math:`0 \leq hp2b_{nhg} \leq \overline{HP}_{nhg} - \underline{HP}_{nhg}                                   \quad \forall nh`
 
-and disjunctive constraints in AC candidate parallel circuits are inversely proportional to their reactances [p.u.]
+:math:`0 \leq eeo_{nes} \leq \max(\overline{EP}_{nes},\overline{EC}_{nes})                                 \quad \forall nes`
 
-:math:`-1+ict_{ijc'} \leq \frac{f_{ωpnijc} - \frac{X_{ijc'}}{X_{ijc}} f_{ωpnijc'}}{\overline{F}_{ijc}} \leq 1-ict_{ijc'} \quad \forall ωpnijcc', ijc \in EL, ijc' \in CL`
+:math:`0 \leq heo_{nhs} \leq \max(\overline{HP}_{nhs},\overline{HC}_{nhs})                                 \quad \forall nhs`
 
-Given that there are disjunctive constraints, which are only correct with binary AC investment variables, this cycle-based formulation must be used only with binary AC investment decisions.
+:math:`0 \leq up^{SR}_{neg}, dp^{SR}_{neg}  \leq \overline{EP}_{neg} - \underline{EP}_{neg}                \quad \forall neg`
 
+:math:`0 \leq up^{TR}_{neg}, dp^{TR}_{neg}  \leq \overline{EP}_{neg} - \underline{EP}_{neg}                \quad \forall neg`
 
-**Hydrogen network operation**
+:math:`0 \leq uc^{SR}_{nes}, dc^{SR}_{nes} \leq \overline{EC}_{nes} - \underline{EC}_{nes}                 \quad \forall nes`
 
-Balance of hydrogen generation by electrolyzers, hydrogen consumption from hydrogen heater using it, and demand at each node [tH2] «``eBalanceH2``»
+:math:`0 \leq uc^{TR}_{nes}, dc^{TR}_{nes} \leq \overline{EC}_{nes} - \underline{EC}_{nes}                 \quad \forall nes`
 
-:math:`\sum_{e \in i} \frac{DUR^p_{\omega n}}{PF'_e} gc^p_{\omega ne} - \sum_{g \in i} gh^p_{\omega ng} + hns^p_{\omega ni} = DUR^p_{\omega n} DH^p_{\omega ni} + \sum_{jc} fh^p_{\omega nijc} - \sum_{jc} fh^p_{\omega njic} \quad \forall p \omega ni`
+:math:`0 \leq ec2b_{nes}  \leq \overline{EC}_{nes}                                                         \quad \forall nes`
 
-**Heat network operation**
+:math:`0 \leq hc2b_{nhs}  \leq \overline{HC}_{nhs}                                                         \quad \forall nhs`
 
-Balance of heat generation produced by CHPs and fuel heaters respectively and demand at each node [GW] «``eBalanceHeat``»
+:math:`\underline{EI}_{nes} \leq  esi_{nes}  \leq \overline{EI}_{nes}                                      \quad \forall nes`
 
-:math:`\sum_{e \in i} \frac{DUR^p_{\omega n}}{PF''_e} gc^p_{\omega ne} + \sum_{g \in i} gh^p_{\omega ng} + htns^p_{\omega ni} = DUR^p_{\omega n} DF^p_{\omega ni} + \sum_{jc} fp^p_{\omega nijc} - \sum_{jc} fp^p_{\omega njic} \quad \forall p \omega ni`
+:math:`\underline{HI}_{nhs} \leq  hsi_{nhs}  \leq \overline{HI}_{nhs}                                      \quad \forall nhs`
 
-**Bounds on generation and ESS variables** [GW]
+:math:`0 \leq  ess_{nes}                                                                                   \quad \forall nes`
 
-:math:`0 \leq gp^p_{\omega ng}  \leq \overline{GP}^p_{\omega ng}                                   \quad \forall p \omega ng`
+:math:`0 \leq  hss_{nhs}                                                                                   \quad \forall nhs`
 
-:math:`0 \leq go^p_{\omega ne}  \leq \max(\overline{GP}^p_{\omega ne},\overline{GC}^p_{\omega ne}) \quad \forall p \omega ne`
+:math:`0 \leq ec^{R+}_{nes}, ec^{R-}_{nes} \leq \overline{EC}_{nes}                                        \quad \forall nes`
 
-:math:`0 \leq gc^p_{\omega ne}  \leq \overline{GC}^p_{\omega ne}                                   \quad \forall p \omega ne`
+:math:`0 \leq ec^{R+}_{nhz}, ec^{R-}_{nhz} \leq \overline{EC}_{nhz}                                        \quad \forall nhz`
 
-:math:`\underline{GH}^p_{\omega ng} \leq gh^p_{\omega ng} \leq \overline{GH}^p_{\omega ng}         \quad \forall p \omega ng`
+:math:`0 \leq ec^{Comp}_{nhs} \leq \overline{EC}_{nhs}                                                     \quad \forall nhs`
 
-:math:`0 \leq ur^p_{\omega ng}  \leq \overline{GP}^p_{\omega ng} - \underline{GP}^p_{\omega ng}    \quad \forall p \omega ng`
+:math:`0 \leq ec^{StandBy}_{nhz} \leq \overline{EC}_{nhz}                                                  \quad \forall nhz`
 
-:math:`0 \leq ur'^p_{\omega ne} \leq \overline{GC}^p_{\omega ne} - \underline{GC}^p_{\omega ne}    \quad \forall p \omega ne`
+:math:`-\overline{ENF}_{nijc} \leq  ef_{nij}  \leq \overline{ENF}_{nijc}                                   \quad \forall nijc`
 
-:math:`0 \leq dr^p_{\omega ng}  \leq \overline{GP}^p_{\omega ng} - \underline{GP}^p_{\omega ng}    \quad \forall p \omega ng`
-
-:math:`0 \leq dr'^p_{\omega ne} \leq \overline{GC}^p_{\omega ne} - \underline{GC}^p_{\omega ne}    \quad \forall p \omega ne`
-
-:math:`0 \leq  p^p_{\omega ng}  \leq \overline{GP}^p_{\omega ng} - \underline{GP}^p_{\omega ng}    \quad \forall p \omega ng`
-
-:math:`0 \leq  c^p_{\omega ne}  \leq \overline{GC}^p_{\omega ne}                                   \quad \forall p \omega ne`
-
-:math:`\underline{I}^p_{\omega ne} \leq  i^p_{\omega ne}  \leq \overline{I}^p_{\omega ne}          \quad \forall p \omega ne`
-
-:math:`0 \leq  s^p_{\omega ne}                                                                     \quad \forall p \omega ne`
-
-:math:`0 \leq ens^p_{\omega ni} \leq D^p_{\omega ni}                                               \quad \forall p \omega ni`
-
-**Bounds on reservoir variables** [m\ :sup:`3`/s, hm\ :sup:`3`]
-
-:math:`0 \leq ho^p_{\omega ne'} \leq \sum_{h \in dw(e')} \overline{GP}^p_{\omega nh} / PF_h   \quad \forall p \omega ne'`
-
-:math:`\underline{I'}^p_{\omega ne'} \leq i'^p_{\omega ne'} \leq \overline{I'}^p_{\omega ne'} \quad \forall p \omega ne'`
-
-:math:`0 \leq s'^p_{\omega ne'}                                                               \quad \forall p \omega ne'`
-
-**Bounds on electricity network variables** [GW]
-
-:math:`0 \leq l^p_{\omega nijc} \leq \frac{L_{ijc}}{2} \overline{F}_{ijc}  \quad \forall p \omega nijc`
-
-:math:`- \overline{F}_{ijc} \leq f^p_{\omega nijc} \leq \overline{F}_{ijc} \quad \forall p \omega nijc, ijc \in EL`
-
-Voltage angle of the reference node fixed to 0 for each scenario, period, and load level [rad]
-
-:math:`\theta^p_{\omega n,node_{ref}} = 0`
-
-**Bounds on hydrogen network variables** [tH2]
-
-:math:`- \overline{FH}_{ijc} \leq fh^p_{\omega nijc} \leq \overline{FH}_{ijc} \quad \forall p \omega nijc, ijc \in EP`
-
-**Bounds on heat network variables** [GW]
-
-:math:`- \overline{FP}_{ijc} \leq fp^p_{\omega nijc} \leq \overline{FP}_{ijc} \quad \forall p \omega nijc, ijc \in EP`
+:math:`-\overline{HNF}_{nijc} \leq  hf_{nij}  \leq \overline{HNF}_{nijc}                                   \quad \forall nijc`

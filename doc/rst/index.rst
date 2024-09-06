@@ -1,42 +1,48 @@
-.. openTEPES documentation master file, created by Andres Ramos
+.. HySTEM documentation master file, created by Erik Alvarez
 
-.. image:: /../img/Escudo.png
-   :scale: 70%
+.. image:: /../img/oHySEM.svg
+   :scale: 60%
    :align: left
 
-.. image:: /../img/IIT40.png
-   :scale: 20%
+.. image:: /../img/Escudo.png
+   :scale: 60%
    :align: right
 
-\ **Open** \ Generation, \ Storage, \ and \ **T**\ransmission Operation and \ **E**\xpansion \ **P**\lanning Model with RES and \ **ES**\S (**openTEPES**)
+.. image:: /../img/logoIIT.gif
+   :scale: 100%
+   :align: right
 
-“*Simplicity and Transparency in Energy Systems Planning*”
+|
 
-The **openTEPES** model has been developed at the `Instituto de Investigación Tecnológica (IIT) <https://www.iit.comillas.edu/index.php.en>`_ of
+\ **Hy**\drogen in \ **S**\hort-\ **T**\erm \ **E**\lectricity \ **M**\arkets
+
+“*Simplicity and Transparency in Power Systems Operation*”
+
+|
+
+**HySTEM** is a multi-stage stochastic optimization model for the optimal operation scheduling of a Hydrogen-based Virtual Power Plant (H-VPP), which contains hydrogen-based energy storage systems (ESS), renewable energy sources (RES), and battery energy storage systems (BESS).
+
+The model has been developed at the `Instituto de Investigación Tecnológica (IIT) <https://www.iit.comillas.edu/index.php.en>`_ of
 the `Universidad Pontificia Comillas <https://www.comillas.edu/en/>`_.
-
-The **openTEPES** model presents a decision support system for defining the integrated generation, storage, and transmission expansion plan (GEP+SEP+TEP) of a **large-scale electric system** at a tactical level (i.e., time horizons of 10-20 years),
-defined as a set of **generation, storage, and (electricity, hydrogen, and heat) networks dynamic investment decisions for multiple future years**.
-
-It is integrated into the `open energy system modelling platform  <https://openenergymodels.net/>`_, helping model Europe's energy system.
-
-It has been used by the **Ministry for the Ecological Transition and the Demographic Challenge (MITECO)** to analyze the electricity sector in the latest Spanish `National Energy and Climate Plan (NECP) 2023-2030 <https://www.miteco.gob.es/content/dam/miteco/es/energia/files-1/_layouts/15/Borrador%20para%20la%20actualizaci%C3%B3n%20del%20PNIEC%202023-2030-64347.pdf>`_ in June 2023.
-
-**Reference**: A. Ramos, E. Quispe, S. Lumbreras "`OpenTEPES: Open-source Transmission and Generation Expansion Planning <https://www.sciencedirect.com/science/article/pii/S235271102200053X/pdfft?md5=ece8d3328c853a4795eda29acd2ad140&pid=1-s2.0-S235271102200053X-main.pdf>`_" SoftwareX 18: June 2022 `10.1016/j.softx.2022.101070 <https://doi.org/10.1016/j.softx.2022.101070>`_
-
-**openTEPES**: `summary presentation (English) <https://pascua.iit.comillas.edu/aramos/openTEPES.pdf>`_, `présentation (French) <https://pascua.iit.comillas.edu/aramos/openTEPES_fr.pdf>`_, and `installation guide <https://pascua.iit.comillas.edu/aramos/openTEPES_installation.pdf>`_
 
 Index
 =====
 
+.. if-builder:: simplepdf
+
+   .. toctree::
+
+      Introduction.rst
+      InputData.rst
+      MathematicalFormulation.rst
+      Projects.rst
+
+
+
 .. toctree::
    :maxdepth: 2
-   
+
    Introduction.rst
    InputData.rst
-   OutputResults.rst
    MathematicalFormulation.rst
    Projects.rst
-   Papers.rst
-   Download.rst
-   ContactUs.rst
