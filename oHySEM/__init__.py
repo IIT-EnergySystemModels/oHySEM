@@ -12,8 +12,8 @@ Optimized Hybrid Systems for Energy and Market management (oHySEM)
 
     Examples:
         >>> import oHySEM as oH
-        >>> oH.routine("9n", "C:\\Users\\UserName\\Documents\\GitHub\\oHySEM", "glpk")
+        >>> oH.routine("VPP1", "C:\\Users\\UserName\\Documents\\GitHub\\oHySEM", "glpk")
 """
-__version__ = "0.1.1"
+__version__ = "1.0.0"
 
 from .oHySEM import main
