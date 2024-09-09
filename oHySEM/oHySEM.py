@@ -2292,7 +2292,7 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
     idx = 0
     for var in optmodel.component_data_objects(Var, active=True, descend_into=True):
         if not var.is_continuous():
-            print("fixing: " + str(var))
+            # print("fixing: " + str(var))
             var.fixed = True  # fix the current value
             idx += 1
     print("Number of fixed variables: ", idx)
