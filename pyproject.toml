@@ -29,4 +29,4 @@ requires = [
   "dill>=0.3.8",]
 
 [tool.flit.scripts]
-openTEPES_Main = "oHySEM:main"
+oHySEM = "oHySEM:main"
