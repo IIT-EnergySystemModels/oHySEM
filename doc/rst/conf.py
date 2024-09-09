@@ -20,7 +20,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'HySTEM'
+project = 'oHySEM'
 copyright = '2024, Universidad Pontificia Comillas'
 author = 'Erik F. Alvarez'
 
@@ -108,7 +108,7 @@ html_sidebars = {
     ]
 }
 html_title = 'version 1.0.0'
-html_logo  = '../img/HySTEM.svg'
+html_logo  = '../img/oHySEM.svg'
 html_last_updated_fmt = ''
 html_show_sphinx = False
 html_theme_options = {
