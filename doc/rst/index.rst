@@ -6,11 +6,9 @@
 
 |
 
-\ **o**\ptimized \ **Hy**\brid in \ **S**\ystems for \ **E**\nergy and \ **M**\arket management
+\ **o**\ptimized \ **Hy**\brid in \ **S**\ystems for \ **E**\nergy and \ **M**\arket management (**oHySEM**)
 
-“*Simplicity and Transparency in Power Systems Operation*”
-
-|
+“*Simplicity and Transparency in Energy Systems Planning*”
 
 **oHySEM** is a multi-stage stochastic optimization model for the optimal operation scheduling of a Hydrogen-based Virtual Power Plant (H-VPP), which contains hydrogen-based energy storage systems (ESS), renewable energy sources (RES), and battery energy storage systems (BESS).
 
