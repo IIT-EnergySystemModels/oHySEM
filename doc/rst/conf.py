@@ -38,13 +38,7 @@ release = ''
 extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
-    'sphinx_simplepdf',
 ]
-
-simplepdf_vars = {
-    'primary': '#333333',
-    'links': '#FF3333',
-}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

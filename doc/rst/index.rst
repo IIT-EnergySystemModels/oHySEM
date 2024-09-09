@@ -28,17 +28,6 @@ the `Universidad Pontificia Comillas <https://www.comillas.edu/en/>`_.
 Index
 =====
 
-.. if-builder:: simplepdf
-
-   .. toctree::
-
-      Introduction.rst
-      InputData.rst
-      MathematicalFormulation.rst
-      Projects.rst
-
-
-
 .. toctree::
    :maxdepth: 2
 
