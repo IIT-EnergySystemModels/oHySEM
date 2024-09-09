@@ -1,4 +1,0 @@
-,,,Type,Switching,InitialPeriod,FinalPeriod,Voltage,Length,LossFactor,Reactance,SecurityFactor,TTC,TTCBck,FixedChargeRate,FixedInvestmentCost,BinaryInvestment,SwOnTime,SwOffTime,InvestmentLo,InvestmentUp,Resistance
-Node1,Node2,c1,AC,, 2020 , 2050 , 400 ,, 0.012979167 , 0.0686875 , 0.67 , 1000 ,,,,,,,,,
-Node1,Node2,c2,AC,, 2020 , 2050 , 400 ,, 0.012979167 , 0.0686875 , 0.67 , 1000 ,,,,,,,,,
-Node2,Node3,c1,AC,, 2020 , 2050 , 400 ,, 0.012979167 , 0.0686875 , 0.67 , 100 ,,,,,,,,,

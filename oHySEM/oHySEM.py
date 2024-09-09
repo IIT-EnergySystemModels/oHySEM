@@ -41,7 +41,7 @@ parser.add_argument('--case',   type=str, default=None)
 parser.add_argument('--solver', type=str, default=None)
 
 default_DirName    = os.path.dirname(__file__)
-default_CaseName   = 'sSEP'                              # To select the case
+default_CaseName   = 'VPP1'                              # To select the case
 default_SolverName = 'gurobi'
 
 def main():
@@ -113,7 +113,7 @@ def main():
     # print('- Total time for network mapping:                                      {}  seconds\n'.format(round(time.time() - start_time  )))
     elapsed_time = round(time.time() - initial_time)
     print('Elapsed time: {} seconds'.format(elapsed_time))
-    path_to_write_time = os.path.join(args.dir,args.case,"oH_ComputationTime"+args.case+".txt")
+    path_to_write_time = os.path.join(args.dir,args.case,"oH_Results_ExecutionTime_"+args.case+".txt")
     with open(path_to_write_time, 'w') as f:
          f.write(str(elapsed_time))
 
