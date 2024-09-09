@@ -1,12 +1,8 @@
 .. oHySEM documentation master file, created by Erik Alvarez
 
-.. image:: /../img/oHySEM_v2.png
-   :scale: 60%
-   :align: left
-
 .. image:: /../img/Escudo.png
-   :scale: 60%
-   :align: right
+   :scale: 70%
+   :align: left
 
 .. image:: /../img/logoIIT.gif
    :scale: 100%
