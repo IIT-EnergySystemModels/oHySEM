@@ -8,7 +8,10 @@
 
 .. raw:: html
 
-   <b>O</b>ptimized <b>H</b>ybrid <b>S</b>ystems for <b>E</b>nergy and <b>M</b>arket <b>M</b>anagement
+   <div style="text-align: center;">
+     <b>O</b>ptimized <b>H</b>ybrid <b>S</b>ystems for <b>E</b>nergy and <b>M</b>arket <b>M</b>anagement
+   </div>
+
 ======================================================================================================
 
 ``Simplicity and Transparency in Power Systems Operation and Planning``
