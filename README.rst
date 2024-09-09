@@ -3,9 +3,7 @@
    :target: https://ohysem.readthedocs.io/en/latest/index.html
    :alt: logo
    :align: center
-
 |
-
 .. raw:: html
 
    <div style="text-align: center;">
