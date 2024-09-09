@@ -130,5 +130,5 @@ Contributions to oHySEM are welcome! Please refer to our Contributing Guide for 
 ---
 
 ## License
-oHySEM is licensed under the MIT License. See the [LICENSE](https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/LICENSE)
+oHySEM is licensed under the GPL-3.0 license. See the [LICENSE](https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/LICENSE)
  file for details.
