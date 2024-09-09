@@ -3,11 +3,13 @@
    :target: https://ohysem.readthedocs.io/en/latest/index.html
    :alt: logo
    :align: center
+
 |
+
 .. raw:: html
 
    <div style="text-align: center;">
-     <b>O</b>ptimized <b>H</b>ybrid <b>S</b>ystems for <b>E</b>nergy and <b>M</b>arket <b>M</b>anagement
+     <b>O</b>ptimized <b>H</b>ybrid <b>S</b>ystems for <b>E</b>nergy and <b>M</b>arket management <b>(oHySEM)</b>
    </div>
 
 ======================================================================================================
