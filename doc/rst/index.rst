@@ -1,6 +1,6 @@
 .. oHySEM documentation master file, created by Erik Alvarez
 
-.. image:: /../img/oHySEM.svg
+.. image:: /../img/oHySEM_v2.png
    :scale: 60%
    :align: left
 
