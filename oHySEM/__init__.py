@@ -15,3 +15,5 @@ Optimized Hybrid Systems for Energy and Market management (oHySEM)
         >>> oH.routine("9n", "C:\\Users\\UserName\\Documents\\GitHub\\oHySEM", "glpk")
 """
 __version__ = "0.1.1"
+
+from .oHySEM import main
