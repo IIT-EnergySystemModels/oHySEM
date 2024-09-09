@@ -1,4 +1,4 @@
-.. HySTEM documentation master file, created by Erik Alvarez
+.. oHySEM documentation master file, created by Erik Alvarez
 
 ----------
 Input Data
@@ -57,32 +57,32 @@ This is the list of the input data files and their brief description.
 ==========================================  ==========================================================================================================
 File                                        Description
 ==========================================  ==========================================================================================================
-``HySTEM_Data_Option.csv``                   Options of use of the **HySTEM** model
-``HySTEM_Data_Parameter.csv``                General system parameters
-``HySTEM_Data_Period.csv``                   Weight of each period
-``HySTEM_Data_Duration.csv``                 Duration of the load levels
-``HySTEM_Data_Scenario.csv``                 Short-term uncertainties
-``HySTEM_Data_Demand.csv``                   Demand
-``HySTEM_Data_EnergyCostPrice.csv``          Cost of the energy bought and price of the energy sold
-``HySTEM_Data_OperatingReserve.csv``         Upward and downward operating reserves (include aFRR, mFRR and RR for electricity balancing from ENTSO-E)
-``HySTEM_Data_OperatingReservePrice.csv``    Price of the operating reserve sold
-``HySTEM_Data_Generation.csv``               Generation data
-``HySTEM_Data_EnergyInflows.csv``            Energy inflows  for ESS (e.g., storage hydro or open-loop pumped-storage hydro) by load level
-``HySTEM_Data_VariableMinOutflows.csv``      Minimum product outflows for ESS (e.g., kg of H2) by load level
-``HySTEM_Data_VariableMaxOutflows.csv``      Maximum product outflows for ESS (e.g., kg of H2) by load level
-``HySTEM_Data_VariableMaxGeneration.csv``    Variable maximum power generation  by load level
-``HySTEM_Data_VariableMinGeneration.csv``    Variable minimum power generation  by load level
-``HySTEM_Data_VariableMaxConsumption.csv``   Variable maximum power consumption by load level
-``HySTEM_Data_VariableMinConsumption.csv``   Variable minimum power consumption by load level
-``HySTEM_Data_VariableMaxStorage.csv``       Variable maximum storage           by load level
-``HySTEM_Data_VariableMinStorage.csv``       Variable minimum storage           by load level
+``oHySEM_Data_Option.csv``                   Options of use of the **oHySEM** model
+``oHySEM_Data_Parameter.csv``                General system parameters
+``oHySEM_Data_Period.csv``                   Weight of each period
+``oHySEM_Data_Duration.csv``                 Duration of the load levels
+``oHySEM_Data_Scenario.csv``                 Short-term uncertainties
+``oHySEM_Data_Demand.csv``                   Demand
+``oHySEM_Data_EnergyCostPrice.csv``          Cost of the energy bought and price of the energy sold
+``oHySEM_Data_OperatingReserve.csv``         Upward and downward operating reserves (include aFRR, mFRR and RR for electricity balancing from ENTSO-E)
+``oHySEM_Data_OperatingReservePrice.csv``    Price of the operating reserve sold
+``oHySEM_Data_Generation.csv``               Generation data
+``oHySEM_Data_EnergyInflows.csv``            Energy inflows  for ESS (e.g., storage hydro or open-loop pumped-storage hydro) by load level
+``oHySEM_Data_VariableMinOutflows.csv``      Minimum product outflows for ESS (e.g., kg of H2) by load level
+``oHySEM_Data_VariableMaxOutflows.csv``      Maximum product outflows for ESS (e.g., kg of H2) by load level
+``oHySEM_Data_VariableMaxGeneration.csv``    Variable maximum power generation  by load level
+``oHySEM_Data_VariableMinGeneration.csv``    Variable minimum power generation  by load level
+``oHySEM_Data_VariableMaxConsumption.csv``   Variable maximum power consumption by load level
+``oHySEM_Data_VariableMinConsumption.csv``   Variable minimum power consumption by load level
+``oHySEM_Data_VariableMaxStorage.csv``       Variable maximum storage           by load level
+``oHySEM_Data_VariableMinStorage.csv``       Variable minimum storage           by load level
 ==========================================  ==========================================================================================================
 
 In any input file, only the columns indicated in this document will be read. For example, you can add a column for comments or additional information as needed, but it will not be read by the model.
 
 Options
 ----------
-A description of the options included in the file ``HySTEM_Data_Option.csv`` follows:
+A description of the options included in the file ``oHySEM_Data_Option.csv`` follows:
 
 ===================  ===============================================================   ====================================================
 File                 Description
@@ -94,7 +94,7 @@ If the investment decisions are ignored (IndBinGenInvest, IndBinGenRetirement, a
 
 Parameters
 ----------
-A description of the system parameters included in the file ``HySTEM_Data_Parameter.csv`` follows:
+A description of the system parameters included in the file ``oHySEM_Data_Parameter.csv`` follows:
 
 ==================  =============================================================================================  ================
 File                Description
@@ -115,7 +115,7 @@ the time step load levels is assigned to active load levels (e.g., the mean valu
 Duration
 --------
 
-A description of the data included in the file ``HySTEM_Data_Duration.csv`` follows:
+A description of the data included in the file ``oHySEM_Data_Duration.csv`` follows:
 
 ==========  ========  ===================================================================  ==
 Identifier  Header    Description
@@ -129,7 +129,7 @@ A load level duration of 0.25 h would be used for defining all the data in quart
 Period
 ------
 
-A description of the data included in the file ``HySTEM_Data_Period.csv`` follows:
+A description of the data included in the file ``oHySEM_Data_Period.csv`` follows:
 
 ==============  ============  =====================
 Identifier      Header        Description
@@ -143,7 +143,7 @@ at different periods.
 Scenario
 --------
 
-A description of the data included in the file ``HySTEM_Data_Scenario.csv`` follows:
+A description of the data included in the file ``oHySEM_Data_Scenario.csv`` follows:
 
 ==============  ==============  ============  ===========================================  ====
 Identifier      Identifier      Header        Description

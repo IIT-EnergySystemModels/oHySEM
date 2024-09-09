@@ -1,4 +1,4 @@
-.. HySTEM documentation master file, created by Erik Alvarez
+.. oHySEM documentation master file, created by Erik Alvarez
 
 Research projects
 =================

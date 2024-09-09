@@ -1,8 +1,8 @@
-.. HySTEM documentation master file, created by Erik Alvarez
+.. oHySEM documentation master file, created by Erik Alvarez
 
 Mathematical Formulation
 ========================
-Here we present the mathematical formulation of the optimization problem solved by the **HySTEM** model.
+Here we present the mathematical formulation of the optimization problem solved by the **oHySEM** model.
 
 Acronyms
 --------
@@ -114,7 +114,7 @@ Variables
 They are written in **lowercase** letters.
 
 ==========================================    ======================================================  ========  ============================================
-**Demand**                                    **Description**                                         **Unit**  **oHySTEM.py variable**
+**Demand**                                    **Description**                                         **Unit**  **ooHySEM.py variable**
 ------------------------------------------    ------------------------------------------------------  --------  --------------------------------------------
 :math:`e^{b}_{nnd}, e^{s}_{nnd}`              Electricity bought and sold in the electricity market   GW        «``vElectricityBuy``, ``vElectricitySell``»
 :math:`ens_{nnd}`                             Electricity not served                                  GW        «``vENS``»
@@ -127,7 +127,7 @@ They are written in **lowercase** letters.
 ==========================================    ======================================================  ========  ============================================
 
 ==============================================  ==========================================================================================  ========  ==========================================================
-**Generation system**                           **Description**                                                                             **Unit**  **oHySTEM.py variable**
+**Generation system**                           **Description**                                                                             **Unit**  **ooHySEM.py variable**
 ----------------------------------------------  ------------------------------------------------------------------------------------------  --------  ----------------------------------------------------------
 :math:`ep_{neg}`                                Electricity production (discharge if an ESS)                                                GW        «``vEleTotalOutput``»
 :math:`ec_{nes}, ec_{nhz}`                      Electricity consumption of electricity ESS and electrolyzer units                           GW        «``vEleTotalCharge``»
@@ -168,7 +168,7 @@ They are written in **lowercase** letters.
 ==============================================  ==========================================================================================  ========  ==========================================================
 
 ==========================================  ==========================================================================================  ========  ============================================
-**Network system**                          **Description**                                                                             **Unit**  **oHySTEM.py variable**
+**Network system**                          **Description**                                                                             **Unit**  **ooHySEM.py variable**
 ------------------------------------------  ------------------------------------------------------------------------------------------  --------  --------------------------------------------
 :math:`ef_{nijc}`                           Electricity transmission flow through a line                                                GW        «``vEleNetFlow``»
 :math:`hf_{nijc}`                           Hydrogen transmission flow through a pipeline                                               kgH2      «``vHydNetFlow``

@@ -1,10 +1,10 @@
-.. HySTEM documentation master file, created by Erik Alvarez
+.. oHySEM documentation master file, created by Erik Alvarez
 
 ------------
 Introduction
 ------------
 
-The *Hydrogen in Short-Term Electricity Markets* **(HySTEM)** model determines the optimal participation in the short-term electricity market of a hydrogen-based virtual power plant (H-VPP).
+The *Hydrogen in Short-Term Electricity Markets* **(oHySEM)** model determines the optimal participation in the short-term electricity market of a hydrogen-based virtual power plant (H-VPP).
 The H-VPP is an association of hydrogen-based energy storage systems (ESS), a power generation unit (PG: a Solar PV, Wind, or CCGT), and battery energy storage systems (BESS) that can participate in the market as a single entity.
 
 .. image:: /../img/H-VPP.png
@@ -15,7 +15,7 @@ The model aims at optimizing the operation scheduling of the H-VPP in the short-
 Short-term operation concerns time scopes of 1-7 days with high temporal granularity (15 min-1 h). Its objective is to maximize the expected value of the total profit of the H-VPP.
 The main results are the schedules of the H-VPP in the day-ahead and secondary reserve market and the guidelines for the operation of the H-VPP in the others.
 
-The **HySTEM** model presents a decision support system for defining the optimal participation of an H-VPP in the short-term electricity market, defined as a set of energy and reserve decisions for one or multiple future days with high temporal granularity.
+The **oHySEM** model presents a decision support system for defining the optimal participation of an H-VPP in the short-term electricity market, defined as a set of energy and reserve decisions for one or multiple future days with high temporal granularity.
 The user pre-defines the H-VPP structure, so the model determines the optimal decisions among those specified by the user.
 
 It automatically determines the optimal operation scheduling that satisfies several attributes simultaneously. Its main characteristics are:
