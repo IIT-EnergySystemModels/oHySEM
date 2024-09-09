@@ -1,11 +1,10 @@
-.. image:: https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/doc/img/oHySEM_v1.png
-         :target: https://ohysem.readthedocs.io/en/latest/index.html
-         :alt: oHySEM Logo
-         :width: 100px
-         :align: center
 
-oHySEM
-=========================================================
+.. image:: https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/doc/img/oHySEM_v2.png
+   :target: https://ohysem.readthedocs.io/en/latest/index.html
+   :alt: logo
+   :align: center
+
+|
 
 .. raw:: html
 
