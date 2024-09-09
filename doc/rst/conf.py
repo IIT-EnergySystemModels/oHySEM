@@ -102,7 +102,7 @@ html_sidebars = {
     ]
 }
 html_title = 'version 1.0.0'
-html_logo  = '../img/oHySEM_v2.png'
+html_logo  = '../img/oHySEM.png'
 html_last_updated_fmt = ''
 html_show_sphinx = False
 html_theme_options = {
