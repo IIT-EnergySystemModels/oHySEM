@@ -1,31 +1,16 @@
-.. list-table:: 
-   :widths: 20 80
-   :align: center
-   :header-rows: 0
-
-   * - .. image:: https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/doc/img/oHySEM.png
+.. image:: https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/doc/img/oHySEM_v1.png
          :target: https://ohysem.readthedocs.io/en/latest/index.html
          :alt: oHySEM Logo
          :width: 100px
-     - .. raw:: html
+         :align: center
 
-         <div style="display: flex; align-items: center; height: 100%;">
-           <span style="font-size: 28px; font-weight: bold;">oHySEM</span>
-         </div>
-
-         <div style="font-size: 18px;">
-         <span style="color:#2E8B57;">O</span>ptimized 
-         <span style="color:#FF4500;">Hy</span>brid 
-         <span style="color:#00FFFF;">S</span>ystems for 
-         <span style="color:#FFD700;">E</span>nergy and 
-         <span style="color:#008000;">M</span>arket management
-         </div>
-
-
-
-
-Optimized Hybrid Systems for Energy and Market Management
+oHySEM
 =========================================================
+
+.. raw:: html
+
+   <b>O</b>ptimized <b>H</b>ybrid <b>S</b>ystems for <b>E</b>nergy and <b>M</b>arket <b>M</b>anagement
+======================================================================================================
 
 ``Simplicity and Transparency in Power Systems Operation and Planning``
 
