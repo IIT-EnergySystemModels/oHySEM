@@ -6,11 +6,7 @@
 
 |
 
-.. raw:: html
-
-   <div style="text-align: center;">
-     <b>O</b>ptimized <b>H</b>ybrid <b>S</b>ystems for <b>E</b>nergy and <b>M</b>arket management <b>(oHySEM)</b>
-   </div>
+\ **o**\ptimized \ **Hy**\brid  \ **S**\ystems for \ **E**\nergy and \ **M**\arket management **(oHySEM)**
 
 ======================================================================================================
 
