@@ -52,11 +52,11 @@ def main():
     oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.0 - November 21, 2023')
 
     if args.dir is None:
-        args.dir = input('Input Dir   Name (Default {}): '.format(default_DirName))
+        args.dir = input( 'Input Dir   Name (Default {}): '.format(default_DirName))
         if args.dir == '':
             args.dir = default_DirName
     if args.case is None:
-        args.case = input('Input Case   Name (Default {}): '.format(default_CaseName))
+        args.case = input('Input Case  Name (Default {}): '.format(default_CaseName))
         if args.case == '':
             args.case = default_CaseName
     args.solver = default_SolverName
