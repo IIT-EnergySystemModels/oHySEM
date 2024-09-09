@@ -4,10 +4,6 @@
    :scale: 70%
    :align: left
 
-.. image:: /../img/logoIIT.gif
-   :scale: 100%
-   :align: right
-
 |
 
 \ **o**\ptimized \ **Hy**\brid in \ **S**\ystems for \ **E**\nergy and \ **M**\arket management
