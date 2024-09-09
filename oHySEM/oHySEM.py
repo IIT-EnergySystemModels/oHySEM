@@ -7,7 +7,7 @@
 #    Alberto Aguilera 23
 #    28015 Madrid, Spain
 #    Andres.Ramos@comillas.edu
-#    https://pascua.iit.comillas.edu/aramos/Ramos_CV.htm
+#    https://pascua.iit.comillas.edu/aramos/Ramos_CV.html
 
 #%% Libraries
 import argparse
