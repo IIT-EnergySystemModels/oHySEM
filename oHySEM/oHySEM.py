@@ -32,7 +32,7 @@ from   colour            import Color
 for i in range(0, 117):
     print('-', end="")
 
-print('\nProgram for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.0 - November 21, 2023')
+print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.0 - September 09, 2024')
 print('#### Non-commercial use only ####')
 
 parser = argparse.ArgumentParser(description='Introducing main arguments...')
