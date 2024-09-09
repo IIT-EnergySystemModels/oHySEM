@@ -44,13 +44,13 @@ default_DirName    = os.path.dirname(__file__)
 default_CaseName   = 'sSEP'                              # To select the case
 default_SolverName = 'gurobi'
 
-#%% Model declaration
-oHySTEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.0 - November 21, 2023')
-
-def main(cmodel):
+def main():
     initial_time = time.time()
     args = parser.parse_args()
     # args.dir = default_DirName
+    # %% Model declaration
+    oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.0 - November 21, 2023')
+
     if args.dir is None:
         args.dir = input('Input Dir   Name (Default {}): '.format(default_DirName))
         if args.dir == '':
@@ -68,7 +68,7 @@ def main(cmodel):
     # reading and processing the data
     #
     print('- Initializing the model\n')
-    model = data_processing(args.dir, args.case, cmodel)
+    model = data_processing(args.dir, args.case, oHySEM)
     print('- Total time for reading and processing the data:                      {}  seconds\n'.format(round(time.time() - initial_time)))
     start_time = time.time()
     # defining the variables
@@ -2627,4 +2627,4 @@ def network_map(DirName, CaseName, model, optmodel):
 
 
 if __name__ == '__main__':
-    main(oHySTEM)
+    main()
