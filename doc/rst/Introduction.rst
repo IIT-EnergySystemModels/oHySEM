@@ -85,21 +85,21 @@ Outputs and results
 **oHySEM** generates a comprehensive set of output data in both CSV and graphical formats, enabling users to thoroughly evaluate the design, operation and market participation of their hybrid systems and asset configurations:
 
 1. Market participation results
-   ----------------------------
+
    - Optimised bids for day-ahead, intraday and real-time markets
    - Secondary reserve offers (up and down)
    - Real-time dispatch, balancing and imbalance management
    - Financial impact of energy imbalances, helping to assess profitability
 
 2. Operational results for hydrogen and battery systems
-   ---------------------------------------------------
+
    - Optimisation of hydrogen production, storage and battery use
    - Daily hydrogen consumption plans
    - Imbalance management within hydrogen systems and battery storage
    - Performance metrics to assess the flexibility and efficiency of hybrid systems
 
 3. Planning and system design results
-   ---------------------------------
+
    - Recommendations for long term location and sizing of new generation, hydrogen and battery storage assets
    - Medium-term adjustments for asset optimisation in response to market dynamics
    - Short-term performance analysis of newly installed assets to ensure operational and market alignment
