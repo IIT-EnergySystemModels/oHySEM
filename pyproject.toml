@@ -27,7 +27,9 @@ requires = [
   "jsonschema>=4.16.0",
   "networkx>=3.3",
   "dill>=0.3.8",]
-data-includes = ["doc/img/oHySEM_v2.png"]
 
 [tool.flit.scripts]
 oHySEM = "oHySEM:main"
+
+[tool.flit.sdist]
+include = ["oHySEM/img/oHySEM_v2.png"]
