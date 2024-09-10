@@ -31,5 +31,5 @@ requires = [
 [tool.flit.scripts]
 oHySEM = "oHySEM:main"
 
-[tool.flit.package]
+[tool.flit.sdist]
 include = ["doc/img/oHySEM_v2.png"]
