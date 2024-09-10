@@ -41,13 +41,13 @@ The dictionaries include all the possible elements of the corresponding sets in 
 =============================  ===================================================================================================================================================================================================================
 File                           Description
 =============================  ===================================================================================================================================================================================================================
-``oT_Dict_Period.csv``         Period (e.g., 0, 1, 2). **It must be a positive integer equivalent to hours**
-``oT_Dict_Scenario.csv``       Scenario. Short-term uncertainties (scenarios) (e.g., s001 to s100)
-``oT_Dict_Stage.csv``          Stage
-``oT_Dict_LoadLevel.csv``      Load level (e.g., 01-01 00:00:00+01:00 to 01-01 00:45:00+01:00). Load levels with duration 0 are ignored
-``oT_Dict_Generation.csv``     Generation units (thermal -nuclear, CCGT, OCGT, coal-, ESS -hydro, pumped-hydro storage PHS, battery BESS, electric vehicle EV, demand response DR, alkaline water electrolyzer AWE, solar thermal- and VRE -wind onshore and offshore, solar PV, run-of-the-river hydro-)
-``oT_Dict_Technology.csv``     Generation technologies. The technology order is used in the temporal result plot.
-``oT_Dict_Storage.csv``        ESS storage type (daily < 12 h, weekly < 40 h, monthly > 60 h)
+``oH_Dict_Period.csv``         Period (e.g., 0, 1, 2). **It must be a positive integer equivalent to hours**
+``oH_Dict_Scenario.csv``       Scenario. Short-term uncertainties (scenarios) (e.g., s001 to s100)
+``oH_Dict_Stage.csv``          Stage
+``oH_Dict_LoadLevel.csv``      Load level (e.g., 01-01 00:00:00+01:00 to 01-01 00:45:00+01:00). Load levels with duration 0 are ignored
+``oH_Dict_Generation.csv``     Generation units (thermal -nuclear, CCGT, OCGT, coal-, ESS -hydro, pumped-hydro storage PHS, battery BESS, electric vehicle EV, demand response DR, alkaline water electrolyzer AWE, solar thermal- and VRE -wind onshore and offshore, solar PV, run-of-the-river hydro-)
+``oH_Dict_Technology.csv``     Generation technologies. The technology order is used in the temporal result plot.
+``oH_Dict_Storage.csv``        ESS storage type (daily < 12 h, weekly < 40 h, monthly > 60 h)
 =============================  ===================================================================================================================================================================================================================
 
 Input files
@@ -157,7 +157,7 @@ The sum of the probabilities of all the scenarios of a period must be 1.
 Stage
 -----
 
-A description of the data included in the file ``oT_Data_Stage.csv`` follows:
+A description of the data included in the file ``oH_Data_Stage.csv`` follows:
 
 ==============  ============  =====================
 Identifier      Header        Description
@@ -171,7 +171,7 @@ at different stages.
 Adequacy reserve margin
 -----------------------
 
-A description of the data included in the file ``oT_Data_ReserveMargin.csv`` follows:
+A description of the data included in the file ``oH_Data_ReserveMargin.csv`` follows:
 
 ==============  =============  ======================================
 Identifier      Header         Description
@@ -184,7 +184,7 @@ This parameter is only used for system generation expansion, not for the system 
 Duration
 --------
 
-A description of the data included in the file ``oT_Data_Duration.csv`` follows:
+A description of the data included in the file ``oH_Data_Duration.csv`` follows:
 
 ==========  ===================================================================  ========
 Header      Description
@@ -205,7 +205,7 @@ The initial storage of the ESSs is also fixed at the beginning and end of each s
 Electricity demand
 ------------------
 
-A description of the data included in the file ``oT_Data_Demand.csv`` follows:
+A description of the data included in the file ``oH_Data_Demand.csv`` follows:
 
 ==========  ==============  ==========  ======  ============================================  ==
 Identifier  Identifier      Identifier  Header  Description
@@ -219,7 +219,7 @@ Internally, all the values below if positive demand (or above if negative demand
 System inertia
 --------------
 
-A description of the data included in the files ``oT_Data_Inertia.csv`` follows:
+A description of the data included in the files ``oH_Data_Inertia.csv`` follows:
 
 ==========  ==============  ==========  ======  ================================================  ==
 Identifier  Identifier      Identifier  Header  Description
@@ -234,7 +234,7 @@ Internally, all the values below 2.5e-5 times the maximum system electricity dem
 Upward and downward operating reserves
 --------------------------------------
 
-A description of the data included in the files ``oT_Data_OperatingReserveUp.csv`` and ``oT_Data_OperatingReserveDown.csv`` follows:
+A description of the data included in the files ``oH_Data_OperatingReserveUp.csv`` and ``oH_Data_OperatingReserveDown.csv`` follows:
 
 ==========  ==============  ==========  ======  ===================================================================  ==
 Identifier  Identifier      Identifier  Header  Description
@@ -249,7 +249,7 @@ Internally, all the values below 2.5e-5 times the maximum system demand of each 
 
 Generation
 ----------
-A description of the data included for each generating unit in the file ``oT_Data_Generation.csv`` follows:
+A description of the data included for each generating unit in the file ``oH_Data_Generation.csv`` follows:
 
 ====================  ================================================================================================================================  ===================================
 Header                Description
@@ -334,7 +334,7 @@ If lower and upper bounds of investment/retirement decisions are very close (wit
 Variable maximum and minimum generation
 ---------------------------------------
 
-A description of the data included in the files ``oT_Data_VariableMaxGeneration.csv`` and ``oT_Data_VariableMinGeneration.csv`` follows:
+A description of the data included in the files ``oH_Data_VariableMaxGeneration.csv`` and ``oH_Data_VariableMinGeneration.csv`` follows:
 
 ==========  ==============  ==========  =========  ============================================================  ==
 Identifier  Identifier      Identifier  Header     Description
@@ -352,7 +352,7 @@ Internally, all the values below 2.5e-5 times the maximum system demand of each 
 Variable maximum and minimum consumption
 ----------------------------------------
 
-A description of the data included in the files ``oT_Data_VariableMaxConsumption.csv`` and ``oT_Data_VariableMinConsumption.csv`` follows:
+A description of the data included in the files ``oH_Data_VariableMaxConsumption.csv`` and ``oH_Data_VariableMinConsumption.csv`` follows:
 
 ==========  ==============  ==========  =========  =============================================================  ==
 Identifier  Identifier      Identifier  Header     Description
@@ -368,7 +368,7 @@ Internally, all the values below 2.5e-5 times the maximum system demand of each 
 Variable fuel cost
 ------------------
 
-A description of the data included in the file ``oT_Data_VariableFuelCost.csv`` follows:
+A description of the data included in the file ``oH_Data_VariableFuelCost.csv`` follows:
 
 ==========  ==============  ==========  =========  =============================  ======
 Identifier  Identifier      Identifier  Header     Description
@@ -385,7 +385,7 @@ Fuel cost affects the linear and constant terms of the heat rate, expressed in M
 Energy inflows
 --------------
 
-A description of the data included in the file ``oT_Data_EnergyInflows.csv`` follows:
+A description of the data included in the file ``oH_Data_EnergyInflows.csv`` follows:
 
 ==========  ==============  ==========  =========  =============================  =====
 Identifier  Identifier      Identifier  Header     Description
@@ -404,7 +404,7 @@ Energy inflows are considered proportional to the invested capacity for the cand
 Energy outflows
 ---------------
 
-A description of the data included in the file ``oT_Data_EnergyOutflows.csv`` follows:
+A description of the data included in the file ``oH_Data_EnergyOutflows.csv`` follows:
 
 ==========  ==============  ==========  =========  =============================  =====
 Identifier  Identifier      Identifier  Header     Description
@@ -424,7 +424,7 @@ Internally, all the values below 2.5e-5 times the maximum system demand of each 
 Variable maximum and minimum storage
 ------------------------------------
 
-A description of the data included in the files ``oT_Data_VariableMaxStorage.csv`` and ``oT_Data_VariableMinStorage.csv`` follows:
+A description of the data included in the files ``oH_Data_VariableMaxStorage.csv`` and ``oH_Data_VariableMinStorage.csv`` follows:
 
 ==========  ==============  ==========  =========  ====================================================  ===
 Identifier  Identifier      Identifier  Header     Description
@@ -439,7 +439,7 @@ For example, these data can be used for defining the operating guide (rule) curv
 Variable maximum and minimum energy
 -----------------------------------
 
-A description of the data included in the files ``oT_Data_VariableMaxEnergy.csv`` and ``oT_Data_VariableMinEnergy.csv`` follows:
+A description of the data included in the files ``oH_Data_VariableMaxEnergy.csv`` and ``oH_Data_VariableMinEnergy.csv`` follows:
 
 ==========  ==============  ==========  =========  ====================================================  ===
 Identifier  Identifier      Identifier  Header     Description
@@ -454,7 +454,7 @@ For example, these data can be used for defining the minimum and/or maximum ener
 Electricity transmission network
 --------------------------------
 
-A description of the circuit (initial node, final node, circuit) data included in the file ``oT_Data_Network.csv`` follows:
+A description of the circuit (initial node, final node, circuit) data included in the file ``oH_Data_Network.csv`` follows:
 
 ===================  ===============================================================================================================  ======
 Header               Description
@@ -498,7 +498,7 @@ If lower and upper bounds of investment decisions are very close (with a differe
 Node location
 -------------
 
-A description of the data included in the file ``oT_Data_NodeLocation.csv`` follows:
+A description of the data included in the file ``oH_Data_NodeLocation.csv`` follows:
 
 ==============  ============  ================  ==
 Identifier      Header        Description
@@ -515,14 +515,14 @@ These input files are specifically introduced for allowing a representation of t
 =========================================  ================================================================================================================================
 File                                       Description
 =========================================  ================================================================================================================================
-``oT_Data_DemandHydrogen.csv``             Hydrogen demand
-``oT_Data_NetworkHydrogen.csv``            Hydrogen pipeline network data
+``oH_Data_DemandHydrogen.csv``             Hydrogen demand
+``oH_Data_NetworkHydrogen.csv``            Hydrogen pipeline network data
 =========================================  ================================================================================================================================
 
 Hydrogen demand
 ---------------
 
-A description of the data included in the file ``oT_Data_DemandHydrogen.csv`` follows:
+A description of the data included in the file ``oH_Data_DemandHydrogen.csv`` follows:
 
 ==========  ==============  ==========  ======  ===============================================  =====
 Identifier  Identifier      Identifier  Header  Description
@@ -535,7 +535,7 @@ Internally, all the values below if positive demand (or above if negative demand
 Hydrogen transmission pipeline network
 --------------------------------------
 
-A description of the circuit (initial node, final node, circuit) data included in the file ``oT_Data_NetworkHydrogen.csv`` follows:
+A description of the circuit (initial node, final node, circuit) data included in the file ``oH_Data_NetworkHydrogen.csv`` follows:
 
 ===================  ===================================================================================================================  ======
 Header               Description
