@@ -1,5 +1,5 @@
 
-.. image:: img/oHySEM_v2.png
+.. image:: doc/img/oHySEM_v2.png
    :target: https://ohysem.readthedocs.io/en/latest/index.html
    :alt: logo
    :align: center
