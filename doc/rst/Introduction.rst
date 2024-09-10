@@ -33,7 +33,7 @@ The **oHySEM** model is highly versatile, designed not only to optimize operatio
 
 **oHySEM** allows users to predefine the structure of their H-VPP, including the placement of new assets. It then determines the optimal operating schedules and market participation strategies for existing and planned resources. Key decision variables include:
 
-- Energy production and asset location from renewable sources (solar, wind, or CCGT)
+- Energy production from renewable sources (solar, wind, or CCGT)
 - Hydrogen production, consumption, and storage design
 - Battery energy storage sizing and operational schedules
 - Market bids for energy sales and reserve capacity
@@ -116,7 +116,7 @@ Using advanced optimisation techniques such as Mixed Integer Linear Programming 
 With the ability to analyse both short-term operations and long-term asset placement, **oHySEM** provides reliable, actionable insights for managing and expanding hybrid energy systems over both short and long-term decision horizons.
 
 With **oHySEM**, energy system operators, market participants and researchers can
-   - Optimise the design, operation and market participation of renewable hybrid systems
+   - Optimise the operation and market participation of renewable hybrid systems
    - Seamlessly integrate hydrogen and battery storage into their energy portfolio
    - Make informed decisions on the optimal location and sizing of new facilities
 
