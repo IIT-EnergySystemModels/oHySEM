@@ -168,3 +168,8 @@ License
 =======
 
 oHySEM is licensed under the GPL-3.0 license. See the `LICENSE file <https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/LICENSE>`_ for details.
+
+
+.. image:: https://api.codacy.com/project/badge/Grade/94ed60bc7c574b44a9fe30a8dbfb0e92
+   :alt: Codacy Badge
+   :target: https://app.codacy.com/gh/IIT-EnergySystemModels/oHySEM?utm_source=github.com&utm_medium=referral&utm_content=IIT-EnergySystemModels/oHySEM&utm_campaign=Badge_Grade
