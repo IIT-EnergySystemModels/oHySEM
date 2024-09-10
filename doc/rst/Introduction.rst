@@ -29,10 +29,6 @@ The **oHySEM** model is highly versatile, designed not only to optimize operatio
 
 - **Market Participation**: Engage in real-time electricity markets and future hydrogen markets.
 
-- **Asset Integration**: Seamlessly incorporate new assets (e.g., renewable generators, storage units) into the system.
-
-- **Self-scheduling**: Operation planning of the hybrid system.
-
 **Tailored Decision Support for Assets and Operations**
 
 **oHySEM** allows users to predefine the structure of their H-VPP, including the placement of new assets. It then determines the optimal operating schedules and market participation strategies for existing and planned resources. Key decision variables include:
