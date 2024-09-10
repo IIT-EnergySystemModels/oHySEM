@@ -105,7 +105,7 @@ These outputs provide key insights into the operational efficiency, profitabilit
 Scalability and performance
 ===========================
 
-**oHySEM** is designed for scalability and flexibility, capable of handling both small and large Hybrid Virtual Power Plants (H-VPPs) with different levels of temporal complexity:
+**oHySEM** is designed for scalability and flexibility, capable of handling both small and large H-VPPs with different levels of temporal complexity:
 
 - For **small systems with high temporal resolution**, **oHySEM** can efficiently manage fine-grained time steps (e.g. 15 minutes to 1 hour) to optimise detailed operational schedules, market participation and system performance. This ensures that even smaller energy systems can respond dynamically to real-time market signals and grid conditions.
 
