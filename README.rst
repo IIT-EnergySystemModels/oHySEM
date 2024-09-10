@@ -29,6 +29,7 @@
 .. image:: https://img.shields.io/pepy/dt/ohysem
    :target: https://www.pepy.tech/projects/ohysem
    :alt: Pepy Total Downloads
+
 ======================================================================================================
 
 ``Simplicity and Transparency in Power Systems Operation and Planning``
