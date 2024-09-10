@@ -30,6 +30,9 @@
    :target: https://www.pepy.tech/projects/ohysem
    :alt: Pepy Total Downloads
 
+.. image:: https://app.codacy.com/project/badge/Grade/c676f237a6cc4fc88a2439da0611ae2f    
+   :target: https://app.codacy.com/gh/IIT-EnergySystemModels/oHySEM/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
+
 ======================================================================================================
 
 ``Simplicity and Transparency in Power Systems Operation and Planning``
