@@ -1,75 +1,109 @@
 .. oHySEM documentation master file, created by Erik Alvarez
 
-------------
-Introduction
-------------
+============================
+Welcome to oHySEM - Overview
+============================
 
-The *Hydrogen in Short-Term Electricity Markets* **(oHySEM)** model determines the optimal participation in the short-term electricity market of a hydrogen-based virtual power plant (H-VPP).
-The H-VPP is an association of hydrogen-based energy storage systems (ESS), a power generation unit (PG: a Solar PV, Wind, or CCGT), and battery energy storage systems (BESS) that can participate in the market as a single entity.
+The *optimized Hybrid Systems for Energy and Market management* (**oHySEM**) model is a state-of-the-art Python library designed for the optimization of hybrid renewable energy systems, particularly hydrogen-based virtual power plants (H-VPPs), in short-term electricity markets. Developed with a focus on efficient energy management, **oHySEM** also enables strategic decisions regarding the **location and sizing of new energy assets**, ensuring optimal system design and market participation.
 
-.. image:: /../img/H-VPP.png
+By integrating renewable energy sources like Solar PV, Wind, and CCGT with hydrogen-based energy storage and battery systems, **oHySEM** allows H-VPPs to operate as a unified, flexible entity in various electricity markets. The model helps users maximize operational efficiency, profitability, and the overall performance of hybrid systems by dynamically optimizing energy dispatch, storage, and market bids.
+
+.. image:: /../img/System.png
    :scale: 40%
    :align: center
 
-The model aims at optimizing the operation scheduling of the H-VPP in the short-term electricity market within a multi-stage stochastic framework (day-ahead, intra-day, real-time, and secondary reserve markets), which considers the uncertainty of the renewable production and the day-ahead, intra-day, and secondary reserve market prices.
-Short-term operation concerns time scopes of 1-7 days with high temporal granularity (15 min-1 h). Its objective is to maximize the expected value of the total profit of the H-VPP.
-The main results are the schedules of the H-VPP in the day-ahead and secondary reserve market and the guidelines for the operation of the H-VPP in the others.
+### Hybrid Systems for the Energy Transition
 
-The **oHySEM** model presents a decision support system for defining the optimal participation of an H-VPP in the short-term electricity market, defined as a set of energy and reserve decisions for one or multiple future days with high temporal granularity.
-The user pre-defines the H-VPP structure, so the model determines the optimal decisions among those specified by the user.
+As energy systems increasingly incorporate hybrid resources, **oHySEM** plays a pivotal role by enabling users to design, operate, and optimize their hybrid virtual power plants. Whether managing existing assets or planning the **location and sizing of new energy assets**, the model provides essential decision support tools to balance renewable energy generation, hydrogen as a long-term storage solution, and battery systems for short-term energy flexibility.
 
-It automatically determines the optimal operation scheduling that satisfies several attributes simultaneously. Its main characteristics are:
+The model addresses uncertainties inherent in renewable energy production and market conditions, making it ideal for both operational optimization and strategic asset planning.
 
-- **Markets**:
-  This work considers the operation of the H-VPP in three different electricity markets: the *day-ahead market* **(DA)**, the *secondary reserve market* **(SR)**, and the *intraday markets* **(ID)** plus the imbalance settlement:
+### Multi-Stage Market Optimization and Asset Planning
 
-  1. **Day-ahead market (DA)**: handles electricity transactions for the following day by presenting 24-hour electricity sales and purchase bids by market participants. The **DA** market result can be modified subsequently by the ISO/TSO to guarantee the safety and reliability of the supply.
-  2. **Secondary reserve market (SR)**: ancillary service that aims to maintain the generation-demand balance by correcting deviations to fill the gap between forecasted and actual energy consumption or generation. Market agents can submit their upward and downward reserve availability (reserve band) to this 24-hour auction market.
-  3. **Intraday market (ID)**: The purpose of the intraday market is to respond a) to the adjustments that the ISO/TSO makes to the results of the **DA** or b) to its own deviations from the expected generation availability. This is done through the presentation of electricity power sales and purchase bids by market agents (again, organized through hourly auctions).
-  4. **Imbalance settlement (IB)**: After day **D**, the actual deviations between the true real-time generation of the H-VPP and the energy cleared in the **DA** and **IM** are calculated. Should the real generation exceed the cleared energy, some collection rights will be paid to the H-VPP owner. Otherwise, if the real generation is less than the cleared energy, the H-VPP owner must face some payment obligations.
+**oHySEM** goes beyond operational optimization by enabling strategic asset placement and capacity planning. With its advanced multi-stage optimization capabilities, the model covers various time-sensitive operations across different markets while also facilitating the location and sizing of new assets to meet market needs and ensure efficient operation.
 
-- **Multiperiod**: The model’s scope  corresponds to several periods of the day-ahead (from 1-7 days: 24-168 hours, for example) with high temporal granularity that can be every 15 min or equivalent to the period (1 hour).
+1. **Day-Ahead Market (DA)**:
+   The day-ahead market sets the foundation for electricity transactions over the next 24 hours. **oHySEM** optimizes bids for energy production and consumption, ensuring that renewable generation, hydrogen production, and battery storage systems are used efficiently. Additionally, the model can assess the best locations and sizes for new generation or storage assets to enhance profitability and grid stability.
 
-  It represents hierarchically the different time scopes to make decisions in an electric system:
-  
-  1. Day-ahead level: every 1 hour,         e.g., 01-01 00:00:00+01:00 to 01-07 23:00:00+01:00
-  2. Secondary reserve level: every 1 hour, e.g., 01-01 00:00:00+01:00 to 01-07 23:00:00+01:00
-  3. Intra-day level: every 3 hours,        e.g., 01-01 00:00:00+01:00 to 01-07 21:00:00+01:00
-  4. Real-time level: every 15 minutes,     e.g., 01-01 00:00:00+01:00 to 01-07 23:45:00+01:00
+2. **Secondary Reserve Market (SR)**:
+   By participating in the secondary reserve market, **oHySEM** enables H-VPPs to provide balancing services to the grid. The model optimizes bids for upward and downward reserves, contributing to grid reliability while generating additional revenue. For new assets, **oHySEM** can analyze which locations and sizes provide the most effective reserve contributions.
 
-  The time division allows a user-defined flexible representation of the periods for evaluating the system operation.
-  The model can be run with a single period (day) or with several periods (days) to allow the analysis of the system evolution, as well as the number of intra-day and real-time levels per period.
+3. **Intraday Market (ID)**:
+   Intraday market participation requires continuous adjustments to day-ahead schedules. **oHySEM** dynamically adapts to real-time fluctuations in renewable energy production and market conditions, optimizing intraday bids. The model also helps determine the ideal location and capacity of assets to handle these fluctuations and meet intraday market demands.
 
-- **Stochastic**: Several stochastic parameters that can influence the optimal operation decisions are considered. The model considers uncertainties (scenarios) related to the system operation. These operation scenarios are associated with renewable energy sources, operating reserves, and market prices.
+4. **Imbalance Settlement (IB)**:
+   Imbalance settlement addresses deviations between actual generation and market-cleared energy. **oHySEM** ensures that these imbalances are managed efficiently, minimizing penalties and maximizing rewards for over-delivery. The model helps users strategically plan asset placement to reduce imbalances and optimize system performance.
 
-  Therefore, the optimal operation of the H-VPP in electricity markets is a multi-stage decision-making process in which the different operational recourse decisions are taken once random variables (prices and solar/wind production) are known since the first stage decision is taken before that.
+### Optimized Scheduling, Operation, and Asset Design
 
-  The sequence of events involved in the H-VPP decision-making process is the following:
+The **oHySEM** model is highly versatile, designed not only to optimize operational schedules over short-term horizons but also to provide insights into the **optimal location and sizing of new energy assets**. The model supports detailed decision-making with time scopes ranging from 1 to 7 days and high temporal granularity (15-minute to 1-hour intervals).
 
-  - **Day D-1**: During day D-1, the bid to the three electricity markets (DA, SR, and ID) is submitted, and the markets are cleared:
+- **Day-Ahead Scheduling and Asset Planning**: Optimize bids for day-ahead markets, considering forecasts of renewable generation, hydrogen storage levels, and battery state-of-charge. Simultaneously, analyze the best locations and sizes for new assets to ensure they enhance market participation.
 
-    1. The price accepting selling bid to the DA for day D, the first stage variables, are submitted no later than 12:00.
-    2. At 12:00 the DA closes, and the 24 DA's clearing prices are made public simultaneously before 13:00 **(stage 1)**.
-    3. The bidding period in the SR for day D opens at 12:00, and the price accepting bid to the SR can be submitted until 14:00.
-    4. The 24 SR's prices are disclosed simultaneously before 15:00 **(stage 2)**.
-    5. The bidding period in the ID of day D opens at 17:00, and the price accepting bid (either selling or purchase) to the ID can be submitted until 18:45.
-    6. The 24 ID's prices are published simultaneously before 19:30 **(stage 3)**.
+- **Real-Time Dispatch and Asset Integration**: Operate BESS and hydrogen systems in real-time to meet market-cleared commitments, while adapting to actual generation conditions. **oHySEM** helps ensure that newly placed assets are effectively integrated into the real-time operation of the H-VPP.
 
-  - **Day D**: During day D, the BESS must operate hourly by the real PG production to deliver the amounts (energies and reserve) cleared in the auctions of day D-1:
+- **Reserve Market and Asset Expansion**: Analyze reserve market opportunities and determine the optimal sizing and placement of assets to maximize reserve capacity contributions while supporting grid stability.
 
-    7. At every hour :math:`h \in \{1, \ldots, 24 \}` of day D, the charges and discharges are decided before observing the value of the actual generation of the PG, according to the state of the BESS at the end of hour :math:`h−1` and the energy and reserve commitment of the H-VPP for hour :math:`h`. Then, the actual generation of the PG is disclosed, and the value of the imbalances is set **(stages 4–27)**.
+### Tailored Decision Support for Assets and Operations
 
-  - **Day D+1**:
+**oHySEM** allows users to predefine the structure of their H-VPP, including the placement of new assets. It then determines the optimal operating schedules and market participation strategies for existing and planned resources. Key decision variables include:
 
-    8. Finally, after day D, the prices to be applied to imbalances are published **(stage 28)**.
+- Energy production and asset location from renewable sources (solar, wind, or CCGT)
+- Hydrogen production, consumption, and storage design
+- Battery energy storage sizing and operational schedules
+- Market bids for energy sales and reserve capacity
+- Optimal sizing and location of new energy assets
 
-The objective function incorporates the four types of profits related to the participation of the H-VPP in the short-term electricity market: **day-ahead**, **secondary reserve**, **intra-day**, and **real-time market profit**.
+This tailored decision support enables energy managers and system operators to make informed choices about not only operations but also the strategic expansion of their H-VPP infrastructure.
 
-The main results of the model can be structured in these items:
+### Key Features of oHySEM
+===========================
 
-- **Electricity**: Energy of the price accepting bid per period (24-168 hours equivalent to auctions) of the day-ahead market, operating reserve of the price accepting bid per period of the reserve market, energy of the price accepting bid per period of the intra-day market, charges/discharges of the BESS per period, imbalances (positive and negative) of the H-VPP per period.
-- **Hydrogen**: Hydrogen production, consumption, storage, and imbalances (positive and negative) of the H-VPP per period.
+- **Comprehensive Market and Asset Integration**:
+  - Day-ahead, intraday, real-time, and secondary reserve markets
+  - Location and sizing of new energy assets to enhance market participation
+  - Imbalance settlement to manage deviations and maximize profitability
 
-Results are shown in CSV files and graphical plots.
+- **Multi-Period Decision Making**:
+  **oHySEM** supports detailed decision-making with time scopes from 1 to 7 days, offering fine-grained temporal resolution (15 minutes to 1 hour) for operational scheduling and asset planning.
 
-A careful implementation has been done to avoid numerical problems by scaling parameters, variables and equations of the optimization problem, allowing the model to be used for different time scopes under a stochastic framework.
+- **Hydrogen and Battery Optimization**:
+  The model optimizes hydrogen production, storage, and battery energy storage systems (BESS) to maximize the flexibility and profitability of hybrid energy systems. It can also determine the ideal sizing and placement of hydrogen tanks and battery units.
+
+- **Maximizing Profitability and Asset Utilization**:
+  By optimizing market bids, reserve contributions, and the design of new assets, **oHySEM** maximizes profitability while ensuring that hybrid systems operate efficiently and contribute to grid stability.
+
+### Outputs and Results
+=======================
+
+**oHySEM** provides a wide range of output data in both CSV and graphical formats, allowing users to thoroughly analyze the performance of their hybrid systems and asset designs:
+
+- **Electricity Market Results**:
+  - Optimized day-ahead, intraday, and real-time bids
+  - Secondary reserve offers (upward and downward)
+  - Real-time dispatch and adjustments
+  - Energy imbalances and financial impact
+
+- **Hydrogen System Results**:
+  - Hydrogen production and storage optimization
+  - Hydrogen consumption schedules
+  - Imbalances in hydrogen systems
+
+- **Asset Location and Sizing Results**:
+  - Recommendations for the optimal location and sizing of new generation, hydrogen, and battery storage assets
+  - Performance analysis of newly placed assets in operational and market contexts
+
+These outputs provide critical insights into both the operational efficiency and strategic expansion of H-VPPs.
+
+### Scalability and Performance
+===============================
+
+**oHySEM** is designed for scalability and robustness, using advanced optimisation techniques such as Mixed Integer Linear Programming (MILP). The model is capable of handling large multi-component systems, market scenarios and asset planning considerations.
+
+With the ability to analyse both short-term operations and long-term asset placement, **oHySEM** provides reliable and actionable insights for managing and expanding hybrid energy systems.
+
+---
+
+With **oHySEM**, energy system operators, market participants and researchers can optimise the design, operation and market participation of renewable hybrid systems, integrate hydrogen and battery storage, and make informed decisions about the location and sizing of new assets.
+
+Unlock the full potential of your hybrid energy systems with **oHySEM** today!
