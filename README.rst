@@ -8,6 +8,27 @@
 
 \ **o**\ptimized \ **Hy**\brid  \ **S**\ystems for \ **E**\nergy and \ **M**\arket management **(oHySEM)**
 
+|
+
+.. image:: https://badge.fury.io/py/oHySEM.png
+    :target: https://badge.fury.io/py/oHySEM
+    :alt: PyPI
+
+.. image:: https://img.shields.io/pypi/pyversions/ohysem
+   :target: https://pypi.org/project/oHySEM/
+   :alt: PyPI - Python Version
+
+.. image:: https://img.shields.io/readthedocs/ohysem
+   :target: https://ohysem.readthedocs.io/en/latest/index.html#
+   :alt: Read the Docs
+
+.. image:: https://img.shields.io/pypi/l/ohysem
+   :target: https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/LICENSE
+   :alt: PyPI - License
+
+.. image:: https://img.shields.io/pepy/dt/ohysem
+   :target: https://www.pepy.tech/projects/ohysem
+   :alt: Pepy Total Downloads
 ======================================================================================================
 
 ``Simplicity and Transparency in Power Systems Operation and Planning``
