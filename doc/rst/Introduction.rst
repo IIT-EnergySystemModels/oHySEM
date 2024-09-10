@@ -56,7 +56,7 @@ The **oHySEM** model is highly versatile, designed not only to optimize operatio
 
 This tailored decision support enables energy managers and system operators to make informed choices about not only operations but also the strategic expansion of their H-VPP infrastructure.
 
-### Key Features of oHySEM
+Key Features of oHySEM
 ===========================
 
 - **Comprehensive Market and Asset Integration**:
@@ -73,7 +73,7 @@ This tailored decision support enables energy managers and system operators to m
 - **Maximizing Profitability and Asset Utilization**:
   By optimizing market bids, reserve contributions, and the design of new assets, **oHySEM** maximizes profitability while ensuring that hybrid systems operate efficiently and contribute to grid stability.
 
-### Outputs and Results
+Outputs and Results
 =======================
 
 **oHySEM** provides a wide range of output data in both CSV and graphical formats, allowing users to thoroughly analyze the performance of their hybrid systems and asset designs:
@@ -95,7 +95,7 @@ This tailored decision support enables energy managers and system operators to m
 
 These outputs provide critical insights into both the operational efficiency and strategic expansion of H-VPPs.
 
-### Scalability and Performance
+Scalability and Performance
 ===============================
 
 **oHySEM** is designed for scalability and robustness, using advanced optimisation techniques such as Mixed Integer Linear Programming (MILP). The model is capable of handling large multi-component systems, market scenarios and asset planning considerations.
