@@ -13,14 +13,14 @@ By integrating renewable energy sources like Solar PV, Wind, and CCGT with hydro
    :align: center
 
 Hybrid Systems for the Energy Transition
-----------------------------------------
+========================================
 
 As energy systems increasingly incorporate hybrid resources, **oHySEM** plays a pivotal role by enabling users to design, operate, and optimize their hybrid virtual power plants. Whether managing existing assets or planning the **location and sizing of new energy assets**, the model provides essential decision support tools to balance renewable energy generation, hydrogen as a long-term storage solution, and battery systems for short-term energy flexibility.
 
 The model addresses uncertainties inherent in renewable energy production and market conditions, making it ideal for both operational optimization and strategic asset planning.
 
 Multi-Stage Market Optimization and Asset Planning
----------------------------------------------------
+==================================================
 
 **oHySEM** goes beyond operational optimization by enabling strategic asset placement and capacity planning. With its advanced multi-stage optimization capabilities, the model covers various time-sensitive operations across different markets while also facilitating the location and sizing of new assets to meet market needs and ensure efficient operation.
 
@@ -37,7 +37,7 @@ Multi-Stage Market Optimization and Asset Planning
    Imbalance settlement addresses deviations between actual generation and market-cleared energy. **oHySEM** ensures that these imbalances are managed efficiently, minimizing penalties and maximizing rewards for over-delivery. The model helps users strategically plan asset placement to reduce imbalances and optimize system performance.
 
 Optimized Scheduling, Operation, and Asset Design
---------------------------------------------------
+=================================================
 
 The **oHySEM** model is highly versatile, designed not only to optimize operational schedules over short-term horizons but also to provide insights into the **optimal location and sizing of new energy assets**. The model supports detailed decision-making with time scopes ranging from 1 to 7 days and high temporal granularity (15-minute to 1-hour intervals).
 
@@ -48,7 +48,7 @@ The **oHySEM** model is highly versatile, designed not only to optimize operatio
 - **Reserve Market and Asset Expansion**: Analyze reserve market opportunities and determine the optimal sizing and placement of assets to maximize reserve capacity contributions while supporting grid stability.
 
 Tailored Decision Support for Assets and Operations
----------------------------------------------------
+===================================================
 
 **oHySEM** allows users to predefine the structure of their H-VPP, including the placement of new assets. It then determines the optimal operating schedules and market participation strategies for existing and planned resources. Key decision variables include:
 
@@ -61,7 +61,7 @@ Tailored Decision Support for Assets and Operations
 This tailored decision support enables energy managers and system operators to make informed choices about not only operations but also the strategic expansion of their H-VPP infrastructure.
 
 Key Features of oHySEM
-======================
+----------------------
 
 - **Comprehensive Market and Asset Integration**:
   - Day-ahead, intraday, real-time, and secondary reserve markets
@@ -78,7 +78,7 @@ Key Features of oHySEM
   By optimizing market bids, reserve contributions, and the design of new assets, **oHySEM** maximizes profitability while ensuring that hybrid systems operate efficiently and contribute to grid stability.
 
 Outputs and Results
-===================
+-------------------
 
 **oHySEM** provides a wide range of output data in both CSV and graphical formats, allowing users to thoroughly analyze the performance of their hybrid systems and asset designs:
 
@@ -100,7 +100,7 @@ Outputs and Results
 These outputs provide critical insights into both the operational efficiency and strategic expansion of H-VPPs.
 
 Scalability and Performance
-===========================
+---------------------------
 
 **oHySEM** is designed for scalability and robustness, using advanced optimisation techniques such as Mixed Integer Linear Programming (MILP). The model is capable of handling large multi-component systems, market scenarios and asset planning considerations.
 
