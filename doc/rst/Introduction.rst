@@ -100,7 +100,7 @@ Outputs and results
    - Medium-term adjustments for asset optimisation in response to market dynamics
    - Short-term performance analysis of newly installed assets to ensure operational and market alignment
 
-These outputs provide key insights into the operational efficiency, profitability and long-term strategic expansion of Hybrid Virtual Power Plants (H-VPPs).
+These outputs provide key insights into the operational efficiency, profitability and long-term strategic expansion of H-VPPs.
 
 Scalability and performance
 ===========================
