@@ -22,6 +22,10 @@
    :target: https://ohysem.readthedocs.io/en/latest/index.html#
    :alt: Read the Docs
 
+.. image:: https://app.codacy.com/project/badge/Grade/c676f237a6cc4fc88a2439da0611ae2f    
+   :target: https://app.codacy.com/gh/IIT-EnergySystemModels/oHySEM/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
+   :alt: Codacy Badge
+
 .. image:: https://img.shields.io/pypi/l/ohysem
    :target: https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/LICENSE
    :alt: PyPI - License
@@ -29,10 +33,6 @@
 .. image:: https://img.shields.io/pepy/dt/ohysem
    :target: https://www.pepy.tech/projects/ohysem
    :alt: Pepy Total Downloads
-
-.. image:: https://app.codacy.com/project/badge/Grade/c676f237a6cc4fc88a2439da0611ae2f    
-   :target: https://app.codacy.com/gh/IIT-EnergySystemModels/oHySEM/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
-   :alt: Codacy Badge
 
 ======================================================================================================
 
