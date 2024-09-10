@@ -4,9 +4,9 @@
 Welcome to oHySEM - Overview
 ============================
 
-The *optimized Hybrid Systems for Energy and Market management* (**oHySEM**) model is a state-of-the-art Python library designed for the optimization of hybrid renewable energy systems, particularly hydrogen-based virtual power plants (H-VPPs), in short-term electricity markets. Developed with a focus on efficient energy management, **oHySEM** also enables strategic decisions regarding the **location and sizing of new energy assets**, ensuring optimal system design and market participation.
+The *optimized Hybrid Systems for Energy and Market management* (**oHySEM**) model is a state-of-the-art Python library designed for the optimization of hybrid renewable energy systems, particularly hybrid virtual power plants (H-VPPs), in short-term electricity markets. Developed with a focus on efficient energy management, **oHySEM** also enables strategic decisions regarding the **location and sizing of new energy assets**, ensuring optimal system design and market participation.
 
-By integrating renewable energy sources like Solar PV, Wind, and CCGT with hydrogen-based energy storage and battery systems, **oHySEM** allows hybrid virtual power plants (H-VPP) to operate as a unified, flexible entity in various electricity markets. The model helps users maximize operational efficiency, profitability, and the overall performance of hybrid systems by dynamically optimizing energy dispatch, storage, and market bids.
+By integrating renewable energy sources like Solar PV, Wind, and CCGT with hydrogen-based energy storage and battery systems, **oHySEM** allows H-VPPd to operate as a unified, flexible entity in various electricity markets. The model helps users maximize operational efficiency, profitability, and the overall performance of hybrid systems by dynamically optimizing energy dispatch, storage, and market bids.
 
 .. image:: /../img/System.png
    :scale: 35%
@@ -49,7 +49,7 @@ Key Features
 ============
 
 1. Planning and Asset Design
-   -------------------------
+
    - **Long-Term Asset Planning**:
      Support strategic decision-making spanning multiple years to determine the optimal location and sizing of new energy assets such as hydrogen tanks and battery units, ensuring long-term viability and market participation.
 
@@ -60,7 +60,7 @@ Key Features
      Focus on weekly and daily operational adjustments, offering fine-grained temporal resolution (15 minutes to 1 hour) for accurate scheduling and immediate response to system needs.
 
 2. Operational Optimization
-   -------------------------
+
    - **Hydrogen and Battery Optimization**:
      Optimize the operation of hydrogen production, storage, and battery energy storage systems (BESS) to maximize system flexibility and overall profitability.
 
@@ -68,7 +68,7 @@ Key Features
      Ensure efficient day-to-day operational scheduling by aligning system operations with energy demands and grid requirements, adapting to market conditions in real-time.
 
 3. Market Participation and Profitability
-   --------------------------------------
+
    - **Comprehensive Market Integration**:
      Participate in multiple markets, including day-ahead, intraday, real-time, and secondary reserve markets, allowing the system to dynamically respond to market needs.
 
