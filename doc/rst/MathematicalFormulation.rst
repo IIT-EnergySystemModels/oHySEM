@@ -114,7 +114,7 @@ Variables
 They are written in **lowercase** letters.
 
 ==========================================    ======================================================  ========  ============================================
-**Demand**                                    **Description**                                         **Unit**  **ooHySEM.py variable**
+**Demand**                                    **Description**                                         **Unit**  **oHySEM.py**
 ------------------------------------------    ------------------------------------------------------  --------  --------------------------------------------
 :math:`e^{b}_{nnd}, e^{s}_{nnd}`              Electricity bought and sold in the electricity market   GW        «``vElectricityBuy``, ``vElectricitySell``»
 :math:`ens_{nnd}`                             Electricity not served                                  GW        «``vENS``»
@@ -127,7 +127,7 @@ They are written in **lowercase** letters.
 ==========================================    ======================================================  ========  ============================================
 
 ==============================================  ==========================================================================================  ========  ==========================================================
-**Generation system**                           **Description**                                                                             **Unit**  **ooHySEM.py variable**
+**Generation system**                           **Description**                                                                             **Unit**  **oHySEM.py**
 ----------------------------------------------  ------------------------------------------------------------------------------------------  --------  ----------------------------------------------------------
 :math:`ep_{neg}`                                Electricity production (discharge if an ESS)                                                GW        «``vEleTotalOutput``»
 :math:`ec_{nes}, ec_{nhz}`                      Electricity consumption of electricity ESS and electrolyzer units                           GW        «``vEleTotalCharge``»
@@ -168,7 +168,7 @@ They are written in **lowercase** letters.
 ==============================================  ==========================================================================================  ========  ==========================================================
 
 ==========================================  ==========================================================================================  ========  ============================================
-**Network system**                          **Description**                                                                             **Unit**  **ooHySEM.py variable**
+**Network system**                          **Description**                                                                             **Unit**  **oHySEM.py**
 ------------------------------------------  ------------------------------------------------------------------------------------------  --------  --------------------------------------------
 :math:`ef_{nijc}`                           Electricity transmission flow through a line                                                GW        «``vEleNetFlow``»
 :math:`hf_{nijc}`                           Hydrogen transmission flow through a pipeline                                               kgH2      «``vHydNetFlow``
