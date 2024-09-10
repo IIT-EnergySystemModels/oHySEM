@@ -10,7 +10,7 @@
 
 |
 
-.. image:: https://badge.fury.io/py/oHySEM.png
+.. image:: https://img.shields.io/pypi/v/ohysem
     :target: https://badge.fury.io/py/oHySEM
     :alt: PyPI
 
