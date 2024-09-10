@@ -9,7 +9,7 @@ The *optimized Hybrid Systems for Energy and Market management* (**oHySEM**) mod
 By integrating renewable energy sources like Solar PV, Wind, and CCGT with hydrogen-based energy storage and battery systems, **oHySEM** allows H-VPPs to operate as a unified, flexible entity in various electricity markets. The model helps users maximize operational efficiency, profitability, and the overall performance of hybrid systems by dynamically optimizing energy dispatch, storage, and market bids.
 
 .. image:: /../img/System.png
-   :scale: 40%
+   :scale: 35%
    :align: center
 
 Hybrid Systems for the Energy Transition
