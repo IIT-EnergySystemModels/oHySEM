@@ -65,12 +65,14 @@ def main():
             args.solver = default_SolverName
     for i in range(0, 117):
         print('-', end="")
+    print('\n')
     print('Arguments:')
     print(args.case)
     print(args.dir)
     print(args.solver)
     for i in range(0, 117):
         print('-', end="")
+    print('\n')
 
     # reading and processing the data
     #
