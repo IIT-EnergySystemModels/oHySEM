@@ -23,5 +23,9 @@ Index
 
    Introduction.rst
    InputData.rst
+   OutputResults.rst
    MathematicalFormulation.rst
    Projects.rst
+   Papers.rst
+   Download.rst
+   ContactUs.rst
