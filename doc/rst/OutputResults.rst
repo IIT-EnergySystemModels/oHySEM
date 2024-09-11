@@ -1,4 +1,4 @@
-.. oHySEM documentation master file, created by Andres Ramos
+.. oHySEM documentation master file, created by Erik Alvarez
 
 Output Results
 ==============
