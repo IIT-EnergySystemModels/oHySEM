@@ -63,10 +63,14 @@ def main():
         args.solver = input('Input Solver Name (Default {}): '.format(default_SolverName))
         if args.solver == '':
             args.solver = default_SolverName
+    for i in range(0, 117):
+        print('-', end="")
+    print('Arguments:')
     print(args.case)
     print(args.dir)
     print(args.solver)
-
+    for i in range(0, 117):
+        print('-', end="")
 
     # reading and processing the data
     #
