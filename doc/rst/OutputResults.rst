@@ -46,14 +46,15 @@ Some maps of the electricity transmission network and the energy share of differ
    :align: center
 
 Some other additional plots are also plotted by the model. The CSV files used for outputting the results are briefly described in the following items.
+There are three types of CSV files: 1) those related to the value of each variable in the optimisation problem, 2) those related to the dual values of the constraints, and 3) those derived and transformed from the value of the variables.
 
-The power is expressed in MW, energy or heat in GWh, and costs in M€. Hydrogen is expressed in tH2. Reservoir volume is expressed in hm\ :sup:`3`,
-and water flow in hm\ :sup:`3`/s. The energy transported in the electricity network is expressed in GWh-Mkm.
+For the first two types of CSV files, the power is expressed in GW, and costs in M€. Hydrogen is expressed in tH2.
+And, for the last type of CSV files, the power is expressed in MW, energy in GWh, and costs in M€. Hydrogen is expressed in kgH2.
 
-Investment/Retirement
----------------------
+CSV files related to the value of each variable in the optimisation problem
+---------------------------------------------------------------------------
 
-File ``oT_Result_GenerationInvestment.csv``
+File ``oH_Result_v**{Variable Name}**.csv``
 
 ============  ==========  ============================
 Identifier    Header      Description
