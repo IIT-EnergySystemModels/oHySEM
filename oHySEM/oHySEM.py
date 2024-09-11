@@ -333,15 +333,15 @@ def data_processing(DirName, CaseName, model):
     model.hc   = Set(initialize=model.hs                                           , ordered=False, doc='candidate H2    units ', filter=lambda model,hs  : hs     in model.hs          and  parameters_dict['pGenInvestCost']           [hs] >  0.0)
     model.ebr  = Set(initialize=sEleBrList                                         , ordered=False, doc='all input    branches '                                                                                                                    )
     model.eln  = Set(initialize=data_frames['dfElectricityNetwork'].index.to_list(), ordered=False, doc='all input       lines '                                                                                                                    )
-    model.ela  = Set(initialize=model.eln                                          , ordered=False, doc='all real        lines ', filter=lambda model, *eln: eln   in model.eln         and parameters_dict['pEleNetReactance']          [eln]!= 0.0 and  parameters_dict['pEleNetTTC'][eln]              > 0.0  and parameters_dict['pEleNetTTCBck'][eln] > 0.0 and parameters_dict['pEleNetInitialPeriod'][eln]  <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pEleNetFinalPeriod'][eln]  >= parameters_dict['pParEconomicBaseYear'])
-    model.els  = Set(initialize=model.ela                                          , ordered=False, doc='all real switch lines ', filter=lambda model, *ela: ela   in model.ela         and parameters_dict['pEleNetSwitching']          [ela]      )
-    model.elc  = Set(initialize=model.ela                                          , ordered=False, doc='candidate       lines ', filter=lambda model, *ela: ela   in model.ela         and parameters_dict['pEleNetFixedInvestmentCost'][ela]>  0.0)
-    model.ell  = Set(initialize=model.ela                                          , ordered=False, doc='loss            lines ', filter=lambda model, *ela: ela   in model.ela         and parameters_dict['pEleNetLossFactor']         [ela]>  0.0 and  parameters_dict['pOptIndBinNetLosses']          > 0  )
-    model.ndrf = Set(initialize=model.nd                                           , ordered=True , doc='reference node        ', filter=lambda model,nd  : nd     in                       parameters_dict['pParReferenceNode']                    )
+    model.ela  = Set(initialize=model.eln                                          , ordered=False, doc='all real        lines ', filter=lambda model, value: value in model.eln         and parameters_dict['pEleNetReactance']          [value]!= 0.0 and  parameters_dict['pEleNetTTC'][value]              > 0.0  and parameters_dict['pEleNetTTCBck'][value] > 0.0 and parameters_dict['pEleNetInitialPeriod'][value]  <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pEleNetFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
+    model.els  = Set(initialize=model.ela                                          , ordered=False, doc='all real switch lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetSwitching']          [value]      )
+    model.elc  = Set(initialize=model.ela                                          , ordered=False, doc='candidate       lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetFixedInvestmentCost'][value]>  0.0)
+    model.ell  = Set(initialize=model.ela                                          , ordered=False, doc='loss            lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetLossFactor']         [value]>  0.0 and  parameters_dict['pOptIndBinNetLosses']          > 0  )
+    model.ndrf = Set(initialize=model.nd                                           , ordered=True , doc='reference node        ', filter=lambda model,nd  : nd      in                       parameters_dict['pParReferenceNode']                    )
     model.hbr  = Set(initialize=sHydBrList                                         , ordered=False, doc='all input    branches '                                                                                                                    )
     model.hpn  = Set(initialize=data_frames['dfHydrogenNetwork'].index.to_list()   , ordered=False, doc='all input H2 pipelines'                                                                                                                    )
-    model.hpa  = Set(initialize=model.hpn                                          , ordered=False, doc='all real  H2 pipelines', filter=lambda model, *hpn: hpn     in model.hpn       and                                                               parameters_dict['pHydNetTTC'][hpn]               > 0.0 and parameters_dict['pHydNetTTCBck'][hpn] > 0.0 and parameters_dict['pHydNetInitialPeriod'][hpn]  <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pHydNetFinalPeriod'][hpn]  >= parameters_dict['pParEconomicBaseYear'])
-    model.hpc  = Set(initialize=model.hpa                                          , ordered=False, doc='candidate H2 pipelines', filter=lambda model, *hpa: hpa     in model.hpa       and parameters_dict['pHydNetFixedInvestmentCost'][hpa] > 0.0)
+    model.hpa  = Set(initialize=model.hpn                                          , ordered=False, doc='all real  H2 pipelines', filter=lambda model, value: value in model.hpn       and                                                                   parameters_dict['pHydNetTTC'][value]               > 0.0 and parameters_dict['pHydNetTTCBck'][value] > 0.0 and parameters_dict['pHydNetInitialPeriod'][value]  <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pHydNetFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
+    model.hpc  = Set(initialize=model.hpa                                          , ordered=False, doc='candidate H2 pipelines', filter=lambda model, value: value in model.hpa       and parameters_dict['pHydNetFixedInvestmentCost']  [value] > 0.0)
 
 
     model.nr   = model.g   - model.re            # non-RES units, they can be committed and also contribute to the operating reserves
@@ -446,16 +446,16 @@ def data_processing(DirName, CaseName, model):
     parameters_dict['pGenStandByStatus'      ] = parameters_dict['pGenStandByStatus'      ].map(idxDict)
 
     # define AC existing  lines
-    model.elea = Set(initialize=model.ele, ordered=False, doc='AC existing  lines and non-switchable lines', filter=lambda model,*ele: ele in model.ele and not parameters_dict['pEleNetType'][ele] == 'DC')
+    model.elea = Set(initialize=model.ele, ordered=False, doc='AC existing  lines and non-switchable lines', filter=lambda model,value: value in model.ele and not parameters_dict['pEleNetType'][value] == 'DC')
     # define AC candidate lines
-    model.elca = Set(initialize=model.ela, ordered=False, doc='AC candidate lines and     switchable lines', filter=lambda model,*elc: elc in model.elc and not parameters_dict['pEleNetType'][elc] == 'DC')
+    model.elca = Set(initialize=model.ela, ordered=False, doc='AC candidate lines and     switchable lines', filter=lambda model,value: value in model.elc and not parameters_dict['pEleNetType'][value] == 'DC')
 
     model.elaa = model.elea | model.elca
 
     # define DC existing  lines
-    model.eled = Set(initialize=model.ele, ordered=False, doc='DC existing  lines and non-switchable lines', filter=lambda model,*ele: ele in model.ele and     parameters_dict['pEleNetType'][ele] == 'DC')
+    model.eled = Set(initialize=model.ele, ordered=False, doc='DC existing  lines and non-switchable lines', filter=lambda model,value: value in model.ele and     parameters_dict['pEleNetType'][value] == 'DC')
     # define DC candidate lines
-    model.elcd = Set(initialize=model.ela, ordered=False, doc='DC candidate lines and     switchable lines', filter=lambda model,*elc: elc in model.elc and     parameters_dict['pEleNetType'][elc] == 'DC')
+    model.elcd = Set(initialize=model.ela, ordered=False, doc='DC candidate lines and     switchable lines', filter=lambda model,value: value in model.elc and     parameters_dict['pEleNetType'][value] == 'DC')
 
     model.elad = model.eled | model.elcd
 
