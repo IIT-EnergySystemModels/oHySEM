@@ -59,7 +59,10 @@ def main():
         args.case = input('Input Case  Name (Default {}): '.format(default_CaseName))
         if args.case == '':
             args.case = default_CaseName
-    args.solver = default_SolverName
+    if args.solver is None:
+        args.solver = input('Input Solver Name (Default {}): '.format(default_SolverName))
+        if args.solver == '':
+            args.solver = default_SolverName
     print(args.case)
     print(args.dir)
     print(args.solver)
