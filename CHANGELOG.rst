@@ -4,7 +4,9 @@ Change Log
 [1.0.3] - 2024-09-11
 ---------------------
 
-- [FIXED] updated thr introduction of the documentation to be shown in readthedocs
+- [FIXED] updated the introduction of the documentation to be shown in readthedocs
+- [CHANGED] adding the option to change the solver in the main file
+- [FIXED] updated the installation guide in the documentation
 
 [1.0.2] - 2024-09-10
 ---------------------
