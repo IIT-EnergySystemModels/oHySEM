@@ -20,6 +20,9 @@ File ``oH_Result_v**{Variable Name}**_{Case Name}.csv``
 Variable Name  Index  Value  LowerBound  UpperBound
 =============  =====  =====  ==========  ==========
 
+CSV files related to the value of each constraint in the optimisation problem
+---------------------------------------------------------------------------
+
 File ``oH_Result_e**{Constraint Name}**_{Case Name}.csv``
 
 ===============  =====  =====  ==========  ==========
