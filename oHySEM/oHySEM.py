@@ -2472,7 +2472,7 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
     sPSNGT       = [(p,sc,n,gt) for p,sc,n,gt in model.psngt if sum(1 for g in model.g if (gt,g) in model.t2g) > 0]
     OutputToFile = pd.Series(data=[sum(optmodel.vEleTotalOutput[p,sc,n,g]() for g in model.g if (gt,g) in model.t2g) for p,sc,n,gt in sPSNGT], index=pd.Index(sPSNGT))
     OutputToFile *= 1e3
-    OutputToFile.to_frame(name='MW').reset_index().pivot_table(index=['level_0','level_1','level_2'], columns='level_3', values='MW', aggfunc='sum').rename_axis(['Period', 'Scenario', 'LoadLevel'], axis=0).rename_axis([None], axis=1).to_csv(_path+'/oT_Result_TechnologyGeneration_'+CaseName+'.csv', sep=',')
+    OutputToFile.to_frame(name='MW').reset_index().pivot_table(index=['level_0','level_1','level_2'], columns='level_3', values='MW', aggfunc='sum').rename_axis(['Period', 'Scenario', 'LoadLevel'], axis=0).rename_axis([None], axis=1).to_csv(_path+'/oH_Result_rTechnologyGeneration_'+CaseName+'.csv', sep=',')
 
     # TechnologyOutput = OutputToFile.loc[:,:,:,:]
     # for p,sc in model.ps:
