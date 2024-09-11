@@ -8,7 +8,7 @@ Contact Us
    :align: right
 
 .. image:: ../img/logoIIT.gif
-   :scale: 15%
+   :scale: 50%
    :align: right
 
 `Andrés Ramos <https://pascua.iit.comillas.edu/aramos/Ramos_CV.htm>`_ 
