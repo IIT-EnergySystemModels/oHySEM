@@ -30,7 +30,7 @@ For the full setup guide, refer to the `installation guide <https://pascua.iit.c
 
 After installation, you can run the model via the command line:
 
-``oHySEM_Main``
+``oHySEM``
 
 **Solvers**:
 
