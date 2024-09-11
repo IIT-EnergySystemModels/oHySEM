@@ -1,30 +1,41 @@
 .. oHySEM documentation master file, created by Erik Alvarez
 
-Output Results
+Output results
 ==============
 
-Some maps of the electricity transmission network and the energy share of different technologies is plotted.
+The output includes several maps of the electricity transmission network and plots showing the energy share of different technologies.
 
-Some other additional plots are also plotted by the model. The CSV files used for outputting the results are briefly described in the following items.
-There are three types of CSV files: 1) those related to the value of each variable in the optimisation problem, 2) those related to the dual values of the constraints, and 3) those derived and transformed from the value of the variables.
+In addition, the model generates several other plots to visualise key results. The CSV files used to store the output results are of three types:
 
-For the first two types of CSV files, the power is expressed in GW, and costs in M€. Hydrogen is expressed in tH2.
-And, for the last type of CSV files, the power is expressed in MW, energy in GWh, and costs in M€. Hydrogen is expressed in kgH2.
+1. **Optimisation variable values**: Files related to the values of each variable in the optimisation problem.
+2. **Dual Values of Constraints: Files containing the dual values associated with the constraints.
+3. **Derived/Transformed Values: Files that are derived or transformed from the values of variables.
 
-CSV files related to the value of each variable in the optimisation problem
----------------------------------------------------------------------------
+### Unit conventions:
 
-File ``oH_Result_v**{Variable Name}**_{Case Name}.csv``
+- For the first two types of CSV files (values of optimisation variables and dual values of constraints), power is expressed in **GW**, cost in **M€** and hydrogen in **tH2**.
+- For the third type (derived/transformed values), power is expressed in **MW**, energy in **GWh**, cost in **M€** and hydrogen in **kgH2**.
 
-=============  =====  =====  ==========  ==========
-Variable Name  Index  Value  LowerBound  UpperBound
-=============  =====  =====  ==========  ==========
+CSV files for optimisation variables
+------------------------------------------
 
-CSV files related to the value of each constraint in the optimisation problem
----------------------------------------------------------------------------
+Each file in this category is named
+``oH_Result_v**{Variable Name}**_{Case Name}.csv``
 
-File ``oH_Result_e**{Constraint Name}**_{Case Name}.csv``
+The structure of the CSV file is as follows
 
-===============  =====  =====  ==========  ==========
-Constraint Name  Index  Value  LowerBound  UpperBound
-===============  =====  =====  ==========  ==========
+============= ===== ===== ========== ==========
+Variable Name Index Value LowerBound UpperBound
+============= ===== ===== ========== ==========
+
+CSV files for dual values of constraints
+----------------------------------------
+
+Each file in this category is named
+``oH_Result_e**{Constraint Name}**_{Case Name}.csv``
+
+The structure of the CSV file is as follows
+
+=============== ===== ===== ========== ==========
+Constraint Name Index Value LowerBound UpperBound
+=============== ===== ===== ========== ==========
