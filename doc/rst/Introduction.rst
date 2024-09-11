@@ -6,7 +6,7 @@ Welcome to oHySEM - Overview
 
 The *optimized Hybrid Systems for Energy and Market management* (**oHySEM**) model is a state-of-the-art Python library designed for the optimization of hybrid renewable energy systems, particularly hybrid virtual power plants (H-VPPs), in short-term electricity markets. Developed with a focus on efficient energy management, **oHySEM** also enables strategic decisions regarding the **location and sizing of new energy assets**, ensuring optimal system design and market participation.
 
-By integrating renewable energy sources like Solar PV, Wind, and CCGT with hydrogen-based energy storage and battery systems, **oHySEM** allows H-VPPd to operate as a unified, flexible entity in various electricity markets. The model helps users maximize operational efficiency, profitability, and the overall performance of hybrid systems by dynamically optimizing energy dispatch, storage, and market bids.
+By integrating renewable energy sources like Solar PV, Wind, and CCGT with hydrogen-based energy storage and battery systems, **oHySEM** allows H-VPP to operate as a unified, flexible entity in various electricity markets. The model helps users maximize operational efficiency, profitability, and the overall performance of hybrid systems by dynamically optimizing energy dispatch, storage, and market bids.
 
 .. image:: /../img/System.png
    :scale: 35%
