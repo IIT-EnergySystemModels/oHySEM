@@ -32,7 +32,7 @@ After installation, you can run the model via the command line:
 
 ``oHySEM``
 
-or via the Python script:
+or using the Python script:
 
 ``python -m oHySEM --dir {path_to_input_data} --case {case_name} --solver {solver_name}``
 
