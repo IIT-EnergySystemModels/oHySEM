@@ -125,7 +125,7 @@ def main():
     print('\n')
     elapsed_time = round(time.time() - initial_time)
     print('Elapsed time: {} seconds'.format(elapsed_time))
-    path_to_write_time = os.path.join(args.dir,args.case,"oH_Results_rExecutionTime_"+args.case+".txt")
+    path_to_write_time = os.path.join(args.dir,args.case,"oH_Result_rExecutionTime_"+args.case+".txt")
     with open(path_to_write_time, 'w') as f:
          f.write(str(elapsed_time))
     for i in range(0, 117):
@@ -2417,7 +2417,7 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
     OutputResults5 = pd.Series(data=[-optmodel.vTotalRCost     [p,sc,n]()*model.Par['pDuration'][n] for p,sc,n in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalRCost'     )
     OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5], axis=1)
 
-    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Component'], axis=0).reset_index().rename(columns={0: 'MEUR'}, inplace=False).to_csv(_path+'/oH_Result_TotalCost_'+CaseName+'.csv', index=False, sep=',')
+    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Component'], axis=0).reset_index().rename(columns={0: 'MEUR'}, inplace=False).to_csv(_path+'/oH_Result_rTotalCost_'+CaseName+'.csv', index=False, sep=',')
 
     # %% outputting the electrical energy balance
     #%%  Power balance per period, scenario, and load level
@@ -2450,7 +2450,7 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
     OutputResults11    = pd.Series(data=[ sum(optmodel.vEleNetFlow              [p,sc,n,ni,nd,cc]() * model.Par['pDuration'][n] for (ni,cc) in lin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='PowerFlowIn'       )
     OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9, OutputResults10, OutputResults11], axis=1)
 
-    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Technology'], axis=0).reset_index().rename(columns={0: 'GWh'}, inplace=False).to_csv(_path+'/oH_Result_ElectricityBalance_'+CaseName+'.csv', index=False, sep=',')
+    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Technology'], axis=0).reset_index().rename(columns={0: 'GWh'}, inplace=False).to_csv(_path+'/oH_Result_rElectricityBalance_'+CaseName+'.csv', index=False, sep=',')
 
     print('Outputting the electrical energy balance ... ', round(time.time() - StartTime), 's')
 
@@ -2467,7 +2467,7 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
     OutputResults9     = pd.Series(data=[ sum(optmodel.vHydNetFlow               [p,sc,n,ni,nd,cc]() * model.Par['pDuration'][n] for (ni,cc) in hin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenFlowIn'    )
     OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9], axis=1)
 
-    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Technology'], axis=0).reset_index().rename(columns={0: 'tH2'}, inplace=False).to_csv(_path+'/oH_Result_HydrogenBalance_'+CaseName+'.csv', index=False, sep=',')
+    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Technology'], axis=0).reset_index().rename(columns={0: 'tH2'}, inplace=False).to_csv(_path+'/oH_Result_rHydrogenBalance_'+CaseName+'.csv', index=False, sep=',')
 
     sPSNGT       = [(p,sc,n,gt) for p,sc,n,gt in model.psngt if sum(1 for g in model.g if (gt,g) in model.t2g) > 0]
     OutputToFile = pd.Series(data=[sum(optmodel.vEleTotalOutput[p,sc,n,g]() for g in model.g if (gt,g) in model.t2g) for p,sc,n,gt in sPSNGT], index=pd.Index(sPSNGT))
@@ -2481,11 +2481,11 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
 
     # saving the results of the electricity network flows
     OutputResults = pd.Series(data=[optmodel.vEleNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnela], index=pd.Index(model.psnela)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0).reset_index()
-    OutputResults.to_csv(_path+'/oH_Result_ElectricityNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
+    OutputResults.to_csv(_path+'/oH_Result_rElectricityNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
 
     # saving the results of the hydrogen network flows
     OutputResults = pd.Series(data=[optmodel.vHydNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnhpa], index=pd.Index(model.psnhpa)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0).reset_index()
-    OutputResults.to_csv(_path+'/oH_Result_HydrogenNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
+    OutputResults.to_csv(_path+'/oH_Result_rHydrogenNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
 
     # saving the reserves offers
     if len(model.psnes) > 0:
@@ -2507,7 +2507,7 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
         OutputResults8 = pd.Series(data=[optmodel.vEleReserveProd_Down_TR[p,sc,n,es]() for p,sc,n,es in model.psnes], index=pd.Index(model.psnes)).to_frame(name='vEleReserveProd_Down_TR').rename_axis(['Period', 'Scenario', 'LoadLevel', 'Unit'], axis=0)
         data.append(OutputResults8)
         OutputResults = pd.concat(data, axis=1)
-        OutputResults.reset_index().to_csv(_path+'/oH_Result_ReservesOffers_'+CaseName+'.csv', index=False, sep=',')
+        OutputResults.reset_index().to_csv(_path+'/oH_Result_rReservesOffers_'+CaseName+'.csv', index=False, sep=',')
 
     return model
 
