@@ -1,6 +1,11 @@
 Change Log
 =============
 
+[1.0.4] - 2024-09-11
+---------------------
+
+- [FIXED] updated set definitions according to Pyomo version 6.8.0
+
 [1.0.3] - 2024-09-11
 ---------------------
 
