@@ -120,12 +120,17 @@ def main():
     # network mapping
     # network_map(args.dir, args.case, model, model)
     # print('- Total time for network mapping:                                      {}  seconds\n'.format(round(time.time() - start_time  )))
+    for i in range(0, 117):
+        print('-', end="")
+    print('\n')
     elapsed_time = round(time.time() - initial_time)
     print('Elapsed time: {} seconds'.format(elapsed_time))
     path_to_write_time = os.path.join(args.dir,args.case,"oH_Results_rExecutionTime_"+args.case+".txt")
     with open(path_to_write_time, 'w') as f:
          f.write(str(elapsed_time))
-
+    for i in range(0, 117):
+        print('-', end="")
+    print('\n')
 
 def data_processing(DirName, CaseName, model):
     # %% Read the input data
