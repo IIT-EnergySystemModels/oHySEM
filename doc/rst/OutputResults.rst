@@ -8,8 +8,8 @@ The output includes several maps of the electricity transmission network and plo
 In addition, the model generates several other plots to visualise key results. The CSV files used to store the output results are of three types:
 
 1. **Optimisation variable values**: Files related to the values of each variable in the optimisation problem.
-2. **Dual Values of Constraints: Files containing the dual values associated with the constraints.
-3. **Derived/Transformed Values: Files that are derived or transformed from the values of variables.
+2. **Dual Values of Constraints**: Files containing the dual values associated with the constraints.
+3. **Derived/Transformed Values**: Files that are derived or transformed from the values of variables.
 
 ### Unit conventions:
 
