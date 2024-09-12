@@ -157,6 +157,8 @@ def main():
         print('-', end="")
     print('\n')
 
+    return oHySEM
+
 def data_processing(DirName, CaseName, model):
     # %% Read the input data
     print('-- Reading the input data')
@@ -1962,7 +1964,7 @@ def create_constraints(model, optmodel):
             if model.Par['pMinCharge'][hs][p,sc,n] == 0.0:
                 return optmodel.vHydTotalCharge[p,sc,n,hs]                                       ==        optmodel.vHydTotalCharge2ndBlock[p,sc,n,hs]
             else:
-                return optmodel.vHydTotalCharge[p,sc,n,hs] / model.Par['pMinCharge'][hs][p,sc,n] == optmodel.vHydCommitment[p,sc,n,es] + (optmodel.vHydTotalCharge2ndBlock[p,sc,n,hs]) / model.Par['pMinCharge'][hs][p,sc,n]
+                return optmodel.vHydTotalCharge[p,sc,n,hs] / model.Par['pMinCharge'][hs][p,sc,n] == optmodel.vHydCommitment[p,sc,n,hs] + (optmodel.vHydTotalCharge2ndBlock[p,sc,n,hs]) / model.Par['pMinCharge'][hs][p,sc,n]
         else:
             return Constraint.Skip
     optmodel.__setattr__('eHydTotalCharge', Constraint(optmodel.psnhs, rule=eHydTotalCharge, doc='total charge of an H2 ESS unit [tH2]'))
@@ -2577,10 +2579,7 @@ def create_plots(DirName, CaseName, Date, model, optmodel):
         ComposedCategory = Category + ':N'
         ComposedValue = Value + ':Q'
 
-        base = alt.Chart(OutputToPlot).encode(theta=alt.Theta(ComposedValue, stack=True),
-                                              color=alt.Color(ComposedCategory,
-                                                              legend=alt.Legend(title=Category))).properties(width=800,
-                                                                                                             height=800)
+        base = alt.Chart(OutputToPlot).encode(theta=alt.Theta(ComposedValue, stack=True), color=alt.Color(ComposedCategory, legend=alt.Legend(title=Category))).properties(width=800, height=800)
         pie = base.mark_arc(outerRadius=240)
         text = base.mark_text(radius=340, size=15).encode(text='Label:N')
         chart = pie + text
@@ -2589,6 +2588,8 @@ def create_plots(DirName, CaseName, Date, model, optmodel):
     # definition of functions to create plots
     def AreaPlots(period,scenario, df, Category, X, Y):
         Results = df[(df['Period'] == period) & (df['Scenario'] == scenario)]
+        # # removing rows with zero value in column Y
+        # Results = Results[Results[Y] != 0]
         # Composed Names
         C_C = Category+':N'
 
@@ -2606,8 +2607,68 @@ def create_plots(DirName, CaseName, Date, model, optmodel):
 
         return plot
 
-    def
+    # Definition of Line plots
+    def LinePlots(period, scenario, df, Category, X, Y):
+        Results = df[(df['Period'] == period) & (df['Scenario'] == scenario)]
+        # # removing rows with zero value in column Y
+        # Results = Results[Results[Y] != 0]
+        # Composed Names
+        C_C = Category+':N'
 
+        C_X = X+':T'
+        C_Y = Y+':Q'
+        # Define and build the chart
+        # alt.data_transformers.enable('json')
+        alt.data_transformers.disable_max_rows()
+        interval = alt.selection_interval(encodings=['x'])
+        selection = alt.selection_point(fields=[Category], bind='legend')
+
+        base  = alt.Chart(Results).mark_line().encode(x=alt.X(C_X, axis=alt.Axis(title='')), y=alt.Y(C_Y, axis=alt.Axis(title=Y)), color=alt.Color(C_C, scale=alt.Scale(scheme='category20c')), opacity=alt.condition(selection, alt.value(1), alt.value(0.2))).add_params(selection)
+        chart = base.encode(alt.X(C_X, axis=alt.Axis(title='')).scale(domain=interval)).properties(width=1200, height=450)
+        view  = base.add_params(interval).properties(width=1200, height=50)
+        plot  = alt.vconcat(chart, view)
+
+        return plot
+
+    # Definition of Bar plots
+    def BarPlots(period, scenario, df, Category, X, Y):
+        Results = df[(df['Period'] == period) & (df['Scenario'] == scenario)]
+        # removing rows with zero value in column Y
+        Results = Results[Results[Y] != 0]
+        # Composed Names
+        C_C = Category+':N'
+
+        C_X = X+':T'
+        C_Y = Y+':Q'
+        # Define and build the chart
+        # alt.data_transformers.enable('json')
+        alt.data_transformers.disable_max_rows()
+        interval = alt.selection_interval(encodings=['x'])
+        selection = alt.selection_point(fields=[Category], bind='legend')
+
+        base  = alt.Chart(Results).mark_bar().encode(x=alt.X(C_X, axis=alt.Axis(title='')), y=alt.Y(C_Y, axis=alt.Axis(title=Y)), color=alt.Color(C_C, scale=alt.Scale(scheme='category20c')), opacity=alt.condition(selection, alt.value(1), alt.value(0.2))).add_params(selection)
+        chart = base.encode(alt.X(C_X, axis=alt.Axis(title='')).scale(domain=interval)).properties(width=1200, height=450)
+        view  = base.add_params(interval).properties(width=1200, height=50)
+        plot  = alt.vconcat(chart, view)
+
+        return plot
+
+    # plotting the total cost
+    for p,sc in model.ps:
+        chart = AreaPlots(p,sc, model.Output_TotalCost, 'Component', 'Date', 'MEUR')
+        chart.save(_path+'/oH_Plot_TotalCost_'+str(p)+'_'+CaseName+'.html', embed_options={'renderer': 'svg'})
+
+    # plotting the electricity balance
+    for p,sc in model.ps:
+        chart = BarPlots(p,sc, model.Output_EleBalance, 'Component', 'Date', 'GWh')
+        chart.save(_path+'/oH_Plot_ElectricityBalance_'+str(p)+'_'+str(sc)+'_'+CaseName+'.html', embed_options={'renderer': 'svg'})
+
+    # plotting the hydrogen balance
+    for p,sc in model.ps:
+        chart = BarPlots(p,sc, model.Output_HydBalance, 'Component', 'Date', 'tH2')
+        chart.save(_path+'/oH_Plot_HydrogenBalance_'+str(p)+'_'+str(sc)+'_'+CaseName+'.html', embed_options={'renderer': 'svg'})
+
+    # plotting the electricity technology generation
     for p,sc in model.ps:
         chart = AreaPlots(p,sc, model.Output_EleTechGeneration, 'Component', 'Date', 'MW')
         chart.save(_path+'/oH_Plot_EleTechGeneration_'+str(p)+'_'+CaseName+'.html', embed_options={'renderer': 'svg'})
