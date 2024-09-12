@@ -2588,8 +2588,13 @@ def create_plots(DirName, CaseName, Date, model, optmodel):
     # definition of functions to create plots
     def AreaPlots(period,scenario, df, Category, X, Y):
         Results = df[(df['Period'] == period) & (df['Scenario'] == scenario)]
-        # # removing rows with zero value in column Y
-        # Results = Results[Results[Y] != 0]
+        # removing rows with zero value in column Y
+        Results = Results[Results[Y] != 0]
+        # removing HydrogenFlowIn and HydrogenFlowOut from Category column
+        Results = Results[Results['Component'] != 'HydrogenFlowIn']
+        Results = Results[Results['Component'] != 'HydrogenFlowOut']
+        Results = Results[Results['Component'] != 'PowerFlowIn']
+        Results = Results[Results['Component'] != 'PowerFlowOut']
         # Composed Names
         C_C = Category+':N'
 
@@ -2635,6 +2640,11 @@ def create_plots(DirName, CaseName, Date, model, optmodel):
         Results = df[(df['Period'] == period) & (df['Scenario'] == scenario)]
         # removing rows with zero value in column Y
         Results = Results[Results[Y] != 0]
+        # removing HydrogenFlowIn and HydrogenFlowOut from Category column
+        Results = Results[Results['Component'] != 'HydrogenFlowIn']
+        Results = Results[Results['Component'] != 'HydrogenFlowOut']
+        Results = Results[Results['Component'] != 'PowerFlowIn']
+        Results = Results[Results['Component'] != 'PowerFlowOut']
         # Composed Names
         C_C = Category+':N'
 
