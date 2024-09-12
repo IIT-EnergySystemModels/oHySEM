@@ -2466,7 +2466,7 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     Output_EleBalance.to_csv(_path+'/oH_Result_rElectricityBalance_'+CaseName+'.csv', index=False, sep=',')
     model.Output_EleBalance = Output_EleBalance
 
-    print('Outputting the electrical energy balance ... ', round(time.time() - StartTime), 's')
+    # print('Outputting the electrical energy balance ... ', round(time.time() - StartTime), 's')
 
     # %% outputting the hydrogen energy balance
     #%%  Hydrogen balance per period, scenario, and load level
@@ -2499,11 +2499,6 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     Output_EleTechGeneration = OutputToFile
     Output_EleTechGeneration.to_csv(_path+'/oH_Result_rTechnologyGeneration_'+CaseName+'.csv', sep=',')
     model.Output_EleTechGeneration = Output_EleTechGeneration
-
-    # TechnologyOutput = OutputToFile.loc[:,:,:,:]
-    # for p,sc in model.ps:
-    #     chart = AreaPlots(p,sc, TechnologyOutput, 'Technology', 'LoadLevel', 'MW', 'sum')
-    #     chart.save(_path+'/oH_Plot_TechnologyOutput_'+str(p)+'_'+CaseName+'.html', embed_options={'renderer': 'svg'})
 
     # saving the results of the electricity network flows
     OutputResults = pd.Series(data=[optmodel.vEleNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnela], index=pd.Index(model.psnela)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0)
@@ -2559,26 +2554,47 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
 
     return model
 
-def create_plots(DirName, CaseName, model, optmodel):
+def create_plots(DirName, CaseName, Date, model, optmodel):
     #
     start_time = time.time()
+    #
+    _path = os.path.join(DirName, CaseName)
+
+    # Definition of Pie plots
+    def PiePlots(period, scenario, df, Category, Value):
+        df = df.loc[(df['Period'] == period) & (df['Scenario'] == scenario)]
+        # remove LoadLevel column
+        df = df.drop(columns=['LoadLevel'])
+        df = df.set_index(['Period', 'Scenario', 'Date', 'Component'])
+        OutputToPlot = df.reset_index().groupby(['Component']).sum(numeric_only=True)
+        OutputToPlot['%'] = (OutputToPlot[0] / OutputToPlot[0].sum()) * 100.0
+        OutputToPlot = OutputToPlot.reset_index().rename(columns={'level_3': Category, 0: 'GWh'})
+        OutputToPlot['GWh'] = round(OutputToPlot['GWh'], 1)
+        OutputToPlot['%'] = round(OutputToPlot['%'], 1)
+        OutputToPlot = OutputToPlot[(OutputToPlot[['GWh']] != 0).all(axis=1)]
+        OutputToPlot['Label'] = [OutputToPlot[Category][i] + ' (' + str(OutputToPlot['%'][i]) + ' %' + ', ' + str(
+            OutputToPlot['GWh'][i]) + ' GWh' + ')' for i in OutputToPlot.index]
+        ComposedCategory = Category + ':N'
+        ComposedValue = Value + ':Q'
+
+        base = alt.Chart(OutputToPlot).encode(theta=alt.Theta(ComposedValue, stack=True),
+                                              color=alt.Color(ComposedCategory,
+                                                              legend=alt.Legend(title=Category))).properties(width=800,
+                                                                                                             height=800)
+        pie = base.mark_arc(outerRadius=240)
+        text = base.mark_text(radius=340, size=15).encode(text='Label:N')
+        chart = pie + text
+
+        return chart
     # definition of functions to create plots
-    def AreaPlots(period,scenario, df, Category, X, Y, OperationType):
-        Results = df.loc[period,scenario,:,:]
-        Results = Results.reset_index().rename(columns={'level_0': X, 'level_1': Category, 0: Y})
-        # Change the format of the LoadLevel
-        Results[X] = Results[X].str[:14]
-        Results[X] = (Results[X]+'+01:00')
-        Results[X] = (str(period)+'-'+Results[X])
-        Results[X] = pd.to_datetime(Results[X])
-        Results[X] = Results[X].dt.strftime('%Y-%m-%d %H:%M:%S')
+    def AreaPlots(period,scenario, df, Category, X, Y):
+        Results = df[(df['Period'] == period) & (df['Scenario'] == scenario)]
         # Composed Names
         C_C = Category+':N'
 
         C_X = X+':T'
         C_Y = Y+':Q'
         # Define and build the chart
-        # alt.data_transformers.enable('json')
         alt.data_transformers.disable_max_rows()
         interval = alt.selection_interval(encodings=['x'])
         selection = alt.selection_point(fields=[Category], bind='legend')
@@ -2589,6 +2605,12 @@ def create_plots(DirName, CaseName, model, optmodel):
         plot  = alt.vconcat(chart, view)
 
         return plot
+
+    def
+
+    for p,sc in model.ps:
+        chart = AreaPlots(p,sc, model.Output_EleTechGeneration, 'Component', 'Date', 'MW')
+        chart.save(_path+'/oH_Plot_EleTechGeneration_'+str(p)+'_'+CaseName+'.html', embed_options={'renderer': 'svg'})
 
 def network_map(DirName, CaseName, model, optmodel):
     # %% plotting the network in a map
