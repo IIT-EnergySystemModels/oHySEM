@@ -4,6 +4,10 @@
    :scale: 70%
    :align: left
 
+.. image:: /../img/IIT40.png
+   :scale: 20%
+   :align: right
+
 \ **o**\ptimized \ **Hy**\brid in \ **S**\ystems for \ **E**\nergy and \ **M**\arket management
 
 (**oHySEM**)
