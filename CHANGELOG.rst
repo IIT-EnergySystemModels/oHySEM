@@ -1,6 +1,11 @@
 Change Log
 =============
 
+[1.0.5] - 2024-09-13
+---------------------
+
+- [CHANGED] added a new function to print plots in the main file
+
 [1.0.4] - 2024-09-12
 ---------------------
 - [CHANGED] added the date, raw data and plots as arguments to be inserted by the user or adopted by default
