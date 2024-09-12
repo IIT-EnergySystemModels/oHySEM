@@ -11,7 +11,8 @@ In addition, the model generates several other plots to visualise key results. T
 2. **Dual Values of Constraints**: Files containing the dual values associated with the constraints.
 3. **Derived/Transformed Values**: Files that are derived or transformed from the values of variables.
 
-### Unit conventions:
+Unit conventions:
+------------------
 
 - For the first two types of CSV files (values of optimisation variables and dual values of constraints), power is expressed in **GW**, cost in **M€** and hydrogen in **tH2**.
 - For the third type (derived/transformed values), power is expressed in **MW**, energy in **GWh**, cost in **M€** and hydrogen in **kgH2**.
