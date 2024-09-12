@@ -39,10 +39,16 @@ parser = argparse.ArgumentParser(description='Introducing main arguments...')
 parser.add_argument('--dir',    type=str, default=None)
 parser.add_argument('--case',   type=str, default=None)
 parser.add_argument('--solver', type=str, default=None)
+parser.add_argument('--date',   type=str, default=None)
+parser.add_argument('--rawdata', type=str, default=None)
+parser.add_argument('--plots', type=str, default=None)
 
 default_DirName    = os.path.dirname(__file__)
 default_CaseName   = 'VPP1'                              # To select the case
 default_SolverName = 'gurobi'
+default_date = datetime.datetime.now().replace(second=0, microsecond=0)
+default_rawdata    = 'False'
+default_plots      = 'False'
 
 def main():
     initial_time = time.time()
@@ -52,17 +58,29 @@ def main():
     oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.0 - November 21, 2023')
 
     if args.dir is None:
-        args.dir = input( 'Input Dir   Name (Default {}): '.format(default_DirName))
+        args.dir     = input('Input Dir     Name (Default {}): '.format(default_DirName))
         if args.dir == '':
             args.dir = default_DirName
     if args.case is None:
-        args.case = input('Input Case  Name (Default {}): '.format(default_CaseName))
+        args.case    = input('Input Case    Name (Default {}): '.format(default_CaseName))
         if args.case == '':
             args.case = default_CaseName
     if args.solver is None:
-        args.solver = input('Input Solver Name (Default {}): '.format(default_SolverName))
+        args.solver  = input('Input Solver  Name (Default {}): '.format(default_SolverName))
         if args.solver == '':
             args.solver = default_SolverName
+    if args.date is None:
+        args.date    = input('Input Date    Name (Default {}): '.format(default_date))
+        if args.date == '':
+            args.date = default_date
+    if args.rawdata is None:
+        args.rawdata = input('Input RawData Name (Default {}): '.format(default_rawdata))
+        if args.rawdata == '':
+            args.rawdata = default_rawdata
+    if args.plots is None:
+        args.plots   = input('Input Plots   Name (Default {}): '.format(default_plots))
+        if args.plots == '':
+            args.plots = default_plots
     for i in range(0, 117):
         print('-', end="")
     print('\n')
@@ -70,6 +88,8 @@ def main():
     print(args.case)
     print(args.dir)
     print(args.solver)
+    print(args.rawdata)
+    print(args.plots)
     for i in range(0, 117):
         print('-', end="")
     print('\n')
@@ -110,12 +130,17 @@ def main():
     pWrittingLPFile = 1
     model = solving_model( args.dir, args.case, args.solver, model, pWrittingLPFile)
     print('- Total time for solving the model:                                    {} seconds\n'.format(round(time.time() - start_time  )))
+    if args.rawdata == 'True':
+        start_time = time.time()
+        model = OutputVariablesToCSV(args.dir, args.case, args.solver, model, model)
+        print('- Total time for writing the results:                                  {} seconds\n'.format(round(time.time() - start_time  )))
     start_time = time.time()
-    model = OutputVariablesToCSV(args.dir, args.case, args.solver, model, model)
-    print('- Total time for writing the results:                                  {} seconds\n'.format(round(time.time() - start_time  )))
-    start_time = time.time()
-    model = saving_results(args.dir, args.case, args.solver, model, model)
+    model = saving_results(args.dir, args.case, args.date, model, model)
     print('- Total time for saving the results:                                   {} seconds\n'.format(round(time.time() - start_time  )))
+    if args.plots == 'True':
+        start_time = time.time()
+        model = create_plots(args.dir, args.case, args.date, model, model)
+        print('- Total time for creating the plots:                                   {} seconds\n'.format(round(time.time() - start_time  )))
     start_time = time.time()
     # network mapping
     # network_map(args.dir, args.case, model, model)
@@ -2375,35 +2400,14 @@ def OutputVariablesToCSV(DirName, CaseName, SolverName, model, optmodel):
 
     return model
 
-def saving_results(DirName, CaseName, SolverName, model, optmodel):
-
-    # Definition of Area plots
-    def AreaPlots(period,scenario, df, Category, X, Y, OperationType):
-        Results = df.loc[period,scenario,:,:]
-        Results = Results.reset_index().rename(columns={'level_0': X, 'level_1': Category, 0: Y})
-        # Change the format of the LoadLevel
-        Results[X] = Results[X].str[:14]
-        Results[X] = (Results[X]+'+01:00')
-        Results[X] = (str(period)+'-'+Results[X])
-        Results[X] = pd.to_datetime(Results[X])
-        Results[X] = Results[X].dt.strftime('%Y-%m-%d %H:%M:%S')
-        # Composed Names
-        C_C = Category+':N'
-
-        C_X = X+':T'
-        C_Y = Y+':Q'
-        # Define and build the chart
-        # alt.data_transformers.enable('json')
-        alt.data_transformers.disable_max_rows()
-        interval = alt.selection_interval(encodings=['x'])
-        selection = alt.selection_point(fields=[Category], bind='legend')
-
-        base  = alt.Chart(Results).mark_area().encode(x=alt.X(C_X, axis=alt.Axis(title='')), y=alt.Y(C_Y, axis=alt.Axis(title=Y)), color=alt.Color(C_C, scale=alt.Scale(scheme='category20c')), opacity=alt.condition(selection, alt.value(1), alt.value(0.2))).add_params(selection)
-        chart = base.encode(alt.X(C_X, axis=alt.Axis(title='')).scale(domain=interval)).properties(width=1200, height=450)
-        view  = base.add_params(interval).properties(width=1200, height=50)
-        plot  = alt.vconcat(chart, view)
-
-        return plot
+def saving_results(DirName, CaseName, Date, model, optmodel):
+    # %% outputting the results
+    # splitting the Date into year, month, and day
+    year = Date.year
+    month = Date.month
+    day = Date.day
+    hour = Date.hour
+    minute = Date.minute
 
     _path = os.path.join(DirName, CaseName)
     StartTime = time.time()
@@ -2415,9 +2419,14 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
     OutputResults3 = pd.Series(data=[ optmodel.vTotalECost     [p,sc,n]()*model.Par['pDuration'][n] for p,sc,n in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalECost'     )
     OutputResults4 = pd.Series(data=[ optmodel.vTotalCCost     [p,sc,n]()*model.Par['pDuration'][n] for p,sc,n in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalCCost'     )
     OutputResults5 = pd.Series(data=[-optmodel.vTotalRCost     [p,sc,n]()*model.Par['pDuration'][n] for p,sc,n in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalRCost'     )
-    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5], axis=1)
+    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5], axis=1).stack().to_frame(name='MEUR')
 
-    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Component'], axis=0).reset_index().rename(columns={0: 'MEUR'}, inplace=False).to_csv(_path+'/oH_Result_rTotalCost_'+CaseName+'.csv', index=False, sep=',')
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+
+    Output_TotalCost = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'MEUR'}, inplace=False)
+    Output_TotalCost.to_csv(_path+'/oH_Result_rTotalCost_'+CaseName+'.csv', index=False, sep=',')
+    model.Output_TotalCost = Output_TotalCost
 
     # %% outputting the electrical energy balance
     #%%  Power balance per period, scenario, and load level
@@ -2448,9 +2457,14 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
     OutputResults9     = pd.Series(data=[-    optmodel.vElectricitySell         [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ElectricitySell'   )
     OutputResults10    = pd.Series(data=[-sum(optmodel.vEleNetFlow              [p,sc,n,nd,nf,cc]() * model.Par['pDuration'][n] for (nf,cc) in lout [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='PowerFlowOut'      )
     OutputResults11    = pd.Series(data=[ sum(optmodel.vEleNetFlow              [p,sc,n,ni,nd,cc]() * model.Par['pDuration'][n] for (ni,cc) in lin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='PowerFlowIn'       )
-    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9, OutputResults10, OutputResults11], axis=1)
+    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9, OutputResults10, OutputResults11], axis=1).stack().to_frame(name='GWh')
 
-    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Technology'], axis=0).reset_index().rename(columns={0: 'GWh'}, inplace=False).to_csv(_path+'/oH_Result_rElectricityBalance_'+CaseName+'.csv', index=False, sep=',')
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+
+    Output_EleBalance = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'GWh'}, inplace=False)
+    Output_EleBalance.to_csv(_path+'/oH_Result_rElectricityBalance_'+CaseName+'.csv', index=False, sep=',')
+    model.Output_EleBalance = Output_EleBalance
 
     print('Outputting the electrical energy balance ... ', round(time.time() - StartTime), 's')
 
@@ -2465,14 +2479,26 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
     OutputResults7     = pd.Series(data=[-    optmodel.vHydrogenSell             [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenSell'      )
     OutputResults8     = pd.Series(data=[-sum(optmodel.vHydNetFlow               [p,sc,n,nd,nf,cc]() * model.Par['pDuration'][n] for (nf,cc) in hout [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenFlowOut'   )
     OutputResults9     = pd.Series(data=[ sum(optmodel.vHydNetFlow               [p,sc,n,ni,nd,cc]() * model.Par['pDuration'][n] for (ni,cc) in hin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenFlowIn'    )
-    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9], axis=1)
+    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9], axis=1).stack().to_frame(name='tH2')
 
-    OutputResults.stack().rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Technology'], axis=0).reset_index().rename(columns={0: 'tH2'}, inplace=False).to_csv(_path+'/oH_Result_rHydrogenBalance_'+CaseName+'.csv', index=False, sep=',')
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+
+    Output_HydBalance = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'tH2'}, inplace=False)
+    Output_HydBalance.to_csv(_path+'/oH_Result_rHydrogenBalance_'+CaseName+'.csv', index=False, sep=',')
+    model.Output_HydBalance = Output_HydBalance
 
     sPSNGT       = [(p,sc,n,gt) for p,sc,n,gt in model.psngt if sum(1 for g in model.g if (gt,g) in model.t2g) > 0]
     OutputToFile = pd.Series(data=[sum(optmodel.vEleTotalOutput[p,sc,n,g]() for g in model.g if (gt,g) in model.t2g) for p,sc,n,gt in sPSNGT], index=pd.Index(sPSNGT))
     OutputToFile *= 1e3
-    OutputToFile.to_frame(name='MW').reset_index().pivot_table(index=['level_0','level_1','level_2'], columns='level_3', values='MW', aggfunc='sum').rename_axis(['Period', 'Scenario', 'LoadLevel'], axis=0).rename_axis([None], axis=1).to_csv(_path+'/oH_Result_rTechnologyGeneration_'+CaseName+'.csv', sep=',')
+    OutputToFile = OutputToFile.to_frame(name='MW').reset_index().pivot_table(index=['level_0','level_1','level_2'], columns='level_3', values='MW', aggfunc='sum').rename_axis(['Period', 'Scenario', 'LoadLevel'], axis=0).rename_axis([None], axis=1)
+
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputToFile['Date'] = OutputToFile.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+    OutputToFile = OutputToFile.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Date'], axis=0).stack().to_frame(name='MW').reset_index().rename(columns={'level_4': 'Component'})
+    Output_EleTechGeneration = OutputToFile
+    Output_EleTechGeneration.to_csv(_path+'/oH_Result_rTechnologyGeneration_'+CaseName+'.csv', sep=',')
+    model.Output_EleTechGeneration = Output_EleTechGeneration
 
     # TechnologyOutput = OutputToFile.loc[:,:,:,:]
     # for p,sc in model.ps:
@@ -2480,12 +2506,26 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
     #     chart.save(_path+'/oH_Plot_TechnologyOutput_'+str(p)+'_'+CaseName+'.html', embed_options={'renderer': 'svg'})
 
     # saving the results of the electricity network flows
-    OutputResults = pd.Series(data=[optmodel.vEleNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnela], index=pd.Index(model.psnela)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0).reset_index()
-    OutputResults.to_csv(_path+'/oH_Result_rElectricityNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
+    OutputResults = pd.Series(data=[optmodel.vEleNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnela], index=pd.Index(model.psnela)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0)
+
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+
+    OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit', 'Date'], axis=0).reset_index()
+    Output_EleNetFlow = OutputResults
+    Output_EleNetFlow.to_csv(_path+'/oH_Result_rElectricityNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
+    model.Output_EleNetFlow = Output_EleNetFlow
 
     # saving the results of the hydrogen network flows
-    OutputResults = pd.Series(data=[optmodel.vHydNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnhpa], index=pd.Index(model.psnhpa)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0).reset_index()
-    OutputResults.to_csv(_path+'/oH_Result_rHydrogenNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
+    OutputResults = pd.Series(data=[optmodel.vHydNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnhpa], index=pd.Index(model.psnhpa)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0)
+
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+
+    OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit', 'Date'], axis=0).reset_index()
+    Output_HydNetFlow = OutputResults
+    Output_HydNetFlow.to_csv(_path+'/oH_Result_rHydrogenNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
+    model.Output_HydNetFlow = Output_HydNetFlow
 
     # saving the reserves offers
     if len(model.psnes) > 0:
@@ -2506,10 +2546,49 @@ def saving_results(DirName, CaseName, SolverName, model, optmodel):
         data.append(OutputResults7)
         OutputResults8 = pd.Series(data=[optmodel.vEleReserveProd_Down_TR[p,sc,n,es]() for p,sc,n,es in model.psnes], index=pd.Index(model.psnes)).to_frame(name='vEleReserveProd_Down_TR').rename_axis(['Period', 'Scenario', 'LoadLevel', 'Unit'], axis=0)
         data.append(OutputResults8)
-        OutputResults = pd.concat(data, axis=1)
-        OutputResults.reset_index().to_csv(_path+'/oH_Result_rReservesOffers_'+CaseName+'.csv', index=False, sep=',')
+        OutputResults = pd.concat(data, axis=1).stack().to_frame(name='MW')
+        OutputResults *= 1e3
+
+        # select the third level of the index and create a new column date using the Date as a initial date
+        OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+        OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Unit', 'Component', 'Date'], axis=0).reset_index()
+
+        Output_ReservesOffers = OutputResults
+        Output_ReservesOffers.to_csv(_path+'/oH_Result_rReservesOffers_'+CaseName+'.csv', index=False, sep=',')
+        model.Output_ReservesOffers = Output_ReservesOffers
 
     return model
+
+def create_plots(DirName, CaseName, model, optmodel):
+    #
+    start_time = time.time()
+    # definition of functions to create plots
+    def AreaPlots(period,scenario, df, Category, X, Y, OperationType):
+        Results = df.loc[period,scenario,:,:]
+        Results = Results.reset_index().rename(columns={'level_0': X, 'level_1': Category, 0: Y})
+        # Change the format of the LoadLevel
+        Results[X] = Results[X].str[:14]
+        Results[X] = (Results[X]+'+01:00')
+        Results[X] = (str(period)+'-'+Results[X])
+        Results[X] = pd.to_datetime(Results[X])
+        Results[X] = Results[X].dt.strftime('%Y-%m-%d %H:%M:%S')
+        # Composed Names
+        C_C = Category+':N'
+
+        C_X = X+':T'
+        C_Y = Y+':Q'
+        # Define and build the chart
+        # alt.data_transformers.enable('json')
+        alt.data_transformers.disable_max_rows()
+        interval = alt.selection_interval(encodings=['x'])
+        selection = alt.selection_point(fields=[Category], bind='legend')
+
+        base  = alt.Chart(Results).mark_area().encode(x=alt.X(C_X, axis=alt.Axis(title='')), y=alt.Y(C_Y, axis=alt.Axis(title=Y)), color=alt.Color(C_C, scale=alt.Scale(scheme='category20c')), opacity=alt.condition(selection, alt.value(1), alt.value(0.2))).add_params(selection)
+        chart = base.encode(alt.X(C_X, axis=alt.Axis(title='')).scale(domain=interval)).properties(width=1200, height=450)
+        view  = base.add_params(interval).properties(width=1200, height=50)
+        plot  = alt.vconcat(chart, view)
+
+        return plot
 
 def network_map(DirName, CaseName, model, optmodel):
     # %% plotting the network in a map
