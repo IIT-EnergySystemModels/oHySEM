@@ -1,5 +1,5 @@
 
-.. image:: https://github.com/IIT-EnergySystemModels/oHySEM/blob/f8f7f028b6f2222e54f663c99acabd369c59a348/doc/img/oHySEM_v2.png
+.. image:: https://pascua.iit.comillas.edu/aramos/oHySEM_v2.png
    :target: https://ohysem.readthedocs.io/en/latest/index.html
    :alt: logo
    :align: center
