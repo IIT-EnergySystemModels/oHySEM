@@ -9,7 +9,6 @@
    :align: right
 
 \ **o**\ptimized \ **Hy**\brid in \ **S**\ystems for \ **E**\nergy and \ **M**\arket management
-
 (**oHySEM**)
 
 “*Simplicity and Transparency in Energy Systems Planning*”
