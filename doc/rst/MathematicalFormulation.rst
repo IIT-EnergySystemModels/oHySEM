@@ -45,68 +45,67 @@ Parameters
 
 They are written in **uppercase** letters.
 
-=============================================  ===================================================================  ========
-**Demand**                                     **Description**                                                      **Unit**
----------------------------------------------  -------------------------------------------------------------------  --------
-:math:`ED_{nnd}`                               Electricity demand                                                   GW
-:math:`HD_{nnd}`                               Hydrogen demand                                                      kgH2
-:math:`DUR_n`                                  Duration of each load level                                          h
-:math:`CEB_{nnd},    PES^{DA}_{nnd}`           Cost/price of electricity bought/sold                                €/MWh
-:math:`CHB_{nnd},    PHS^{DA}_{nnd}`           Cost/price of hydrogen bought/sold                                   €/kgH2
-:math:`UP^{SR}_{n},  DP^{SR}_{n}`              Price of :math:`SR` upward and downward secondary reserve            €/MW
-:math:`UR^{SR}_{n},  DR^{SR}_{n}`              Requirement for :math:`SR` upward and downward secondary reserve     €/MW
-:math:`UEI^{TR}_{n}, DEI^{TR}_{n}`             Expected income of :math:`TR` upward and downward tertiary reserve   €/MW
-:math:`CENS`                                   Cost of electricity not served. Value of Lost Load (VoLL)            €/MWh
-:math:`CHNS`                                   Cost of hydrogen not served.                                         €/tH2
-=============================================  ===================================================================  ========
+=============================================  ===================================================================  ========  ===========================================================================
+**Demand**                                     **Description**                                                      **Unit**  **oHySEM.py**
+---------------------------------------------  -------------------------------------------------------------------  --------  ---------------------------------------------------------------------------
+:math:`ED_{nnd}`                               Electricity demand                                                   GW        «``pElectricityDemand``»
+:math:`HD_{nnd}`                               Hydrogen demand                                                      kgH2      «``pHydrogenDemand``»
+:math:`DUR_n`                                  Duration of each load level                                          h         «``pDuration``»
+:math:`CEB_{nnd},    PES^{DA}_{nnd}`           Cost/price of electricity bought/sold                                €/MWh     «``pElectricityCost``, ``pElectricityPrice``»
+:math:`CHB_{nnd},    PHS^{DA}_{nnd}`           Cost/price of hydrogen bought/sold                                   €/kgH2    «``pHydrogenCost``, ``pHydrogenPrice``»
+:math:`UP^{SR}_{n},  DP^{SR}_{n}`              Price of :math:`SR` upward and downward secondary reserve            €/MW      «``pOperatingReservePrice_Up_SR``, ``pOperatingReservePrice_Down_SR``»
+:math:`UR^{SR}_{n},  DR^{SR}_{n}`              Requirement for :math:`SR` upward and downward secondary reserve     €/MW      «``pOperatingReserveRequire_Up_SR``, ``pOperatingReserveRequire_Down_SR``»
+:math:`UEI^{TR}_{n}, DEI^{TR}_{n}`             Expected income of :math:`TR` upward and downward tertiary reserve   €/MW      «``pOperatingReservePrice_Up_TR``, ``pOperatingReservePrice_Down_TR``»
+:math:`CENS`                                   Cost of electricity not served. Value of Lost Load (VoLL)            €/MWh     «``pParENSCost``»
+:math:`CHNS`                                   Cost of hydrogen not served.                                         €/tH2     «``pParHNSCost``»
+=============================================  ===================================================================  ========  ===========================================================================
 
-==============  =============================  ========
-**Scenarios**   **Description**                **Unit**
---------------  -----------------------------  --------
-:math:`P^ω`     Probability of each scenario   p.u.
-==============  =============================  ========
+==============  =============================  ========  ===========================================================================
+**Scenarios**   **Description**                **Unit**  **oHySEM.py**
+--------------  -----------------------------  --------  ---------------------------------------------------------------------------
+:math:`P^ω`     Probability of each scenario   p.u.      «``pScenProb``»
+==============  =============================  ========  ===========================================================================
 
-==========================================================================================  =======================================================================================================  ===========
-**Generation system**                                                                       **Description**                                                                                          **Unit**
-------------------------------------------------------------------------------------------  -------------------------------------------------------------------------------------------------------  -----------
-:math:`\underline{EP}_{neg},     \overline{EP}_{neg}`                                       Minimum and maximum electricity generation  of a generator                                               MWh
-:math:`\widehat{EP}_{neg}`                                                                  Last update of the position in the market of the electricity generation of a generator                   MWh
-:math:`\underline{EC}_{neg},     \overline{EC}_{neg}`                                       Minimum and maximum electricity consumption of an ESS                                                    MWh
-:math:`\overline{EC}^{comp}_{nhs}`                                                          Maximum electricity consumption of a compressor unit to compress hydrogen                                MWh
-:math:`\overline{EC}^{standby}_{nhz}`                                                       Maximum electricity consumption of an electrolyzer unit during the standby mode                          MWh
-:math:`\widehat{EC}_{neg}`                                                                  Last update of the position in the market of the electricity consumption of a generator                  MWh
-:math:`\underline{EI}_{neg},     \overline{EI}_{neg}`                                       Maximum and minimum electricity storage  of an ESS                                                       MWh
-:math:`\underline{EEO}_{neg},    \overline{EEO}_{neg}`                                      Maximum and minimum electricity outflows of an ESS (e.g., kg of H2)                                      MW
-:math:`\underline{EEI}_{neg},    \overline{EEI}_{neg}`                                      Maximum and minimum electricity inflows  of an ESS                                                       MW
-:math:`\underline{HP}_{nhg},     \overline{HP}_{nhg}`                                       Minimum and maximum hydrogen generation  of a generator                                                  kgH2
-:math:`\widehat{HP}_{nhg}`                                                                  Last update of the position in the market of the hydrogen generation of a generator                      MWh
-:math:`\underline{HC}_{nhg},     \overline{HC}_{nhg}`                                       Minimum and maximum hydrogen consumption of an ESS                                                       kgH2
-:math:`\widehat{HC}_{nhg}`                                                                  Last update of the position in the market of the hydrogen consumption of a generator                     kgH2
-:math:`\underline{HI}_{nhg},     \overline{HI}_{nhg}`                                       Maximum and minimum hydrogen storage     of an ESS                                                       kgH2
-:math:`\underline{HEO}_{nhg},    \overline{HEO}_{nhg}`                                      Maximum and minimum hydrogen outflows    of an ESS                                                       kgH2
-:math:`\underline{HEI}_{nhg},    \overline{HEI}_{nhg}`                                      Maximum and minimum hydrogen inflows     of an ESS (e.g., kg of H2)                                      kgH2
-:math:`\underline{EP}_{neg},     \overline{EP}_{neg}`                                       Minimum and maximum electricity generation  of a generator                                               MWh
-:math:`CF_g, CV_g`                                                                          Fixed and variable cost of an electricity generator. Variable cost includes fuel, O&M and emission cost  €/h, €/MWh
-:math:`RU_t, RD_t`                                                                          Ramp up and ramp down of an electricity thermal unit                                                     MW/h
-:math:`RC^{+}_{hz}, RC^{-}_{hz}`                                                            Ramp up and ramp down of a hydrogen unit                                                                 kgH2/h
-:math:`TU_t, TD_t`                                                                          Minimum uptime and downtime of an electricity thermal unit                                               h
-:math:`CSU_g, CSD_g`                                                                        Startup and shutdown cost of an electricity committed unit                                               M€
-:math:`CRU_h, CRD_h`                                                                        Ramp up and ramp down cost of a hydrogen unit                                                            M€/MWh
-:math:`EF_e`                                                                                Round-trip efficiency of the charge/discharge of an electricity ESS                                      p.u.
-:math:`EF_h`                                                                                Round-trip efficiency of the charge/discharge of a hydrogen ESS                                          p.u.
-:math:`PF_{he}`                                                                             Production function of electricity from hydrogen                                                         kWh/kgH2
-:math:`PF_{eh}`                                                                             Production function of hydrogen from electricity                                                         kgH2/kWh
-:math:`URA^{SR}_{n}, DRA^{SR}_{n}`                                                          :math:`SR` upward and downward activation                                                                p.u.
-:math:`URA^{TR}_{n}, DRA^{TR}_{n}`                                                          :math:`TR` upward and downward activation                                                                p.u.
-==========================================================================================  =======================================================================================================  ===========
+==========================================================================================  =======================================================================================================  ===========  =======================================================================================================
+**Generation system**                                                                       **Description**                                                                                          **Unit**     **oHySEM.py**
+------------------------------------------------------------------------------------------  -------------------------------------------------------------------------------------------------------  -----------  -------------------------------------------------------------------------------------------------------
+:math:`\underline{EP}_{neg},     \overline{EP}_{neg}`                                       Minimum and maximum electricity generation  of a generator                                               MWh          «``pMaxPower``, ``pMinPower``»
+:math:`\widehat{EP}_{neg}`                                                                  Last update of the position in the market of the electricity generation of a generator                   MWh          «``pVarPositionGeneration``»
+:math:`\underline{EC}_{neg},     \overline{EC}_{neg}`                                       Minimum and maximum electricity consumption of an ESS                                                    MWh          «``pMaxCharge``, ``pMinCharge``»
+:math:`\overline{EC}^{comp}_{nhs}`                                                          Maximum electricity consumption of a compressor unit to compress hydrogen                                MWh          «``pGenMaxCompressorConsumption``»
+:math:`\overline{EC}^{standby}_{nhz}`                                                       Maximum electricity consumption of an electrolyzer unit during the standby mode                          MWh          «``pGenStandByPower``»
+:math:`\widehat{EC}_{neg}`                                                                  Last update of the position in the market of the electricity consumption of a generator                  MWh          «``pVarPositionConsumption``»
+:math:`\underline{EI}_{neg},     \overline{EI}_{neg}`                                       Maximum and minimum electricity storage  of an ESS                                                       MWh          «``pMaxStorage``, ``pMinStorage``»
+:math:`\underline{EEO}_{neg},    \overline{EEO}_{neg}`                                      Maximum and minimum electricity outflows of an ESS (e.g., kg of H2)                                      MW           «``pMaxOutflows``, ``pMinOutflows``»
+:math:`\underline{EEI}_{neg},    \overline{EEI}_{neg}`                                      Maximum and minimum electricity inflows  of an ESS                                                       MW           «``pMaxInflows``, ``pMinInflows``»
+:math:`\underline{HP}_{nhg},     \overline{HP}_{nhg}`                                       Minimum and maximum hydrogen generation  of a generator                                                  kgH2         «``pMaxPower``, ``pMinPower``»
+:math:`\widehat{HP}_{nhg}`                                                                  Last update of the position in the market of the hydrogen generation of a generator                      MWh          «``pVarPositionGeneration``»
+:math:`\underline{HC}_{nhg},     \overline{HC}_{nhg}`                                       Minimum and maximum hydrogen consumption of an ESS                                                       kgH2         «``pMaxCharge``, ``pMinCharge``»
+:math:`\widehat{HC}_{nhg}`                                                                  Last update of the position in the market of the hydrogen consumption of a generator                     kgH2         «``pVarPositionConsumption``»
+:math:`\underline{HI}_{nhg},     \overline{HI}_{nhg}`                                       Maximum and minimum hydrogen storage     of an ESS                                                       kgH2         «``pMaxStorage``, ``pMinStorage``»
+:math:`\underline{HEO}_{nhg},    \overline{HEO}_{nhg}`                                      Maximum and minimum hydrogen outflows    of an ESS                                                       kgH2         «``pMaxOutflows``, ``pMinOutflows``»
+:math:`\underline{HEI}_{nhg},    \overline{HEI}_{nhg}`                                      Maximum and minimum hydrogen inflows     of an ESS (e.g., kg of H2)                                      kgH2         «``pMaxInflows``, ``pMinInflows``»
+:math:`CF_g, CV_g`                                                                          Fixed and variable cost of an electricity generator. Variable cost includes fuel, O&M and emission cost  €/h, €/MWh   «``pGenConstantVarCost``, ``pGenLinearVarCost``»
+:math:`RU_t, RD_t`                                                                          Ramp up and ramp down of an electricity thermal unit                                                     MW/h         «``pGenRampUp``, ``pGenRampDown``»
+:math:`RC^{+}_{hz}, RC^{-}_{hz}`                                                            Ramp up and ramp down of a hydrogen unit                                                                 kgH2/h       «``pGenRampUp``, ``pGenRampDown``»
+:math:`TU_t, TD_t`                                                                          Minimum uptime and downtime of an electricity thermal unit                                               h            «``pGenUpTime``, ``pGenDownTime``»
+:math:`CSU_g, CSD_g`                                                                        Startup and shutdown cost of an electricity committed unit                                               M€           «``pGenStartUpCost``, ``pGenShutDownCost``»
+:math:`CRU_h, CRD_h`                                                                        Ramp up and ramp down cost of a hydrogen unit                                                            M€/MWh       «``pGenRampUpCost``, ``pGenRampDownCost``»
+:math:`EF_e`                                                                                Round-trip efficiency of the charge/discharge of an electricity ESS                                      p.u.         «``pGenEfficiency``»
+:math:`EF_h`                                                                                Round-trip efficiency of the charge/discharge of a hydrogen ESS                                          p.u.         «``pGenEfficiency``»
+:math:`PF_{he}`                                                                             Production function of electricity from hydrogen                                                         kWh/kgH2     «``pGenProductionFunction``»
+:math:`PF_{eh}`                                                                             Production function of hydrogen from electricity                                                         kgH2/kWh     «``pGenProductionFunction``»
+:math:`URA^{SR}_{n}, DRA^{SR}_{n}`                                                          :math:`SR` upward and downward activation                                                                p.u.         «``pOperatingReserveActivation_Up_SR``, ``pOperatingReserveActivation_Down_SR``»
+:math:`URA^{TR}_{n}, DRA^{TR}_{n}`                                                          :math:`TR` upward and downward activation                                                                p.u.         «``pOperatingReserveActivation_Up_TR``, ``pOperatingReserveActivation_Down_TR``»
+==========================================================================================  =======================================================================================================  ===========  =======================================================================================================
 
-==========================================================================================  =======================================================================================================  ===========
-**Network system**                                                                          **Description**                                                                                          **Unit**
-------------------------------------------------------------------------------------------  -------------------------------------------------------------------------------------------------------  -----------
-:math:`\underline{ENF}_{nijc}, \overline{ENF}_{nijc}`                                       Minimum and maximum electricity network flow through the line ijc                                        MWh
-:math:`\underline{HNF}_{nijc}, \overline{HNF}_{nijc}`                                       Minimum and maximum hydrogen network flow through the line ijc                                           MWh
-:math:`\overline{X}_{nijc}`                                                                 Reactance of the line ijc                                                                                p.u.
-==========================================================================================  =======================================================================================================  ===========
+==========================================================================================  =======================================================================================================  ===========  =======================================================================================================
+**Network system**                                                                          **Description**                                                                                          **Unit**     **oHySEM.py**
+------------------------------------------------------------------------------------------  -------------------------------------------------------------------------------------------------------  -----------  -------------------------------------------------------------------------------------------------------
+:math:`\underline{ENF}_{nijc}, \overline{ENF}_{nijc}`                                       Minimum and maximum electricity network flow through the line ijc                                        MWh          «``pEleNetTTCBck``, ``pEleNetTTC``»
+:math:`\underline{HNF}_{nijc}, \overline{HNF}_{nijc}`                                       Minimum and maximum hydrogen network flow through the line ijc                                           MWh          «``pHydNetTTCBck``, ``pHydNetTTC``»
+:math:`\overline{X}_{nijc}`                                                                 Reactance of the line ijc                                                                                p.u.         «``pEleNetReactance``»
+==========================================================================================  =======================================================================================================  ===========  =======================================================================================================
 
 Variables
 ---------
