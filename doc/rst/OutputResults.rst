@@ -95,7 +95,7 @@ CSV files for optimisation variables
 ------------------------------------------
 
 Each file in this category is named
-``oH_Result_v**{Variable Name}**_{Case Name}.csv``
+``oH_Result_v{Variable Name}_{Case Name}.csv``
 
 The structure of the CSV file is as follows
 
@@ -107,7 +107,7 @@ CSV files for dual values of constraints
 ----------------------------------------
 
 Each file in this category is named
-``oH_Result_e**{Constraint Name}**_{Case Name}.csv``
+``oH_Result_e{Constraint Name}_{Case Name}.csv``
 
 The structure of the CSV file is as follows
 
