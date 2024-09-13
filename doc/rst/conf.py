@@ -22,10 +22,10 @@
 
 project = ''
 copyright = '2024, Universidad Pontificia Comillas'
-author = 'Erik F. Alvarez'
+author = 'Erik F. Alvarez, Andrés Ramos Galán'
 
 # The short X.Y version
-version = 'version 1.0.3'
+version = 'version 1.0.5'
 # The full version, including alpha/beta/rc tags
 release = ''
 
@@ -101,13 +101,13 @@ html_sidebars = {
         'searchbox.html',
     ]
 }
-html_title = 'version 1.0.3'
+html_title = 'version 1.0.5'
 html_logo  = '../img/oHySEM_v2.png'
 html_last_updated_fmt = ''
 html_show_sphinx = False
 html_theme_options = {
     'analytics_id': 'UA-515200-2',  #  Provided by Google in your dashboard
-    'description': 'version 1.0.3',
+    'description': 'version 1.0.5',
     'page_width': 'auto',
     'font_family': 'Georgia'
 }

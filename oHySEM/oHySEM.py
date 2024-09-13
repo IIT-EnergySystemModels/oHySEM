@@ -32,7 +32,7 @@ from   colour            import Color
 for i in range(0, 117):
     print('-', end="")
 
-print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.4 - September 13, 2024')
+print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.5 - September 13, 2024')
 print('#### Non-commercial use only ####')
 
 parser = argparse.ArgumentParser(description='Introducing main arguments...')
@@ -40,14 +40,14 @@ parser.add_argument('--dir',    type=str, default=None)
 parser.add_argument('--case',   type=str, default=None)
 parser.add_argument('--solver', type=str, default=None)
 parser.add_argument('--date',   type=str, default=None)
-parser.add_argument('--rawdata', type=str, default=None)
+parser.add_argument('--rawresults', type=str, default=None)
 parser.add_argument('--plots', type=str, default=None)
 
 default_DirName    = os.path.dirname(__file__)
 default_CaseName   = 'VPP1'                              # To select the case
 default_SolverName = 'gurobi'
 default_date = datetime.datetime.now().replace(second=0, microsecond=0)
-default_rawdata    = 'False'
+default_rawresults    = 'False'
 default_plots      = 'False'
 
 def main():
@@ -58,27 +58,27 @@ def main():
     oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.0 - November 21, 2023')
 
     if args.dir is None:
-        args.dir     = input('Input Dir     Name (Default {}): '.format(default_DirName))
+        args.dir        = input('Input Dir         Name (Default {}): '.format(default_DirName))
         if args.dir == '':
             args.dir = default_DirName
     if args.case is None:
-        args.case    = input('Input Case    Name (Default {}): '.format(default_CaseName))
+        args.case       = input('Input Case        Name (Default {}): '.format(default_CaseName))
         if args.case == '':
             args.case = default_CaseName
     if args.solver is None:
-        args.solver  = input('Input Solver  Name (Default {}): '.format(default_SolverName))
+        args.solver     = input('Input Solver      Name (Default {}): '.format(default_SolverName))
         if args.solver == '':
             args.solver = default_SolverName
     if args.date is None:
-        args.date    = input('Input Date    Name (Default {}): '.format(default_date))
+        args.date       = input('Input Date        Name (Default {}): '.format(default_date))
         if args.date == '':
             args.date = default_date
-    if args.rawdata is None:
-        args.rawdata = input('Input RawData Name (Default {}): '.format(default_rawdata))
-        if args.rawdata == '':
-            args.rawdata = default_rawdata
+    if args.rawresults is None:
+        args.rawresults = input('Input Raw Results Name (Default {}): '.format(default_rawresults))
+        if args.rawresults == '':
+            args.rawresults = default_rawresults
     if args.plots is None:
-        args.plots   = input('Input Plots   Name (Default {}): '.format(default_plots))
+        args.plots      = input('Input Plots       Name (Default {}): '.format(default_plots))
         if args.plots == '':
             args.plots = default_plots
     for i in range(0, 117):
@@ -88,7 +88,7 @@ def main():
     print(args.case)
     print(args.dir)
     print(args.solver)
-    print(args.rawdata)
+    print(args.rawresults)
     print(args.plots)
     for i in range(0, 117):
         print('-', end="")
@@ -130,7 +130,7 @@ def main():
     pWrittingLPFile = 1
     model = solving_model( args.dir, args.case, args.solver, model, pWrittingLPFile)
     print('- Total time for solving the model:                                    {} seconds\n'.format(round(time.time() - start_time  )))
-    if args.rawdata == 'True':
+    if args.rawresults == 'True':
         start_time = time.time()
         model = OutputVariablesToCSV(args.dir, args.case, args.solver, model, model)
         print('- Total time for writing the results:                                  {} seconds\n'.format(round(time.time() - start_time  )))
@@ -141,10 +141,10 @@ def main():
         start_time = time.time()
         model = create_plots(args.dir, args.case, args.date, model, model)
         print('- Total time for creating the plots:                                   {} seconds\n'.format(round(time.time() - start_time  )))
-    start_time = time.time()
-    # network mapping
-    # network_map(args.dir, args.case, model, model)
-    # print('- Total time for network mapping:                                      {}  seconds\n'.format(round(time.time() - start_time  )))
+        start_time = time.time()
+        # network mapping
+        network_map(args.dir, args.case, model, model)
+        print('- Total time for network mapping:                                      {}  seconds\n'.format(round(time.time() - start_time  )))
     for i in range(0, 117):
         print('-', end="")
     print('\n')
@@ -2499,7 +2499,7 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     OutputToFile['Date'] = OutputToFile.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
     OutputToFile = OutputToFile.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Date'], axis=0).stack().to_frame(name='MW').reset_index().rename(columns={'level_4': 'Component'})
     Output_EleTechGeneration = OutputToFile
-    Output_EleTechGeneration.to_csv(_path+'/oH_Result_rTechnologyGeneration_'+CaseName+'.csv', sep=',')
+    Output_EleTechGeneration.to_csv(_path+'/oH_Result_rElectricityTechnologyGeneration_'+CaseName+'.csv', sep=',')
     model.Output_EleTechGeneration = Output_EleTechGeneration
 
     # saving the results of the electricity network flows
@@ -2683,6 +2683,8 @@ def create_plots(DirName, CaseName, Date, model, optmodel):
         chart = AreaPlots(p,sc, model.Output_EleTechGeneration, 'Component', 'Date', 'MW')
         chart.save(_path+'/oH_Plot_EleTechGeneration_'+str(p)+'_'+CaseName+'.html', embed_options={'renderer': 'svg'})
 
+    return model
+
 def network_map(DirName, CaseName, model, optmodel):
     # %% plotting the network in a map
     _path = os.path.join(DirName, CaseName)
@@ -2788,7 +2790,7 @@ def network_map(DirName, CaseName, model, optmodel):
         pos_dict[iata] = (x[index], y[index])
 
     # Setting up the figure
-    token = open(DIR+'/oHySTEM.mapbox_token').read()
+    token = open(DIR+'/oHySEM.mapbox_token').read()
 
     fig = go.Figure()
 
@@ -2806,7 +2808,7 @@ def network_map(DirName, CaseName, model, optmodel):
     fig.update_layout(title={'text': 'Power Network: '+CaseName+'<br>Period: '+str(p)+'; LoadLevel: '+n, 'x': 0.5, 'xanchor': 'center', 'yanchor': 'top'}, font=dict(size=14), hovermode='closest', geo=dict(projection_type='azimuthal equal area', showland=True,), mapbox=dict(style='open-street-map', accesstoken=token, bearing=0, center=dict(lat=(loc_df['Lat'].max()+loc_df['Lat'].min())*0.5, lon=(loc_df['Lon'].max()+loc_df['Lon'].min())*0.5), pitch=0, zoom=5), showlegend=False,)
 
     # Saving the figure
-    fig.write_html(_path+'/oH_Plot_MapNetwork_'+CaseName+'.html')
+    fig.write_html(_path+'/oH_Plot_ElectricityMapNetwork_'+CaseName+'.html')
 
     PlottingNetMapsTime = time.time() - StartTime
     print('Plotting  electric network maps        ... ', round(PlottingNetMapsTime), 's')
