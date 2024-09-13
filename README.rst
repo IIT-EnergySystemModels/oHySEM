@@ -100,57 +100,6 @@ Alternatively, clone the GitHub repository and install it manually:
 
 ---
 
-Getting Started
-===============
-
-Here’s a basic example of how to create and run an optimization model using oHySEM:
-
-.. code-block:: python
-
-    import oHySEM as oH
-
-    # Define your hybrid system
-    system = oH.HybridSystem()
-
-    # Add energy assets
-    system.add_asset(oH.SolarPlant(capacity=100))  # 100 MW solar plant
-    system.add_asset(oH.HydrogenStorage(capacity=50))  # 50 MWh hydrogen storage
-
-    # Define market participation and scheduling parameters
-    market = oH.MarketParticipation()
-    scheduler = oH.Scheduler(system, market)
-
-    # Run optimization
-    results = scheduler.optimize()
-
-    # Display results
-    print(results)
-
-This example shows how to create a basic hybrid system, integrate assets, and run an optimization for market participation and scheduling.
-
----
-
-API Reference
-=============
-
-The API gives users full flexibility in defining, integrating, and optimizing hybrid systems. The following are key components:
-
-``HybridSystem()``
-    - Purpose: Represents the hybrid energy system, including both electricity and hydrogen networks.
-    - Methods: add_asset(), optimize(), schedule(), etc.
-
-``MarketParticipation()``
-    - Purpose: Represents the system's participation in electricity and hydrogen markets.
-    - Methods: define_market_conditions(), participate(), etc.
-
-``Scheduler()``
-    - Purpose: Optimizes the hybrid system's operation based on system constraints and market signals.
-    - Methods: optimize(), get_results()
-
-Please refer to the full API documentation for more detailed usage and advanced configurations.
-
----
-
 Use Cases
 =========
 
