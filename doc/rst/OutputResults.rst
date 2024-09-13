@@ -9,6 +9,16 @@ The output includes several maps of the electricity and hydrogen network and plo
    :scale: 40%
    :align: center
 
+.. image:: ../img/oH_Plot_ElectricityBalance_period1_sc01_VPP1.png
+   :scale: 40%
+   :align: center
+
+.. image:: ../img/oH_Plot_ElectricityTechnologyGeneration_period1_sc01_VPP1.png
+   :scale: 40%
+   :align: center
+
+Some other additional plots are also plotted by the model.
+
 In addition, the model generates several other plots to visualise key results. The CSV files used to store the output results are of three types:
 
 1. **Derived/Transformed Values**: Files that are derived or transformed from the values of variables.
