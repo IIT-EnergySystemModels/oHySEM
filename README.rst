@@ -46,11 +46,9 @@ Table of Contents
 1. `Overview <#overview>`_
 2. `Features <#features>`_
 3. `Installation <#installation>`_
-4. `Getting Started <#getting-started>`_
-5. `API Reference <#api-reference>`_
-6. `Use Cases <#use-cases>`_
-7. `Contributing <#contributing>`_
-8. `License <#license>`_
+4. `Use Cases <#use-cases>`_
+5. `Contributing <#contributing>`_
+6. `License <#license>`_
 
 ---
 
