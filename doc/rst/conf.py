@@ -101,7 +101,7 @@ html_sidebars = {
         'searchbox.html',
     ]
 }
-html_title = 'version 1.0.3'
+html_title = 'version 1.0.5'
 html_logo  = '../img/oHySEM_v2.png'
 html_last_updated_fmt = ''
 html_show_sphinx = False
