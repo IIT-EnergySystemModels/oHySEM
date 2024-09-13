@@ -22,7 +22,7 @@
 
 project = ''
 copyright = '2024, Universidad Pontificia Comillas'
-author = 'Erik F. Alvarez', 'Andrés Ramos Galán'
+author = 'Erik F. Alvarez, Andrés Ramos Galán'
 
 # The short X.Y version
 version = 'version 1.0.5'
