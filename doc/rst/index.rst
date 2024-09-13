@@ -8,7 +8,7 @@
    :scale: 20%
    :align: right
 
-\ **o**\ptimized \ **Hy**\brid in \ **S**\ystems for \ **E**\nergy and \ **M**\arket management
+\ **o**\ptimized \ **Hy**\brid \ **S**\ystems for \ **E**\nergy and \ **M**\arket management
 
 (**oHySEM**)
 
