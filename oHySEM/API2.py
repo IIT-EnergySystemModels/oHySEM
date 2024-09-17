@@ -101,6 +101,10 @@ electricity_balance = electricity_balance[~electricity_balance['Component'].isin
 # ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
 # st.pyplot(fig)
 
+title_fontsize = 20
+subtitle_fontsize = 19
+text_fontsize = 18
+label_fontsize = 16
 
 # Set up dashboard title
 st.title("oHySEM Results Dashboard")
@@ -129,10 +133,13 @@ with st.container():
     with col1:
         st.subheader("Total Cost Over Time")
         cost_chart = alt.Chart(total_cost).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %B %d, %H:%M", tickCount=20)),
+            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
             y='MEUR:Q',
             color='Component:N'
-        ).properties(width=700, height=400)
+        ).properties(width=700, height=400).configure_axis(
+            labelFontSize=label_fontsize,
+            titleFontSize=title_fontsize
+        )
         st.altair_chart(cost_chart, use_container_width=True)
 
     # Donut chart
@@ -157,7 +164,7 @@ with st.container():
         )
 
         # Add percentage labels in the center of each arc with increased font size
-        labels = alt.Chart(cost_breakdown).mark_text(radius=90, size=18).encode(
+        labels = alt.Chart(cost_breakdown).mark_text(radius=90, size=text_fontsize).encode(
             theta=alt.Theta(field="MEUR", type="quantitative"),
             text=alt.Text(field="Percentage", type="quantitative", format=".1f"),  # Format as percentage with 1 decimal
             color=alt.value('black')
@@ -179,47 +186,62 @@ with st.container():
     with col1:
         st.subheader("Hydrogen Balance Over Time")
         hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %B %d, %H:%M", tickCount=20)),
+            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
             y='tH2:Q',
             color='Component:N'
-        ).properties(width=700, height=400)
+        ).properties(width=700, height=400).configure_axis(
+            labelFontSize=label_fontsize,
+            titleFontSize=title_fontsize
+        )
         st.altair_chart(hydrogen_chart, use_container_width=True)
 
         # Hydrogen Network Flows
         st.subheader("Hydrogen Network Flows")
         hydrogen_flows_chart = alt.Chart(hydrogen_flows).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %B %d, %H:%M", tickCount=20)),
+            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
             y='MW:Q',
             color='InitialNode:N'
-        ).properties(width=700, height=400)
+        ).properties(width=700, height=400).configure_axis(
+            labelFontSize=label_fontsize,
+            titleFontSize=title_fontsize
+        )
         st.altair_chart(hydrogen_flows_chart, use_container_width=True)
 
         # Reserve Offers Section
         st.subheader("Reserve Offers Overview")
         reserve_chart = alt.Chart(reserves_offers).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %B %d, %H:%M", tickCount=20)),
+            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
             y='MW:Q',
             color='Component:N'
-        ).properties(width=1400, height=400)
+        ).properties(width=1400, height=400).configure_axis(
+            labelFontSize=label_fontsize,
+            titleFontSize=title_fontsize
+        )
         st.altair_chart(reserve_chart, use_container_width=True)
 
     # Electricity Balance Line Chart
     with col2:
         st.subheader("Electricity Balance Over Time")
         electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %B %d, %H:%M", tickCount=20)),
+            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
             y='GWh:Q',
             color='Component:N'
-        ).properties(width=700, height=400)
+        ).properties(width=700, height=400).configure_axis(
+            labelFontSize=label_fontsize,
+            titleFontSize=title_fontsize
+        )
         st.altair_chart(electricity_chart, use_container_width=True)
 
         # Electricity Network Flows
         st.subheader("Electricity Network Flows")
         electricity_flows_chart = alt.Chart(electricity_flows).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %B %d, %H:%M", tickCount=20)),
+            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
             y='MW:Q',
             color='InitialNode:N'
-        ).properties(width=700, height=400)
+        ).properties(width=700, height=400).configure_axis(
+            labelFontSize=label_fontsize,
+            titleFontSize=title_fontsize
+        )
         st.altair_chart(electricity_flows_chart, use_container_width=True)
 
         # # Total Cost Breakdown with handling of negative values
