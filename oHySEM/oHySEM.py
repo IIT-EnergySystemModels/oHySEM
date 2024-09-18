@@ -57,27 +57,39 @@ def main():
     # %% Model declaration
     oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.0 - November 21, 2023')
 
-    if args.dir is None:
+    if args.dir == "":
+        args.dir = default_DirName
+    elif args.dir is None:
         args.dir        = input('Input Dir         Name (Default {}): '.format(default_DirName))
         if args.dir == '':
             args.dir = default_DirName
-    if args.case is None:
+    if args.case == "":
+        args.case = default_CaseName
+    elif args.case is None:
         args.case       = input('Input Case        Name (Default {}): '.format(default_CaseName))
         if args.case == '':
             args.case = default_CaseName
-    if args.solver is None:
+    if args.solver == "":
+        args.solver = default_SolverName
+    elif args.solver is None:
         args.solver     = input('Input Solver      Name (Default {}): '.format(default_SolverName))
         if args.solver == '':
             args.solver = default_SolverName
-    if args.date is None:
+    if args.date == "":
+        args.date = default_date
+    elif args.date is None:
         args.date       = input('Input Date        Name (Default {}): '.format(default_date))
         if args.date == '':
             args.date = default_date
-    if args.rawresults is None:
+    if args.rawresults == "":
+        args.rawresults = default_rawresults
+    elif args.rawresults is None:
         args.rawresults = input('Input Raw Results Name (Default {}): '.format(default_rawresults))
         if args.rawresults == '':
             args.rawresults = default_rawresults
-    if args.plots is None:
+    if args.plots == "":
+        args.plots = default_plots
+    elif args.plots is None:
         args.plots      = input('Input Plots       Name (Default {}): '.format(default_plots))
         if args.plots == '':
             args.plots = default_plots
