@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -24,91 +25,185 @@ hydrogen_balance = hydrogen_balance[~hydrogen_balance['Component'].isin(['Hydrog
 # remove rows with 'ElectricityFlowIn' and 'ElectricityFlowOut' from electricity_balance
 electricity_balance = electricity_balance[~electricity_balance['Component'].isin(['PowerFlowIn', 'PowerFlowOut'])]
 
-# # Set up dashboard title
-# st.title("oHySEM Results Dashboard")
-# st.subheader("Hydrogen-Based Virtual Power Plant (H-VPP) Operational Overview")
-#
-# # Key Performance Indicators (KPIs)
-# st.header("Key Performance Indicators")
-# total_cost_value = total_cost['MEUR'].sum()
-# total_hydrogen = hydrogen_balance['tH2'].sum()
-# total_electricity = electricity_generation['MW'].sum()
-#
-# kpi1, kpi2, kpi3 = st.columns(3)
-# kpi1.metric(label="Total Cost (MEUR)", value=f"{total_cost_value:.2f}")
-# kpi2.metric(label="Total Hydrogen Storage (tH2)", value=f"{total_hydrogen:.2f}")
-# kpi3.metric(label="Total Electricity Generation (MW)", value=f"{total_electricity:.2f}")
-#
-# # Energy Balance Section
-# st.header("Energy Balances")
-#
-# # Hydrogen Balance Line Chart
-# st.subheader("Hydrogen Balance Over Time")
-# hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
-#     x='Date:T',
-#     y='tH2:Q',
-#     color='Component:N'
-# ).properties(width=700, height=400)
-# st.altair_chart(hydrogen_chart, use_container_width=True)
-#
-# # Electricity Balance Line Chart
-# st.subheader("Electricity Balance Over Time")
-# electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
-#     x='Date:T',
-#     y='GWh:Q',
-#     color='Component:N'
-# ).properties(width=700, height=400)
-# st.altair_chart(electricity_chart, use_container_width=True)
-#
-# # Network Flows Section
-# st.header("Network Flows")
-#
-# # Hydrogen Network Flows
-# st.subheader("Hydrogen Network Flows")
-# hydrogen_flows_chart = alt.Chart(hydrogen_flows).mark_line().encode(
-#     x='Date:T',
-#     y='MW:Q',
-#     color='InitialNode:N'
-# ).properties(width=700, height=400)
-# st.altair_chart(hydrogen_flows_chart, use_container_width=True)
-#
-# # Electricity Network Flows
-# st.subheader("Electricity Network Flows")
-# electricity_flows_chart = alt.Chart(electricity_flows).mark_line().encode(
-#     x='Date:T',
-#     y='MW:Q',
-#     color='InitialNode:N'
-# ).properties(width=700, height=400)
-# st.altair_chart(electricity_flows_chart, use_container_width=True)
-#
-# # Reserve Offers Section
-# st.header("Reserve Offers")
-# reserve_chart = alt.Chart(reserves_offers).mark_bar().encode(
-#     x='Date:T',
-#     y='MW:Q',
-#     color='Component:N'
-# ).properties(width=700, height=400)
-# st.altair_chart(reserve_chart, use_container_width=True)
-#
-# # Total Cost Breakdown
-# st.header("Total Cost Breakdown")
-# cost_breakdown = total_cost.copy()
-# cost_breakdown['MEUR'] = cost_breakdown['MEUR'].apply(lambda x: max(x, 0))  # Replace negative with 0
-# cost_breakdown = cost_breakdown.groupby('Component')['MEUR'].sum().reset_index()
-#
-# fig, ax = plt.subplots()
-# ax.pie(cost_breakdown['MEUR'], labels=cost_breakdown['Component'], autopct='%1.1f%%', startangle=90)
-# ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-# st.pyplot(fig)
-
 title_fontsize = 20
 subtitle_fontsize = 19
 text_fontsize = 18
 label_fontsize = 16
 
 # Set up dashboard title
-st.title("oHySEM Results Dashboard")
-st.subheader("Operational Overview")
+st.title("oHySEM Dashboard")
+
+st.header("oHySEM Execution")
+st.subheader("Arguments")
+
+arg1 = ""
+arg2 = ""
+arg3 = ""
+arg4 = ""
+arg5 = ""
+
+# Assume each row represents one hour, and set a start date
+start_date = st.date_input('Select start date:', datetime(2024, 1, 1).date())
+
+# Select Date, Hour, Day, and Week
+selected_date = st.date_input('Select a start date:', start_date)
+selected_hour = st.slider('Select the hour of the day:', 0, 23, 12)
+selected_day = st.slider('Select the day within the week:', 1, 7, 1)
+selected_week = st.slider('Select the week within the year:', 1, 52, 1)
+
+st.write(f'Selected Date: {selected_date}, Hour: {selected_hour}, Day: {selected_day}, Week: {selected_week}')
+
+# Store the initial state of widgets in session state if not already initialized
+if "visibility" not in st.session_state:
+    st.session_state.visibility = "visible"
+    st.session_state.disabled_col1_row1 = False
+    st.session_state.disabled_col1_row2 = False
+    st.session_state.disabled_col2_row1 = False
+    st.session_state.disabled_col2_row2 = False
+    st.session_state.disabled_col3_row1 = False
+    st.session_state.disabled_col3_row2 = False
+
+# Define the columns
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    # Checkbox to control the disabled state of the input widget in column 1, row 1
+    checkbox_text_1_row1 = st.checkbox("Adopt default value for the dir name", key="disable_widget_col1_row1")
+
+    # Update session state for disabled status of col1
+    st.session_state.disabled_col1_row1 = checkbox_text_1_row1
+
+    # Set the default value if the checkbox is checked, otherwise allow the user to input their own value
+    if st.session_state.disabled_col1_row1:
+        input_text_1_row1 = st.text_input(
+            "Enter path 👇",
+            value="Default",
+            label_visibility=st.session_state.visibility,
+            disabled=True,
+        )
+    else:
+        input_text_1_row1 = st.text_input(
+            "Enter path 👇",
+            label_visibility=st.session_state.visibility,
+            disabled=False,
+            placeholder="Enter the path",
+        )
+    st.write("Path: ", input_text_1_row1)
+    if input_text_1_row1 == "Default":
+        arg1 = ""
+    else:
+        arg1 = input_text_1_row1
+
+    # Checkbox to control the disabled state of the input widget in column 1, row 2
+    checkbox_text_1_row2 = st.checkbox("Adopt default value for the date", key="disable_widget_col1_row2")
+
+    # Update session state for disabled status of col1
+    st.session_state.disabled_col1_row2 = checkbox_text_1_row2
+
+    # Set the default value if the checkbox is checked, otherwise allow the user to input their own value
+    if st.session_state.disabled_col1_row2:
+        input_text_1_row2 = st.text_input(
+            "Enter date 👇",
+            value="Default",
+            label_visibility=st.session_state.visibility,
+            disabled=True,
+        )
+    else:
+        input_text_1_row2 = st.text_input(
+            "Enter date 👇",
+            label_visibility=st.session_state.visibility,
+            disabled=False,
+            placeholder="Enter the date",
+        )
+    st.write("Date: ", input_text_1_row2)
+    if input_text_1_row2 == "Default":
+        arg4 = ""
+    else:
+        arg4 = input_text_1_row2
+
+with col2:
+    # Checkbox to control the disabled state of the input widget in column 2
+    checkbox_text_2_row1 = st.checkbox("Adopt default value for case name", key="disable_widget_col2_row1")
+
+    # Update session state for disabled status of col2
+    st.session_state.disabled_col2_row1 = checkbox_text_2_row1
+
+    # Set the default value if the checkbox is checked, otherwise allow the user to input their own value
+    if st.session_state.disabled_col2_row1:
+        input_text_2_row1 = st.text_input(
+            "Enter case 👇",
+            value="Default",
+            label_visibility=st.session_state.visibility,
+            disabled=True,
+        )
+    else:
+        input_text_2_row1 = st.text_input(
+            "Enter case 👇",
+            label_visibility=st.session_state.visibility,
+            disabled=False,
+            placeholder="Enter the case",
+        )
+    st.write("Case: ", input_text_2_row1)
+    if input_text_2_row1 == "Default":
+        arg2 = ""
+    else:
+        arg2 = input_text_2_row1
+
+    # Checkbox to control the disabled state of the input widget in column 2, row 2
+    checkbox_text_2_row2 = st.checkbox("Save the raw results: True or False ", key="disable_widget_col2_row2")
+
+    # Update session state for disabled status of col2
+    st.session_state.disabled_col2_row2 = checkbox_text_2_row2
+
+    st.write("Value: ", st.session_state.disabled_col2_row2)
+    arg5 = st.session_state.disabled_col2_row2
+
+with col3:
+    # Checkbox to control the disabled state of the input widget in column 3
+    checkbox_text_3_row1 = st.checkbox("Adopt default value for the solver name", key="disable_widget_col3_row1")
+
+    # Update session state for disabled status of col3
+    st.session_state.disabled_col3_row1 = checkbox_text_3_row1
+
+    # Set the default value if the checkbox is checked, otherwise allow the user to input their own value
+    if st.session_state.disabled_col3_row1:
+        input_text_3_row1 = st.text_input(
+            "Enter solver 👇",
+            value="Default",
+            label_visibility=st.session_state.visibility,
+            disabled=True,
+        )
+    else:
+        input_text_3_row1 = st.text_input(
+            "Enter solver 👇",
+            label_visibility=st.session_state.visibility,
+            disabled=False,
+            placeholder="Enter the model",
+        )
+    st.write("Solver: ", input_text_3_row1)
+    if input_text_3_row1 == "Default":
+        arg3 = ""
+    else:
+        arg3 = input_text_3_row1
+
+    # Checkbox to control the disabled state of the input widget in column 3, row 2
+    checkbox_text_3_row2 = st.checkbox("Save the plot results: True or False", key="disable_widget_col3_row2")
+
+    # Update session state for disabled status of col3
+    st.session_state.disabled_col3_row2 = checkbox_text_3_row2
+
+    st.write("Value: ", st.session_state.disabled_col3_row2)
+    arg6 = st.session_state.disabled_col3_row2
+
+
+st.subheader("Problem Solving")
+# if st.button('Launch the model'):
+#     st.write(f'Plotting {dataset} for {selected_date} at Hour {selected_hour}')
+#     filtered_data.plot(x='DateTime')
+#     plt.title(f'{dataset} Over Time')
+#     st.pyplot(plt)
+
+# st.subheader("Operational Overview")
 
 # Key Performance Indicators (KPIs)
 st.header("Key Performance Indicators")
