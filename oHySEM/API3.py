@@ -6,14 +6,19 @@ import os
 import subprocess
 
 # Set the page config
-st.set_page_config(page_title="oHySEM Results Dashboard", layout="wide")
+st.set_page_config(page_title="oHySEM Dashboard", layout="wide")
+
+# Display an image from a URL
+image_url = "https://pascua.iit.comillas.edu/aramos/oHySEM_v2.png"
+st.image(image_url, caption="")
 
 DirName = os.path.dirname(__file__)
 CaseName = 'VPP1'
 
-# Set up dashboard title
-st.title("oHySEM Dashboard")
 st.write("This dashboard provides a workflow for analyzing input data, executing the oHySEM model, and visualizing the results.")
+
+# Set up dashboard title
+st.title("Model's Arguments")
 
 # Arguments
 arg_defaults = {
@@ -56,7 +61,7 @@ with col3:
     st.session_state['plot_results'] = st.checkbox("Save the plot results", value=st.session_state['plot_results'])
 
 # Dataset visualization
-st.subheader("Visualizing the Input Data")
+st.title("Visualizing the Input Data")
 
 # Helper function to load CSVs
 @st.cache_data
@@ -92,7 +97,7 @@ line_chart = alt.Chart(df).mark_line().encode(
 st.altair_chart(line_chart, use_container_width=True)
 
 # Model execution
-st.subheader("Problem Solving")
+st.title("Problem Solving")
 if st.button('Launch the model'):
     st.write(f'Solving oHySEM with the following arguments: ')
     st.write(f'Directory: {st.session_state["dir_name"]}')
@@ -119,7 +124,7 @@ if st.button('Launch the model'):
         st.error(f"Error executing oHySEM: {result.stderr}")
     if result.returncode == 0:
         # Plotting Results
-        st.header("Operational Overview")
+        st.title("Operational Overview")
 
         # Load result CSVs
         @st.cache_data
