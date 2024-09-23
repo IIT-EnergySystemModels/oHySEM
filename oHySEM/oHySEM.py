@@ -2416,6 +2416,7 @@ def OutputVariablesToCSV(DirName, CaseName, SolverName, model, optmodel):
 
 def saving_results(DirName, CaseName, Date, model, optmodel):
     # %% outputting the results
+    Date = datetime.datetime.strptime(Date, "%Y-%m-%d %H:%M:%S")
     # splitting the Date into year, month, and day
     year = Date.year
     month = Date.month
