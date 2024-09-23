@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import altair as alt
 import os
+import subprocess
 
 # Set the page config to use the full width of the screen
 st.set_page_config(page_title="oHySEM Results Dashboard", layout="wide")
@@ -11,33 +12,19 @@ st.set_page_config(page_title="oHySEM Results Dashboard", layout="wide")
 DirName = os.path.dirname(__file__)
 CaseName = 'VPP1'
 
-# Load CSV files
-hydrogen_balance = pd.read_csv(os.path.join(DirName, CaseName, 'oH_Result_rHydrogenBalance_VPP1.csv'))
-hydrogen_flows = pd.read_csv(os.path.join(DirName, CaseName, 'oH_Result_rHydrogenNetworkFlows_VPP1.csv'))
-reserves_offers = pd.read_csv(os.path.join(DirName, CaseName, 'oH_Result_rReservesOffers_VPP1.csv'))
-total_cost = pd.read_csv(os.path.join(DirName, CaseName, 'oH_Result_rTotalCost_VPP1.csv'))
-electricity_balance = pd.read_csv(os.path.join(DirName, CaseName, 'oH_Result_rElectricityBalance_VPP1.csv'))
-electricity_flows = pd.read_csv(os.path.join(DirName, CaseName, 'oH_Result_rElectricityNetworkFlows_VPP1.csv'))
-electricity_generation = pd.read_csv(os.path.join(DirName, CaseName, 'oH_Result_rElectricityTechnologyGeneration_VPP1.csv'))
-
-# remove rows with 'HydrogenFlowIn' and 'HydrogenFlowOut' from hydrogen_balance
-hydrogen_balance = hydrogen_balance[~hydrogen_balance['Component'].isin(['HydrogenFlowIn', 'HydrogenFlowOut'])]
-# remove rows with 'ElectricityFlowIn' and 'ElectricityFlowOut' from electricity_balance
-electricity_balance = electricity_balance[~electricity_balance['Component'].isin(['PowerFlowIn', 'PowerFlowOut'])]
-
-title_fontsize = 20
-subtitle_fontsize = 19
-text_fontsize = 18
-label_fontsize = 16
-
 # Set up dashboard title
 st.title("oHySEM Dashboard")
+st.write("This dashboard provides a workflow for analysing some input data, executing the oHySEM model, and visualizing the results.")
+
+# st.header("Metadata")
+# st.subheader("Path")
+
 
 st.header("oHySEM Execution")
 st.subheader("Arguments")
 
-arg1 = ""
-arg2 = ""
+arg1 = DirName
+arg2 = CaseName
 arg3 = ""
 arg4 = ""
 arg5 = ""
@@ -46,12 +33,11 @@ arg5 = ""
 start_date = st.date_input('Select start date:', datetime(2024, 1, 1).date())
 
 # Select Date, Hour, Day, and Week
-selected_date = st.date_input('Select a start date:', start_date)
 selected_hour = st.slider('Select the hour of the day:', 0, 23, 12)
 selected_day = st.slider('Select the day within the week:', 1, 7, 1)
 selected_week = st.slider('Select the week within the year:', 1, 52, 1)
 
-st.write(f'Selected Date: {selected_date}, Hour: {selected_hour}, Day: {selected_day}, Week: {selected_week}')
+st.write(f'Selected Date: {start_date}, Hour: {selected_hour}, Day: {selected_day}, Week: {selected_week}')
 
 # Store the initial state of widgets in session state if not already initialized
 if "visibility" not in st.session_state:
@@ -197,156 +183,200 @@ with col3:
 
 
 st.subheader("Problem Solving")
-# if st.button('Launch the model'):
-#     st.write(f'Plotting {dataset} for {selected_date} at Hour {selected_hour}')
-#     filtered_data.plot(x='DateTime')
-#     plt.title(f'{dataset} Over Time')
-#     st.pyplot(plt)
+if st.button('Launch the model'):
+    st.write(f'Solving oHySEM with the following arguments: {arg1}, {arg2}, {arg3}, {arg4}, {arg5}, {arg6}')
 
-# st.subheader("Operational Overview")
+    # Convert the boolean arg6 to a string ('True' or 'False')
+    arg5 = str(arg5)
+    arg6 = str(arg6)
 
-# Key Performance Indicators (KPIs)
-st.header("Key Performance Indicators")
-total_cost_value = total_cost['MEUR'].sum()
-# sum of hydrogen storage in tH2 from rows with 'H2ESS' in 'Component' column
-total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'H2ESS']['tH2'].sum()
-# total_hydrogen = hydrogen_balance['tH2'].sum()
-total_electricity = electricity_generation['MW'].sum()
+    # Create the command string
+    command = [
+        'python', 'oHySEM.py',
+        '--dir', arg1,
+        '--case', arg2,
+        '--solver', arg3,
+        '--date', arg4,
+        '--rawresults', arg5,
+        '--plots', arg6
+    ]
 
-kpi1, kpi2, kpi3 = st.columns(3)
-kpi1.metric(label="Total Cost (MEUR)", value=f"{total_cost_value:.2f}")
-kpi2.metric(label="Total Hydrogen Storage (tH2)", value=f"{total_hydrogen:.2f}")
-kpi3.metric(label="Total Electricity Generation (MW)", value=f"{total_electricity:.2f}")
+    # Run the command using subprocess
+    result = subprocess.run(command, capture_output=True, text=True)
 
-# Creating a layout for energy balances and network flows
-st.header("Cost and Profits Overview")
-with st.container():
-    # Two columns: One for the cost and profits along the date and one as a pie chart
-    col1, col2 = st.columns(2)
+    # Check the result of the command
+    if result.returncode == 0:
+        st.success("oHySEM finished running successfully!")
+        # st.write(result.stdout)
+    else:
+        st.error(f"Error executing oHySEM: {result.stderr}")
 
-    # Total Cost Line Chart
-    with col1:
-        st.subheader("Total Cost Over Time")
-        cost_chart = alt.Chart(total_cost).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-            y='MEUR:Q',
-            color='Component:N'
-        ).properties(width=700, height=400).configure_axis(
-            labelFontSize=label_fontsize,
-            titleFontSize=title_fontsize
-        )
-        st.altair_chart(cost_chart, use_container_width=True)
+    # # Show a message indicating that the script finished running
+    # st.info("The Python script has finished executing.")
+    if result.returncode == 0:
+        st.header("Operational Overview")
 
-    # Donut chart
-    with col2:
-        # Total Cost Breakdown with handling of negative values
-        st.header("Total Cost Breakdown")
+        # Load CSV files
+        hydrogen_balance = pd.read_csv(os.path.join(arg1, arg2, f'oH_Result_rHydrogenBalance_{arg2}.csv'))
+        hydrogen_flows = pd.read_csv(os.path.join(arg1, arg2, f'oH_Result_rHydrogenNetworkFlows_{arg2}.csv'))
+        reserves_offers = pd.read_csv(os.path.join(arg1, arg2, f'oH_Result_rReservesOffers_{arg2}.csv'))
+        total_cost = pd.read_csv(os.path.join(arg1, arg2, f'oH_Result_rTotalCost_{arg2}.csv'))
+        electricity_balance = pd.read_csv(os.path.join(arg1, arg2, f'oH_Result_rElectricityBalance_{arg2}.csv'))
+        electricity_flows = pd.read_csv(os.path.join(arg1, arg2, f'oH_Result_rElectricityNetworkFlows_{arg2}.csv'))
+        electricity_generation = pd.read_csv(os.path.join(arg1, arg2, f'oH_Result_rElectricityTechnologyGeneration_{arg2}.csv'))
 
-        # Filter out negative values
-        cost_breakdown = total_cost[total_cost['MEUR'] >= 0].groupby('Component')['MEUR'].sum().reset_index()
+        # remove rows with 'HydrogenFlowIn' and 'HydrogenFlowOut' from hydrogen_balance
+        hydrogen_balance = hydrogen_balance[~hydrogen_balance['Component'].isin(['HydrogenFlowIn', 'HydrogenFlowOut'])]
+        # remove rows with 'ElectricityFlowIn' and 'ElectricityFlowOut' from electricity_balance
+        electricity_balance = electricity_balance[~electricity_balance['Component'].isin(['PowerFlowIn', 'PowerFlowOut'])]
 
-        # Calculate percentage values
-        cost_breakdown['Percentage'] = cost_breakdown['MEUR'] / cost_breakdown['MEUR'].sum() * 100
+        title_fontsize = 20
+        subtitle_fontsize = 19
+        text_fontsize = 18
+        label_fontsize = 16
 
-        # Create a donut chart using Altair
-        donut_chart = alt.Chart(cost_breakdown).mark_arc(innerRadius=50).encode(
-            theta=alt.Theta(field="MEUR", type="quantitative"),
-            color=alt.Color(field="Component", type="nominal"),
-            tooltip=['Component', 'MEUR', 'Percentage']
-        ).properties(
-            width=400,
-            height=300
-        )
+        # Key Performance Indicators (KPIs)
+        st.subheader("Key Performance Indicators")
+        total_cost_value = total_cost['MEUR'].sum()
+        # sum of hydrogen storage in tH2 from rows with 'H2ESS' in 'Component' column
+        total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'H2ESS']['tH2'].sum()
+        # total_hydrogen = hydrogen_balance['tH2'].sum()
+        total_electricity = electricity_generation['MW'].sum()
 
-        # Add percentage labels in the center of each arc with increased font size
-        labels = alt.Chart(cost_breakdown).mark_text(radius=90, size=text_fontsize).encode(
-            theta=alt.Theta(field="MEUR", type="quantitative"),
-            text=alt.Text(field="Percentage", type="quantitative", format=".1f"),  # Format as percentage with 1 decimal
-            color=alt.value('black')
-        )
+        kpi1, kpi2, kpi3 = st.columns(3)
+        kpi1.metric(label="Total Cost (MEUR)", value=f"{total_cost_value:.2f}")
+        kpi2.metric(label="Total Hydrogen Storage (tH2)", value=f"{total_hydrogen:.2f}")
+        kpi3.metric(label="Total Electricity Generation (MW)", value=f"{total_electricity:.2f}")
 
-        # Combine the donut chart and percentage labels
-        donut_with_labels = donut_chart + labels
+        # Creating a layout for energy balances and network flows
+        st.subheader("Cost and Profits Overview")
+        with st.container():
+            # Two columns: One for the cost and profits along the date and one as a pie chart
+            col1, col2 = st.columns(2)
 
-        # Display the chart in Streamlit
-        st.altair_chart(donut_with_labels)
+            # Total Cost Line Chart
+            with col1:
+                st.subheader("Total Cost Over Time")
+                cost_chart = alt.Chart(total_cost).mark_bar().encode(
+                    x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                    y='MEUR:Q',
+                    color='Component:N'
+                ).properties(width=700, height=400).configure_axis(
+                    labelFontSize=label_fontsize,
+                    titleFontSize=title_fontsize
+                )
+                st.altair_chart(cost_chart, use_container_width=True)
+
+            # Donut chart
+            with col2:
+                # Total Cost Breakdown with handling of negative values
+                st.header("Total Cost Breakdown")
+
+                # Filter out negative values
+                cost_breakdown = total_cost[total_cost['MEUR'] >= 0].groupby('Component')['MEUR'].sum().reset_index()
+
+                # Calculate percentage values
+                cost_breakdown['Percentage'] = cost_breakdown['MEUR'] / cost_breakdown['MEUR'].sum() * 100
+
+                # Create a donut chart using Altair
+                donut_chart = alt.Chart(cost_breakdown).mark_arc(innerRadius=50).encode(
+                    theta=alt.Theta(field="MEUR", type="quantitative"),
+                    color=alt.Color(field="Component", type="nominal"),
+                    tooltip=['Component', 'MEUR', 'Percentage']
+                ).properties(
+                    width=400,
+                    height=300
+                )
+
+                # Add percentage labels in the center of each arc with increased font size
+                labels = alt.Chart(cost_breakdown).mark_text(radius=90, size=text_fontsize).encode(
+                    theta=alt.Theta(field="MEUR", type="quantitative"),
+                    text=alt.Text(field="Percentage", type="quantitative", format=".1f"),  # Format as percentage with 1 decimal
+                    color=alt.value('black')
+                )
+
+                # Combine the donut chart and percentage labels
+                donut_with_labels = donut_chart + labels
+
+                # Display the chart in Streamlit
+                st.altair_chart(donut_with_labels)
 
 
-st.header("Energy and Network Flows Overview")
-with st.container():
-    # Two columns: One for hydrogen balance and flows, one for electricity balance and flows
-    col1, col2 = st.columns(2)
+        st.header("Energy and Network Flows Overview")
+        with st.container():
+            # Two columns: One for hydrogen balance and flows, one for electricity balance and flows
+            col1, col2 = st.columns(2)
 
-    # Hydrogen Balance Line Chart
-    with col1:
-        st.subheader("Hydrogen Balance Over Time")
-        hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-            y='tH2:Q',
-            color='Component:N'
-        ).properties(width=700, height=400).configure_axis(
-            labelFontSize=label_fontsize,
-            titleFontSize=title_fontsize
-        )
-        st.altair_chart(hydrogen_chart, use_container_width=True)
+            # Hydrogen Balance Line Chart
+            with col1:
+                st.subheader("Hydrogen Balance Over Time")
+                hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
+                    x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                    y='tH2:Q',
+                    color='Component:N'
+                ).properties(width=700, height=400).configure_axis(
+                    labelFontSize=label_fontsize,
+                    titleFontSize=title_fontsize
+                )
+                st.altair_chart(hydrogen_chart, use_container_width=True)
 
-        # Hydrogen Network Flows
-        st.subheader("Hydrogen Network Flows")
-        hydrogen_flows_chart = alt.Chart(hydrogen_flows).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-            y='MW:Q',
-            color='InitialNode:N'
-        ).properties(width=700, height=400).configure_axis(
-            labelFontSize=label_fontsize,
-            titleFontSize=title_fontsize
-        )
-        st.altair_chart(hydrogen_flows_chart, use_container_width=True)
+                # # Hydrogen Network Flows
+                # st.subheader("Hydrogen Network Flows")
+                # hydrogen_flows_chart = alt.Chart(hydrogen_flows).mark_bar().encode(
+                #     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                #     y='MW:Q',
+                #     color='InitialNode:N'
+                # ).properties(width=700, height=400).configure_axis(
+                #     labelFontSize=label_fontsize,
+                #     titleFontSize=title_fontsize
+                # )
+                # st.altair_chart(hydrogen_flows_chart, use_container_width=True)
+                #
+                # # Reserve Offers Section
+                # st.subheader("Reserve Offers Overview")
+                # reserve_chart = alt.Chart(reserves_offers).mark_bar().encode(
+                #     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                #     y='MW:Q',
+                #     color='Component:N'
+                # ).properties(width=1400, height=400).configure_axis(
+                #     labelFontSize=label_fontsize,
+                #     titleFontSize=title_fontsize
+                # )
+                # st.altair_chart(reserve_chart, use_container_width=True)
 
-        # Reserve Offers Section
-        st.subheader("Reserve Offers Overview")
-        reserve_chart = alt.Chart(reserves_offers).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-            y='MW:Q',
-            color='Component:N'
-        ).properties(width=1400, height=400).configure_axis(
-            labelFontSize=label_fontsize,
-            titleFontSize=title_fontsize
-        )
-        st.altair_chart(reserve_chart, use_container_width=True)
+            # Electricity Balance Line Chart
+            with col2:
+                st.subheader("Electricity Balance Over Time")
+                electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
+                    x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                    y='GWh:Q',
+                    color='Component:N'
+                ).properties(width=700, height=400).configure_axis(
+                    labelFontSize=label_fontsize,
+                    titleFontSize=title_fontsize
+                )
+                st.altair_chart(electricity_chart, use_container_width=True)
 
-    # Electricity Balance Line Chart
-    with col2:
-        st.subheader("Electricity Balance Over Time")
-        electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-            y='GWh:Q',
-            color='Component:N'
-        ).properties(width=700, height=400).configure_axis(
-            labelFontSize=label_fontsize,
-            titleFontSize=title_fontsize
-        )
-        st.altair_chart(electricity_chart, use_container_width=True)
-
-        # Electricity Network Flows
-        st.subheader("Electricity Network Flows")
-        electricity_flows_chart = alt.Chart(electricity_flows).mark_bar().encode(
-            x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-            y='MW:Q',
-            color='InitialNode:N'
-        ).properties(width=700, height=400).configure_axis(
-            labelFontSize=label_fontsize,
-            titleFontSize=title_fontsize
-        )
-        st.altair_chart(electricity_flows_chart, use_container_width=True)
-
-        # # Total Cost Breakdown with handling of negative values
-        # st.header("Total Cost Breakdown")
-        # cost_breakdown = total_cost[total_cost['MEUR'] >= 0].groupby('Component')['MEUR'].sum().reset_index()
-        #
-        # fig, ax = plt.subplots(figsize=(2, 1.5))
-        # ax.pie(cost_breakdown['MEUR'], labels=cost_breakdown['Component'], autopct='%1.1f%%', startangle=90)
-        # ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        # st.pyplot(fig)
+                # # Electricity Network Flows
+                # st.subheader("Electricity Network Flows")
+                # electricity_flows_chart = alt.Chart(electricity_flows).mark_bar().encode(
+                #     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                #     y='MW:Q',
+                #     color='InitialNode:N'
+                # ).properties(width=700, height=400).configure_axis(
+                #     labelFontSize=label_fontsize,
+                #     titleFontSize=title_fontsize
+                # )
+                # st.altair_chart(electricity_flows_chart, use_container_width=True)
+                #
+                # # # Total Cost Breakdown with handling of negative values
+                # # st.header("Total Cost Breakdown")
+                # # cost_breakdown = total_cost[total_cost['MEUR'] >= 0].groupby('Component')['MEUR'].sum().reset_index()
+                # #
+                # # fig, ax = plt.subplots(figsize=(2, 1.5))
+                # # ax.pie(cost_breakdown['MEUR'], labels=cost_breakdown['Component'], autopct='%1.1f%%', startangle=90)
+                # # ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+                # # st.pyplot(fig)
 
 # Footer
-st.write("Dashboard created for analyzing H-VPP results.")
+st.write("Dashboard created for analyzing oHySEM results.")
