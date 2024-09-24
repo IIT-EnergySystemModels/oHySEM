@@ -80,7 +80,7 @@ with col3:
     # st.write("H2 Delivery Type: ", st.session_state['delivery_type'])
 
 # Dataset visualization
-st.title("Visualizing the Input Data")
+st.title("Visualizing the Time Series Data")
 
 # Helper function to load CSVs
 # @st.cache_data
@@ -116,7 +116,7 @@ line_chart = alt.Chart(df).mark_line().encode(
 st.altair_chart(line_chart, use_container_width=True)
 
 # reading, modifying and saving the input data
-st.title("Input Data Modification")
+st.title("Modification H2 Delivery Data")
 
 # Helper function to load CSVs
 # @st.cache_data
@@ -196,7 +196,7 @@ if st.button('Launch the model'):
         total_cost = load_result_csv(f'oH_Result_rTotalCost_{st.session_state["case_name"]}.csv')
 
         # Filter unnecessary rows
-        hydrogen_balance = hydrogen_balance[~hydrogen_balance['Component'].isin(['HydrogenFlowIn', 'HydrogenFlowOut'])]
+        hydrogen_balance = hydrogen_balance[~hydrogen_balance['Component'].isin(['HydrogenFlowIn', 'HydrogenFlowOut', 'Wind', 'BESS'])]
         electricity_balance = electricity_balance[~electricity_balance['Component'].isin(['PowerFlowIn', 'PowerFlowOut'])]
 
         # Key Performance Indicators (KPIs)
@@ -293,7 +293,7 @@ if st.button('Launch the model'):
 
 
         # Energy Balance and Network Flows
-        st.subheader("Energy and Network Flows Overview")
+        st.subheader("Energy Balance Overview")
         col1, col2 = st.columns(2)
 
         # Hydrogen Balance Line Chart
