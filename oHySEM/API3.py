@@ -84,8 +84,11 @@ st.title("Visualizing the Time Series Data")
 
 # Helper function to load CSVs
 # @st.cache_data
-def load_csv(file_name):
-    return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name), index_col=[0,1,2])
+def load_csv(file_name, idx_col):
+    cols = []
+    for i in range(idx_col):
+        cols.append(i)
+    return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name), index_col=cols)
 
 datasets = {
     'Electricity Cost': 'oH_Data_ElectricityCost_{}.csv',
@@ -99,7 +102,7 @@ datasets = {
 
 dataset = st.selectbox('Select a dataset to view:', list(datasets.keys()))
 
-df = load_csv(datasets[dataset].format(st.session_state['case_name'])).head(st.session_state['time_steps'])
+df = load_csv(datasets[dataset].format(st.session_state['case_name']),3).head(st.session_state['time_steps'])
 df = df.stack().reset_index().rename(columns={0: 'Value', 'level_3': 'Component'})
 
 # Add DateTime column
@@ -120,8 +123,6 @@ st.title("Modification H2 Delivery Data")
 
 # Helper function to load CSVs
 # @st.cache_data
-def load_csv(file_name):
-    return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name), index_col=[0])
 
 datasets = {
     'Parameter': f'oH_Data_Parameter_{st.session_state["case_name"]}.csv',
@@ -129,7 +130,7 @@ datasets = {
 
 dataset = st.selectbox('Select a dataset to modify:', list(datasets.keys()))
 
-df = load_csv(datasets[dataset])
+df = load_csv(datasets[dataset], 1)
 
 # # Display the columns ('DemandType', 'TargetDemand', 'RampDemand') of the dataset and the first few rows
 # st.write(df[['DemandType', 'TargetDemand', 'RampDemand']].head())
