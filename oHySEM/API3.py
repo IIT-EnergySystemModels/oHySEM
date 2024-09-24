@@ -24,11 +24,13 @@ st.title("Model's Arguments")
 arg_defaults = {
     'dir_name': DirName,
     'case_name': CaseName,
-    'solver': '',
+    'solver': 'gurobi',
     'date': datetime.datetime.now().replace(second=0, microsecond=0),
     'raw_results': False,
     'plot_results': False,
-    'time_steps': 24
+    'time_steps': 24,
+    # 'h2_target': 3.0,
+    # 'delivery_type': 'Daily'
 }
 
 # Initialize session states with defaults
@@ -49,22 +51,39 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     handle_input("Directory Path", DirName, 'dir_name', placeholder="Enter the path")
+    st.write("Path: ", st.session_state['dir_name'])
+
     handle_input("Date", arg_defaults['date'], 'date', placeholder="Enter date (YYYY-MM-DD HH:MM:SS)")
+    st.write("Date: ", st.session_state['date'])
+
     handle_input("Time Steps", arg_defaults['time_steps'], 'time_steps', input_type=int)
+    st.write("Time Steps: ", st.session_state['time_steps'])
 
 with col2:
     handle_input("Case Name", CaseName, 'case_name', placeholder="Enter case")
+    st.write("Case: ", st.session_state['case_name'])
+
     st.session_state['raw_results'] = st.checkbox("Save the raw results", value=st.session_state['raw_results'])
+    st.write("Save raw results: ", st.session_state['raw_results'])
+
+    # handle_input("H2 Target Demand", arg_defaults['h2_target'], 'h2_target', input_type=float)
+    # st.write("H2 Target Demand: ", st.session_state['h2_target'])
 
 with col3:
-    handle_input("Solver", "", 'solver', placeholder="Enter solver (e.g., gurobi, glpk)")
+    handle_input("Solver", "gurobi", 'solver', placeholder="Enter solver (e.g., gurobi, glpk)")
+    st.write("Solver: ", st.session_state['solver'])
+
     st.session_state['plot_results'] = st.checkbox("Save the plot results", value=st.session_state['plot_results'])
+    st.write("Save plot results: ", st.session_state['plot_results'])
+    # # handle_input with dropdown menu
+    # handle_input("H2 Delivery Type", arg_defaults['delivery_type'], 'delivery_type', input_type=str, placeholder="Enter delivery type (e.g., hourly, daily, etc.)")
+    # st.write("H2 Delivery Type: ", st.session_state['delivery_type'])
 
 # Dataset visualization
 st.title("Visualizing the Input Data")
 
 # Helper function to load CSVs
-@st.cache_data
+# @st.cache_data
 def load_csv(file_name):
     return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name), index_col=[0,1,2])
 
@@ -89,12 +108,53 @@ df['DateTime'] = pd.date_range(start=st.session_state['date'], periods=len(df), 
 # Plotting input data
 st.subheader(f"{dataset} Over Time")
 line_chart = alt.Chart(df).mark_line().encode(
-    x=alt.X('DateTime:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30)),
+    x=alt.X('DateTime:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
     y='Value:Q',
     color='Component:N'
 ).properties(width=700, height=400)
 
 st.altair_chart(line_chart, use_container_width=True)
+
+# reading, modifying and saving the input data
+st.title("Input Data Modification")
+
+# Helper function to load CSVs
+# @st.cache_data
+def load_csv(file_name):
+    return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name), index_col=[0])
+
+datasets = {
+    'Parameter': f'oH_Data_Parameter_{st.session_state["case_name"]}.csv',
+}
+
+dataset = st.selectbox('Select a dataset to modify:', list(datasets.keys()))
+
+df = load_csv(datasets[dataset])
+
+# # Display the columns ('DemandType', 'TargetDemand', 'RampDemand') of the dataset and the first few rows
+# st.write(df[['DemandType', 'TargetDemand', 'RampDemand']].head())
+
+# Modify the dataset
+st.write("Modify the dataset below:")
+modified_df = df.copy()
+# User inputs
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    # modified_df['DemandType'] = st.text_input("Enter the demand type", value=modified_df['DemandType'][0])
+    modified_df['DemandType'] = st.selectbox('Select a demand type:', list(['Hourly', 'Daily', 'Weekly']))
+
+with col2:
+    modified_df['TargetDemand'] = st.number_input("Enter the target demand", value=modified_df['TargetDemand'][0])
+
+with col3:
+    modified_df['RampDemand'] = st.number_input("Enter H2 Demand Ramp", value=modified_df['RampDemand'][0])
+
+# Save the modified dataset
+if st.button('Save the modified dataset'):
+    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets[dataset]), index=True)
+    st.success("Dataset saved successfully!")
+    st.write(modified_df[['DemandType', 'TargetDemand', 'RampDemand']].head())
 
 # Model execution
 st.title("Problem Solving")
@@ -127,7 +187,7 @@ if st.button('Launch the model'):
         st.title("Operational Overview")
 
         # Load result CSVs
-        @st.cache_data
+        # @st.cache_data
         def load_result_csv(file_name):
             return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name))
 
@@ -240,7 +300,7 @@ if st.button('Launch the model'):
         with col1:
             st.subheader("Hydrogen Balance Over Time")
             hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
-                x=alt.X('Date:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30)),
+                x=alt.X('Date:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='tH2:Q',
                 color='Component:N'
             ).properties(width=700, height=400)
@@ -250,7 +310,7 @@ if st.button('Launch the model'):
         with col2:
             st.subheader("Electricity Balance Over Time")
             electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
-                x=alt.X('Date:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30)),
+                x=alt.X('Date:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='GWh:Q',
                 color='Component:N'
             ).properties(width=700, height=400)
