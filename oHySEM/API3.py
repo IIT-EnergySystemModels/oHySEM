@@ -168,17 +168,33 @@ if st.button('Launch the model'):
     st.write(f'Save raw results: {st.session_state["raw_results"]}')
     st.write(f'Save plot results: {st.session_state["plot_results"]}')
 
+
+    # Basic validation (example, customize based on your needs)
+    def validate_input(input_str):
+        # Check for forbidden characters or patterns
+        if any(char in input_str for char in [';', '&', '|', '$']):
+            raise ValueError(f"Invalid input detected: {input_str}")
+        return input_str
+
+
+    # Validate inputs
+    dir_name = validate_input(st.session_state['dir_name'])
+    case_name = validate_input(st.session_state['case_name'])
+    solver = validate_input(st.session_state['solver'])
+
     command = [
         'python', 'oHySEM.py',
-        '--dir', st.session_state['dir_name'],
-        '--case', st.session_state['case_name'],
-        '--solver', st.session_state['solver'],
+        '--dir', dir_name,
+        '--case', case_name,
+        '--solver', solver,
         '--date', str(st.session_state['date']),
         '--rawresults', str(st.session_state['raw_results']),
         '--plots', str(st.session_state['plot_results'])
     ]
 
+    # Run the subprocess
     result = subprocess.run(command, capture_output=True, text=True)
+    
     if result.returncode == 0:
         st.success("oHySEM finished running successfully!")
     else:
