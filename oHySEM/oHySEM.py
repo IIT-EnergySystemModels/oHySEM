@@ -2427,6 +2427,8 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     hour = Date.hour
     minute = Date.minute
 
+    hour_of_year = f't{(Date.timetuple().tm_yday * 24 + Date.timetuple().tm_hour):04d}'
+
     _path = os.path.join(DirName, CaseName)
     StartTime = time.time()
     print('Objective function value                  ', model.eTotalSCost.expr())
@@ -2439,8 +2441,8 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     OutputResults5 = pd.Series(data=[-optmodel.vTotalRCost     [p,sc,n]()*model.Par['pDuration'][n] for p,sc,n in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalRCost'     )
     OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5], axis=1).stack().to_frame(name='MEUR')
 
-    # select the third level of the index and create a new column date using the Date as a initial date
-    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+    # select the third level of the index and create a new column date using the Date as a initial date with format YYYY-MM-DD HH:MM:SS
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
 
     Output_TotalCost = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'MEUR'}, inplace=False)
     Output_TotalCost.to_csv(_path+'/oH_Result_rTotalCost_'+CaseName+'.csv', index=False, sep=',')
@@ -2477,8 +2479,8 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     OutputResults11    = pd.Series(data=[ sum(optmodel.vEleNetFlow              [p,sc,n,ni,nd,cc]() * model.Par['pDuration'][n] for (ni,cc) in lin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='PowerFlowIn'       )
     OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9, OutputResults10, OutputResults11], axis=1).stack().to_frame(name='GWh')
 
-    # select the third level of the index and create a new column date using the Date as a initial date
-    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+    # select the third level of the index and create a new column date using the Date as an initial date
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
 
     Output_EleBalance = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'GWh'}, inplace=False)
     Output_EleBalance.to_csv(_path+'/oH_Result_rElectricityBalance_'+CaseName+'.csv', index=False, sep=',')
@@ -2500,7 +2502,7 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9], axis=1).stack().to_frame(name='tH2')
 
     # select the third level of the index and create a new column date using the Date as a initial date
-    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
 
     Output_HydBalance = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'tH2'}, inplace=False)
     Output_HydBalance.to_csv(_path+'/oH_Result_rHydrogenBalance_'+CaseName+'.csv', index=False, sep=',')
@@ -2512,7 +2514,7 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     OutputToFile = OutputToFile.to_frame(name='MW').reset_index().pivot_table(index=['level_0','level_1','level_2'], columns='level_3', values='MW', aggfunc='sum').rename_axis(['Period', 'Scenario', 'LoadLevel'], axis=0).rename_axis([None], axis=1)
 
     # select the third level of the index and create a new column date using the Date as a initial date
-    OutputToFile['Date'] = OutputToFile.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+    OutputToFile['Date'] = OutputToFile.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
     OutputToFile = OutputToFile.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Date'], axis=0).stack().to_frame(name='MW').reset_index().rename(columns={'level_4': 'Component'})
     Output_EleTechGeneration = OutputToFile
     Output_EleTechGeneration.to_csv(_path+'/oH_Result_rElectricityTechnologyGeneration_'+CaseName+'.csv', sep=',')
@@ -2522,7 +2524,7 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     OutputResults = pd.Series(data=[optmodel.vEleNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnela], index=pd.Index(model.psnela)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0)
 
     # select the third level of the index and create a new column date using the Date as a initial date
-    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
 
     OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit', 'Date'], axis=0).reset_index()
     Output_EleNetFlow = OutputResults
@@ -2533,7 +2535,7 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     OutputResults = pd.Series(data=[optmodel.vHydNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnhpa], index=pd.Index(model.psnhpa)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0)
 
     # select the third level of the index and create a new column date using the Date as a initial date
-    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
 
     OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit', 'Date'], axis=0).reset_index()
     Output_HydNetFlow = OutputResults
@@ -2563,7 +2565,7 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
         OutputResults *= 1e3
 
         # select the third level of the index and create a new column date using the Date as a initial date
-        OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: pd.Timestamp(year=year, month=month, day=day, hour=hour-1, minute=minute) + pd.Timedelta(hours=int(x[1:])))
+        OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
         OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Unit', 'Component', 'Date'], axis=0).reset_index()
 
         Output_ReservesOffers = OutputResults
