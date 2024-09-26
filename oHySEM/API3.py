@@ -144,7 +144,7 @@ df['DateTime'] = pd.date_range(start=st.session_state['date'], periods=len(df), 
 
 # Plotting input data
 st.subheader(f"{dataset} Over Time")
-line_chart = alt.Chart(df).mark_line().encode(
+line_chart = alt.Chart(df).mark_line(point=alt.OverlayMarkDef(filled=False, fill="white")).encode(
     x=alt.X('DateTime:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
     y='Value:Q',
     color='Component:N'
@@ -351,7 +351,7 @@ if st.button('Launch the model'):
         with col2:
             st.subheader("Hydrogen Balance Over Time")
             hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
-                x=alt.X('Date:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='tH2:Q',
                 color='Component:N'
             ).properties(width=700, height=400).configure_axis(
@@ -364,7 +364,7 @@ if st.button('Launch the model'):
         with col1:
             st.subheader("Electricity Balance Over Time")
             electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
-                x=alt.X('Date:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='GWh:Q',
                 color='Component:N'
             ).properties(width=700, height=400).configure_axis(
