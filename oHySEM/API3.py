@@ -53,7 +53,7 @@ with col1:
     handle_input("Directory Path", DirName, 'dir_name', placeholder="Enter the path")
     st.write("Path: ", st.session_state['dir_name'])
 
-    handle_input("Date", arg_defaults['date'], 'date', placeholder="Enter date (YYYY-MM-DD HH:MM:SS)")
+    handle_input("Date", arg_defaults['date'], 'date', placeholder="Enter initial date (YYYY-MM-DD HH:MM:SS)")
     st.write("Date: ", st.session_state['date'])
 
     handle_input("Time Steps", arg_defaults['time_steps'], 'time_steps', input_type=int)
@@ -79,9 +79,6 @@ with col3:
     # handle_input("H2 Delivery Type", arg_defaults['delivery_type'], 'delivery_type', input_type=str, placeholder="Enter delivery type (e.g., hourly, daily, etc.)")
     # st.write("H2 Delivery Type: ", st.session_state['delivery_type'])
 
-# Dataset visualization
-st.title("Visualizing the Time Series Data")
-
 # Helper function to load CSVs
 # @st.cache_data
 def load_csv(file_name, idx_col):
@@ -89,6 +86,43 @@ def load_csv(file_name, idx_col):
     for i in range(idx_col):
         cols.append(i)
     return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name), index_col=cols)
+
+df_duration = load_csv('oH_Data_Duration_{}.csv'.format(st.session_state['case_name']), 1)
+df_hydrogen_demand = load_csv('oH_Data_HydrogenDemand_{}.csv'.format(st.session_state['case_name']), 3)
+
+# if st.session_state['date'] is a string, transform it to a datetime object
+if isinstance(st.session_state['date'], str):
+    st.session_state['date'] = datetime.datetime.strptime(st.session_state['date'], '%Y-%m-%d %H:%M:%S')
+
+# transform arg_defaults['date'] to a string loadlevel of format 't{hour}:04d'
+hour_of_year = st.session_state['date'].timetuple().tm_yday * 24 + st.session_state['date'].timetuple().tm_hour
+loadlevel = f't{hour_of_year:04d}'
+
+# fill zeros in column 'Duration' from index 't0001' to index equal to loadlevel
+df_duration.loc['t0001':loadlevel, 'Duration'] = 0
+
+time_steps = st.session_state['time_steps']
+
+# fill ones in column 'Duration' from index equal to number of hours in a year to index equal to loadlevel + time_step
+df_duration.loc[loadlevel:f't{(hour_of_year+time_steps):04d}', 'Duration'] = 1
+
+# fill zeros from hour_of_year + time_step to the end of the dataframe
+df_duration.loc[f't{(hour_of_year+time_steps):04d}':, 'Duration'] = 0
+
+# fill blank in all the columns of df_hydrogen_demand
+df_hydrogen_demand.loc[(slice(None), slice(None), slice(None))] = ''
+
+# modify in all the columns of df_hydrogen_demand in the third level of the index equal to loadlevel
+df_hydrogen_demand.loc[(slice(None), slice(None), loadlevel), 'Node4'] = 0.1
+
+# Save the modified dataset
+if st.button('Save the modified time steps'):
+    df_duration.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], 'oH_Data_Duration_{}.csv'.format(st.session_state['case_name'])), index=True)
+    df_hydrogen_demand.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], 'oH_Data_HydrogenDemand_{}.csv'.format(st.session_state['case_name'])), index=True)
+    st.success("Time steps saved successfully!")
+
+# Dataset visualization
+st.title("Visualizing the Time Series Data")
 
 datasets = {
     'Electricity Cost': 'oH_Data_ElectricityCost_{}.csv',
@@ -314,23 +348,29 @@ if st.button('Launch the model'):
         col1, col2 = st.columns(2)
 
         # Hydrogen Balance Line Chart
-        with col1:
+        with col2:
             st.subheader("Hydrogen Balance Over Time")
             hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='tH2:Q',
                 color='Component:N'
-            ).properties(width=700, height=400)
+            ).properties(width=700, height=400).configure_axis(
+                    labelFontSize=label_fontsize,
+                    titleFontSize=title_fontsize
+                )
             st.altair_chart(hydrogen_chart, use_container_width=True)
 
         # Electricity Balance Line Chart
-        with col2:
+        with col1:
             st.subheader("Electricity Balance Over Time")
             electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='GWh:Q',
                 color='Component:N'
-            ).properties(width=700, height=400)
+            ).properties(width=700, height=400).configure_axis(
+                    labelFontSize=label_fontsize,
+                    titleFontSize=title_fontsize
+                )
             st.altair_chart(electricity_chart, use_container_width=True)
 
 st.write("Dashboard created for analyzing oHySEM results.")
