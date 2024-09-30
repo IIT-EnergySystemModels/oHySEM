@@ -153,7 +153,7 @@ df['DateTime'] = pd.date_range(start=st.session_state['date'], periods=len(df), 
 # Plotting input data
 st.subheader(f"{dataset} Over Time")
 line_chart = alt.Chart(df).mark_line(point=alt.OverlayMarkDef(filled=False, fill="white")).encode(
-    x=alt.X('DateTime:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+    x=alt.X('DateTime:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
     y='Value:Q',
     color='Component:N'
 ).properties(width=700, height=400).configure_axis(
