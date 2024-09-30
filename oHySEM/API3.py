@@ -150,11 +150,6 @@ df = df.stack().reset_index().rename(columns={0: 'Value', 'level_3': 'Component'
 # Add DateTime column
 df['DateTime'] = pd.date_range(start=st.session_state['date'], periods=len(df), freq='H')
 
-# #save the modified dataset
-# if st.button('Save the modified dataset'):
-#     df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], "oH_Data.csv"), index=True)
-#     st.success("Dataset saved successfully!")
-
 # Plotting input data
 st.subheader(f"{dataset} Over Time")
 line_chart = alt.Chart(df).mark_line(point=alt.OverlayMarkDef(filled=False, fill="white")).encode(
@@ -174,13 +169,13 @@ st.title("Modification H2 Delivery Data")
 # Helper function to load CSVs
 # @st.cache_data
 
-datasets = {
+datasets_par = {
     'Parameter': f'oH_Data_Parameter_{st.session_state["case_name"]}.csv',
 }
 
-dataset = st.selectbox('Select a dataset to modify:', list(datasets.keys()))
+dataset_par = st.selectbox('Select a dataset to modify:', list(datasets_par.keys()))
 
-df = load_csv(datasets[dataset], 1)
+df = load_csv(datasets_par[dataset_par], 1)
 
 # # Display the columns ('DemandType', 'TargetDemand', 'RampDemand') of the dataset and the first few rows
 # st.write(df[['DemandType', 'TargetDemand', 'RampDemand']].head())
@@ -203,9 +198,28 @@ with col3:
 
 # Save the modified dataset
 if st.button('Save the modified dataset'):
-    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets[dataset]), index=True)
+    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_par[dataset_par]), index=True)
     st.success("Dataset saved successfully!")
     st.write(modified_df[['DemandType', 'TargetDemand', 'RampDemand']].head())
+
+# reading, modifying and saving the input data
+st.title("Modification Electrolyzer Data")
+
+datasets_gen = {
+    'Electrolyzer': f'oH_Data_Generation_{st.session_state["case_name"]}.csv',
+}
+
+# modify the dataset
+df = load_csv(datasets_gen['Electrolyzer'], 1)
+
+st.write("Modify the dataset below:")
+modified_df = df.copy()
+
+# select the unit
+unit = st.selectbox('Select a unit:', list(modified_df.index))
+
+# User inputs
+col1, col2, col3, col4, col5 = st.columns(5)
 
 # Model execution
 st.title("Problem Solving")
