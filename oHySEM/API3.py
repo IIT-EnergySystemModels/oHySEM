@@ -15,6 +15,11 @@ st.image(image_url, caption="")
 DirName = os.path.dirname(__file__)
 CaseName = 'VPP1'
 
+title_fontsize = 20
+subtitle_fontsize = 19
+text_fontsize = 18
+label_fontsize = 16
+
 st.write("This dashboard provides a workflow for analyzing input data, executing the oHySEM model, and visualizing the results.")
 
 # Set up dashboard title
@@ -136,11 +141,19 @@ datasets = {
 
 dataset = st.selectbox('Select a dataset to view:', list(datasets.keys()))
 
-df = load_csv(datasets[dataset].format(st.session_state['case_name']),3).head(st.session_state['time_steps'])
+df = load_csv(datasets[dataset].format(st.session_state['case_name']),3)
+# filter the dataframe since the second index has to be equal betwen the range of loadlevel and loadlevel + time_steps. the dataframe has 3 levels of index
+df = df.loc[(slice(None), slice(None), slice(loadlevel, f't{(hour_of_year+time_steps):04d}')), :]
+# stack the dataframe
 df = df.stack().reset_index().rename(columns={0: 'Value', 'level_3': 'Component'})
 
 # Add DateTime column
 df['DateTime'] = pd.date_range(start=st.session_state['date'], periods=len(df), freq='H')
+
+# #save the modified dataset
+# if st.button('Save the modified dataset'):
+#     df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], "oH_Data.csv"), index=True)
+#     st.success("Dataset saved successfully!")
 
 # Plotting input data
 st.subheader(f"{dataset} Over Time")
@@ -148,7 +161,10 @@ line_chart = alt.Chart(df).mark_line(point=alt.OverlayMarkDef(filled=False, fill
     x=alt.X('DateTime:T', axis=alt.Axis(labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
     y='Value:Q',
     color='Component:N'
-).properties(width=700, height=400)
+).properties(width=700, height=400).configure_axis(
+                    labelFontSize=label_fontsize,
+                    titleFontSize=title_fontsize
+                )
 
 st.altair_chart(line_chart, use_container_width=True)
 
@@ -252,11 +268,6 @@ if st.button('Launch the model'):
 
         # Key Performance Indicators (KPIs)
         st.subheader("Key Performance Indicators")
-
-        title_fontsize = 20
-        subtitle_fontsize = 19
-        text_fontsize = 18
-        label_fontsize = 16
 
         total_cost_value = total_cost['MEUR'].sum()
         total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'H2ESS']['tH2'].sum()
