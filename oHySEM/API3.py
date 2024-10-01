@@ -197,7 +197,7 @@ with col3:
     modified_df['RampDemand'] = st.number_input("Enter H2 Demand Ramp", value=modified_df['RampDemand'][0])
 
 # Save the modified dataset
-if st.button('Save the modified dataset'):
+if st.button('Save the modified data of H2 demand'):
     modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_par[dataset_par]), index=True)
     st.success("Dataset saved successfully!")
     st.write(modified_df[['DemandType', 'TargetDemand', 'RampDemand']].head())
@@ -212,14 +212,34 @@ datasets_gen = {
 # modify the dataset
 df = load_csv(datasets_gen['Electrolyzer'], 1)
 
-st.write("Modify the dataset below:")
 modified_df = df.copy()
 
 # select the unit
-unit = st.selectbox('Select a unit:', list(modified_df.index))
+unit = st.selectbox('Modify the dataset below, select a unit:', list(modified_df.index))
 
 # User inputs
 col1, col2, col3, col4, col5 = st.columns(5)
+
+with col1:
+    modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the maximum electricity consumption [MW]:", value=modified_df.loc[unit, 'MaximumCharge'])
+
+with col2:
+    modified_df.loc[unit, 'MinimumCharge'] = st.number_input("Enter the minimum electricity consumption [MW]:", value=modified_df.loc[unit, 'MinimumCharge'])
+
+with col3:
+    modified_df.loc[unit, 'ProductionFunction'] = st.number_input("Enter the production function:", value=modified_df.loc[unit, 'ProductionFunction'])
+
+with col4:
+    modified_df.loc[unit, 'StandByStatus'] =  st.selectbox('Activate the stand-by status:', list(['Yes', 'No']))
+
+with col5:
+    modified_df.loc[unit, 'StandByPower'] = st.number_input("Enter the electricity consumption of the stand-by status:", value=modified_df.loc[unit, 'StandByPower'])
+
+# save the modified dataset
+if st.button('Save the modified data of the electrolyzer'):
+    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['Electrolyzer']), index=True)
+    st.success("Dataset saved successfully!")
+    st.write(modified_df[['MaximumCharge', 'MinimumCharge', 'ProductionFunction', 'StandByStatus', 'StandByPower']].head())
 
 # Model execution
 st.title("Problem Solving")
