@@ -55,21 +55,21 @@ def handle_input(label, default_value, state_key, input_type=str, placeholder=No
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    handle_input("Directory Path", DirName, 'dir_name', placeholder="Enter the path")
+    handle_input("Directory path:", DirName, 'dir_name', placeholder="Enter the path")
     st.write("Path: ", st.session_state['dir_name'])
 
-    handle_input("Date", arg_defaults['date'], 'date', placeholder="Enter initial date (YYYY-MM-DD HH:MM:SS)")
+    handle_input("Initial date:", arg_defaults['date'], 'date', placeholder="Enter initial date (YYYY-MM-DD HH:MM:SS)")
     st.write("Date: ", st.session_state['date'])
 
-    handle_input("Time Steps", arg_defaults['time_steps'], 'time_steps', input_type=int)
-    st.write("Time Steps: ", st.session_state['time_steps'])
+    handle_input("Number of hours or time steps:", arg_defaults['time_steps'], 'time_steps', input_type=int)
+    st.write("Time steps: ", st.session_state['time_steps'])
 
 with col2:
-    handle_input("Case Name", CaseName, 'case_name', placeholder="Enter case")
+    handle_input("Case Name:", CaseName, 'case_name', placeholder="Enter case")
     st.write("Case: ", st.session_state['case_name'])
 
-    st.session_state['raw_results'] = st.checkbox("Save the raw results", value=st.session_state['raw_results'])
-    st.write("Save raw results: ", st.session_state['raw_results'])
+    st.session_state['raw_results'] = st.checkbox("Save the raw results:", value=st.session_state['raw_results'])
+    st.write("Raw results: ", st.session_state['raw_results'])
 
     # handle_input("H2 Target Demand", arg_defaults['h2_target'], 'h2_target', input_type=float)
     # st.write("H2 Target Demand: ", st.session_state['h2_target'])
@@ -191,10 +191,10 @@ with col1:
     modified_df['DemandType'] = st.selectbox('Select a demand type:', list(['Hourly', 'Daily', 'Weekly']))
 
 with col2:
-    modified_df['TargetDemand'] = st.number_input("Enter the target demand", value=modified_df['TargetDemand'][0])
+    modified_df['TargetDemand'] = st.number_input("Enter the target demand [kgH2]:", value=modified_df['TargetDemand'][0])
 
 with col3:
-    modified_df['RampDemand'] = st.number_input("Enter H2 Demand Ramp", value=modified_df['RampDemand'][0])
+    modified_df['RampDemand'] = st.number_input("Enter H2 Demand Ramp [kgH2]:", value=modified_df['RampDemand'][0])
 
 # Save the modified dataset
 if st.button('Save the modified data of H2 demand'):
@@ -214,8 +214,11 @@ df = load_csv(datasets_gen['Electrolyzer'], 1)
 
 modified_df = df.copy()
 
+# list of electrolyzer units, select the unit from df index if the column 'Technology' is equal to 'Electrolyzer'
+list_electrolizer_units = df[df['Technology'] == 'Electrolyzer'].index
+
 # select the unit
-unit = st.selectbox('Modify the dataset below, select a unit:', list(modified_df.index))
+unit = st.selectbox('Modify the dataset below, select a unit:', list(list_electrolizer_units))
 
 # User inputs
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -227,13 +230,13 @@ with col2:
     modified_df.loc[unit, 'MinimumCharge'] = st.number_input("Enter the minimum electricity consumption [MW]:", value=modified_df.loc[unit, 'MinimumCharge'])
 
 with col3:
-    modified_df.loc[unit, 'ProductionFunction'] = st.number_input("Enter the production function:", value=modified_df.loc[unit, 'ProductionFunction'])
+    modified_df.loc[unit, 'ProductionFunction'] = st.number_input("Enter the production function [kWh/kgH2]:", value=modified_df.loc[unit, 'ProductionFunction'])
 
 with col4:
-    modified_df.loc[unit, 'StandByStatus'] =  st.selectbox('Activate the stand-by status:', list(['Yes', 'No']))
+    modified_df.loc[unit, 'StandByStatus'] =  st.selectbox('Activate the stand-by status [Yes or No]:', list(['Yes', 'No']))
 
 with col5:
-    modified_df.loc[unit, 'StandByPower'] = st.number_input("Enter the electricity consumption of the stand-by status:", value=modified_df.loc[unit, 'StandByPower'])
+    modified_df.loc[unit, 'StandByPower'] = st.number_input("Enter the electricity consumption of the stand-by status [MW]:", value=modified_df.loc[unit, 'StandByPower'])
 
 # save the modified dataset
 if st.button('Save the modified data of the electrolyzer'):
