@@ -398,27 +398,32 @@ if st.button('Launch the model'):
         # Hydrogen Balance Line Chart
         with col2:
             st.subheader("Hydrogen Balance Over Time")
+            selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
             hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='tH2:Q',
-                color='Component:N'
+                color='Component:N',
+                opacity=alt.condition(selection_hyd_balance, alt.value(0.8), alt.value(0.2))
             ).properties(width=700, height=400).configure_axis(
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
-                )
+                ).add_params(selection_hyd_balance)
             st.altair_chart(hydrogen_chart, use_container_width=True)
 
         # Electricity Balance Line Chart
         with col1:
             st.subheader("Electricity Balance Over Time")
+            selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
             electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='GWh:Q',
-                color='Component:N'
+                color='Component:N',
+                opacity=alt.condition(selection_ele_balance, alt.value(0.8), alt.value(0.2))
             ).properties(width=700, height=400).configure_axis(
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
-                )
+                ).add_params(selection_ele_balance)
+
             st.altair_chart(electricity_chart, use_container_width=True)
 
 st.write("Dashboard created for analyzing oHySEM results.")
