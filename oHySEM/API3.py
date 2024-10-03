@@ -324,14 +324,16 @@ if st.button('Launch the model'):
             # Total Cost Line Chart
             with col1:
                 st.subheader("Total Cost Over Time")
+                selection_cost = alt.selection_point(fields=['Component'], bind='legend')
                 cost_chart = alt.Chart(total_cost).mark_bar().encode(
                     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                     y='MEUR:Q',
-                    color='Component:N'
+                    color='Component:N',
+                    opacity=alt.condition(selection_cost, alt.value(0.8), alt.value(0.2))
                 ).properties(width=700, height=400).configure_axis(
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
-                )
+                ).add_params(selection_cost)
                 st.altair_chart(cost_chart, use_container_width=True)
 
             # Donut chart
