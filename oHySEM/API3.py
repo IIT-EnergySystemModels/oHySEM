@@ -23,7 +23,7 @@ label_fontsize = 16
 st.write("This dashboard provides a workflow for analyzing input data, executing the oHySEM model, and visualizing the results.")
 
 # Set up dashboard title
-st.title("Model's Arguments")
+st.title("Arguments")
 
 # Arguments
 arg_defaults = {
@@ -164,7 +164,7 @@ line_chart = alt.Chart(df).mark_line(point=alt.OverlayMarkDef(filled=False, fill
 st.altair_chart(line_chart, use_container_width=True)
 
 # reading, modifying and saving the input data
-st.title("Modification H2 Delivery Data")
+st.title("H2 Delivery Data")
 
 # Helper function to load CSVs
 # @st.cache_data
@@ -203,7 +203,7 @@ if st.button('Save the modified data of H2 demand'):
     st.write(modified_df[['DemandType', 'TargetDemand', 'RampDemand']].head())
 
 # reading, modifying and saving the input data
-st.title("Modification Electrolyzer Data")
+st.title("Electrolyzer Data")
 
 datasets_gen = {
     'Electrolyzer': f'oH_Data_Generation_{st.session_state["case_name"]}.csv',
