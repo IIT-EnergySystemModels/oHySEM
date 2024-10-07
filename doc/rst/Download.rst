@@ -36,6 +36,12 @@ or using the Python script:
 
 ``python -m oHySEM --dir {path_to_input_data} --case {case_name} --solver {solver_name}``
 
+**Running the API:**
+
+To run the Streamlit API, execute the following command in the terminal that should be located in the path where the API.py file is located:
+
+``streamlit run API3.py``
+
 **Solvers**:
 
 - `HiGHS <https://ergo-code.github.io/HiGHS/>`_ (free)
