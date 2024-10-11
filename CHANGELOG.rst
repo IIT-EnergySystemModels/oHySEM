@@ -1,9 +1,9 @@
 Change Log
 =============
 
-[1.0.5] - 2024-09-13
+[1.0.5] - 2024-10-11
 ---------------------
-
+- [CHANGED] allow the use with GAMS-CPLEX
 - [CHANGED] added a new function to print plots in the main file
 
 [1.0.4] - 2024-09-12

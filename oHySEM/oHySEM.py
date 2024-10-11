@@ -32,7 +32,7 @@ from   colour            import Color
 for i in range(0, 117):
     print('-', end="")
 
-print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.5 - September 13, 2024')
+print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.5 - October 11, 2024')
 print('#### Non-commercial use only ####')
 
 parser = argparse.ArgumentParser(description='Introducing main arguments...')
@@ -55,7 +55,7 @@ def main():
     args = parser.parse_args()
     # args.dir = default_DirName
     # %% Model declaration
-    oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.0 - November 21, 2023')
+    oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.5 - October 11, 2024')
 
     if args.dir == "":
         args.dir = default_DirName
@@ -2328,6 +2328,15 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         Solver.options['Threads'] = int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)
         Solver.options['TimeLimit'] = 1800
         Solver.options['IterationLimit'] = 1800000
+    if SolverName == 'gams':
+        solver_options = {
+            'file COPT / cplex.opt / ; put COPT putclose "LPMethod 4" / "RINSHeur 100" / ; GAMS_MODEL.OptFile = 1 ;'
+            'option SysOut  = off   ;',
+            'option LP      = cplex ; option MIP     = cplex    ;',
+            'option ResLim  = 36000 ; option IterLim = 36000000 ;',
+            'option Threads = '+str(int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False))/2))+' ;'
+        }
+        time.sleep(15)
     idx = 0
     for var in optmodel.component_data_objects(Var, active=False, descend_into=True):
         if not var.is_continuous():
@@ -2335,7 +2344,10 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
     if idx == 0:
         optmodel.dual = Suffix(direction=Suffix.IMPORT)
         optmodel.rc = Suffix(direction=Suffix.IMPORT)
-    SolverResults = Solver.solve(optmodel, tee=True)  # tee=True displays the output of the solver
+    if SolverName == 'gams':
+        SolverResults = Solver.solve(optmodel, tee=True, report_timing=True, symbolic_solver_labels=False, add_options=solver_options)
+    else:
+        SolverResults = Solver.solve(optmodel, tee=True, report_timing=True)
     print('Termination condition: ', SolverResults.solver.termination_condition)
     SolverResults.write()  # summary of the solver results
 
@@ -2356,7 +2368,10 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         optmodel.del_component(optmodel.rc)
         optmodel.dual = Suffix(direction=Suffix.IMPORT)
         optmodel.rc = Suffix(direction=Suffix.IMPORT)
-        SolverResults = Solver.solve(optmodel, tee=False)  # tee=True displays the output of the solver
+        if SolverName == 'gams':
+            SolverResults = Solver.solve(optmodel, tee=True, report_timing=True, symbolic_solver_labels=False, add_options=solver_options)
+        else:
+            SolverResults = Solver.solve(optmodel, tee=False, report_timing=True)
         SolverResults.write()  # summary of the solver results
 
     SolvingTime = time.time() - StartTime
