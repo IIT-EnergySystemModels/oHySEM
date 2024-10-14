@@ -100,8 +100,9 @@ if isinstance(st.session_state['date'], str):
     st.session_state['date'] = datetime.datetime.strptime(st.session_state['date'], '%Y-%m-%d %H:%M:%S')
 
 # transform arg_defaults['date'] to a string loadlevel of format 't{hour}:04d'
-hour_of_year = st.session_state['date'].timetuple().tm_yday * 24 + st.session_state['date'].timetuple().tm_hour
+hour_of_year = (st.session_state['date'].timetuple().tm_yday-1) * 24 + st.session_state['date'].timetuple().tm_hour + 1
 loadlevel = f't{hour_of_year:04d}'
+st.write("LoadLevel: ", loadlevel)
 
 # fill zeros in column 'Duration' from index 't0001' to index equal to loadlevel
 df_duration.loc['t0001':loadlevel, 'Duration'] = 0
@@ -129,7 +130,7 @@ if st.button('Save the modified time steps'):
 # reading, modifying and saving the electricity cost data considering the electricity price
 st.title("Electricity Cost Data")
 
-st.header("Tariffs activation")
+st.header("Tariff activation")
 
 # activation of tariffs
 col1, col2, col3, col4, col5, col6 = st.columns(6)
@@ -167,7 +168,7 @@ df_ele_price = load_csv('oH_Data_ElectricityPrice_{}.csv'.format(st.session_stat
 df_tariff = load_csv('oH_Data_Tariff_{}.csv'.format(st.session_state['case_name']), 3)
 
 # modify the electricity cost data
-for i in range(hour_of_year, hour_of_year+time_steps):
+for i in range(hour_of_year, hour_of_year+time_steps+1):
     value = df_tariff.loc[(slice(None), slice(None), f't{i:04d}'), 'Tariff']
     if activation_tariff[value.iloc[0]] == True:  # If you expect one value
         df_ele_cost.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1'] = df_ele_price.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1']
@@ -180,7 +181,7 @@ if st.button('Save the modified electricity cost data'):
     st.success("Electricity cost data saved successfully!")
 
 # Dataset visualization
-st.title("Time Series Data")
+st.header("Time Series Data")
 
 datasets = {
     'Electricity Cost': 'oH_Data_ElectricityCost_{}.csv',
