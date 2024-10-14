@@ -102,7 +102,7 @@ if isinstance(st.session_state['date'], str):
 # transform arg_defaults['date'] to a string loadlevel of format 't{hour}:04d'
 hour_of_year = (st.session_state['date'].timetuple().tm_yday-1) * 24 + st.session_state['date'].timetuple().tm_hour + 1
 loadlevel = f't{hour_of_year:04d}'
-st.write("LoadLevel: ", loadlevel)
+st.write("Initial loadlevel: ", loadlevel)
 
 # fill zeros in column 'Duration' from index 't0001' to index equal to loadlevel
 df_duration.loc['t0001':loadlevel, 'Duration'] = 0
