@@ -126,8 +126,61 @@ if st.button('Save the modified time steps'):
     df_hydrogen_demand.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], 'oH_Data_HydrogenDemand_{}.csv'.format(st.session_state['case_name'])), index=True)
     st.success("Time steps saved successfully!")
 
+# reading, modifying and saving the electricity cost data considering the electricity price
+st.title("Electricity Cost Data")
+
+st.header("Tariffs activation")
+
+# activation of tariffs
+col1, col2, col3, col4, col5, col6 = st.columns(6)
+
+activation_tariff = {}
+
+with col1:
+    # checkbox
+    activation_tariff[1] = st.checkbox("P1", value=False)
+    st.write("P1: ", activation_tariff[1])
+with col2:
+    # checkbox
+    activation_tariff[2] = st.checkbox("P2", value=False)
+    st.write("P2: ", activation_tariff[2])
+with col3:
+    # checkbox
+    activation_tariff[3] = st.checkbox("P3", value=False)
+    st.write("P3: ", activation_tariff[3])
+with col4:
+    # checkbox
+    activation_tariff[4] = st.checkbox("P4", value=False)
+    st.write("P4: ", activation_tariff[4])
+with col5:
+    # checkbox
+    activation_tariff[5] = st.checkbox("P5", value=False)
+    st.write("P5: ", activation_tariff[5])
+with col6:
+    # checkbox
+    activation_tariff[6] = st.checkbox("P6", value=False)
+    st.write("P6: ", activation_tariff[6])
+
+
+df_ele_cost = load_csv('oH_Data_ElectricityCost_{}.csv'.format(st.session_state['case_name']), 3)
+df_ele_price = load_csv('oH_Data_ElectricityPrice_{}.csv'.format(st.session_state['case_name']), 3)
+df_tariff = load_csv('oH_Data_Tariff_{}.csv'.format(st.session_state['case_name']), 3)
+
+# modify the electricity cost data
+for i in range(hour_of_year, hour_of_year+time_steps):
+    value = df_tariff.loc[(slice(None), slice(None), f't{i:04d}'), 'Tariff']
+    if activation_tariff[value.iloc[0]] == True:  # If you expect one value
+        df_ele_cost.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1'] = df_ele_price.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1']
+    else:
+        df_ele_cost.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1'] = 1000
+
+# Save the modified dataset
+if st.button('Save the modified electricity cost data'):
+    df_ele_cost.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], 'oH_Data_ElectricityCost_{}.csv'.format(st.session_state['case_name'])), index=True)
+    st.success("Electricity cost data saved successfully!")
+
 # Dataset visualization
-st.title("Visualizing the Time Series Data")
+st.title("Time Series Data")
 
 datasets = {
     'Electricity Cost': 'oH_Data_ElectricityCost_{}.csv',
