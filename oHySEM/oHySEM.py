@@ -2310,6 +2310,16 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         StartTime = time.time()
         print('Writing LP file                       ... ', round(WritingLPTime), 's')
 
+    SubSolverName = ''
+
+    if SolverName == 'cplex':
+        SubSolverName = 'cplex'
+        SolverName = 'gams'
+
+    if SolverName == 'highs':
+        SubSolverName = 'highs'
+        SolverName = 'gams'
+
     Solver = SolverFactory(SolverName)  # select solver
     if SolverName == 'gurobi':
         Solver.options['LogFile'] = _path + '/oH_' + CaseName + '.log'
@@ -2328,15 +2338,22 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         Solver.options['Threads'] = int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)
         Solver.options['TimeLimit'] = 1800
         Solver.options['IterationLimit'] = 1800000
-    if SolverName == 'gams':
+    if SubSolverName == 'cplex':
         solver_options = {
-            'file COPT / cplex.opt / ; put COPT putclose "LPMethod 4" / "RINSHeur 100" / ; GAMS_MODEL.OptFile = 1 ;'
+            'file COPT / cplex.opt / ; put COPT putclose "EPGap 0.01" / "LPMethod 4" / "RINSHeur 100" / ; GAMS_MODEL.OptFile = 1 ;'
             'option SysOut  = off   ;',
             'option LP      = cplex ; option MIP     = cplex    ;',
             'option ResLim  = 36000 ; option IterLim = 36000000 ;',
             'option Threads = '+str(int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False))/2))+' ;'
-        }
-        time.sleep(15)
+            }
+    if SubSolverName == 'highs':
+        solver_options = {
+            'file COPT / highs.opt / ; put COPT putclose "mip_rel_gap = 0.01" / "presolve = on" /  ; gams_model.optfile = 1 ;'
+            'option SysOut  = off   ;',
+            'option LP      = highs ; option MIP     = highs    ;',
+            'option ResLim  = 36000 ; option IterLim = 36000000 ;',
+            'option Threads = ' + str(int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)) + ' ;'
+            }
     idx = 0
     for var in optmodel.component_data_objects(Var, active=False, descend_into=True):
         if not var.is_continuous():
