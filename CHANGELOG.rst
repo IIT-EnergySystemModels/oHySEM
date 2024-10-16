@@ -4,6 +4,7 @@ Change Log
 [1.0.6] - 2024-10-15
 ---------------------
 - [CHANGED] allow the use with GAMS-HIGHS
+- [CHANGED] allow the use with GLPK
 
 [1.0.5] - 2024-10-11
 ---------------------
