@@ -2459,7 +2459,7 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     hour = Date.hour
     minute = Date.minute
 
-    hour_of_year = f't{(Date.timetuple().tm_yday * 24 + Date.timetuple().tm_hour):04d}'
+    hour_of_year = f't{((Date.timetuple().tm_yday-1) * 24 + Date.timetuple().tm_hour):04d}'
 
     _path = os.path.join(DirName, CaseName)
     StartTime = time.time()
