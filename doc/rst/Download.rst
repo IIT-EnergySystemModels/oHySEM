@@ -40,7 +40,7 @@ or using the Python script:
 
 To run the Streamlit API, execute the following command in the terminal that should be located in the path where the API.py file is located:
 
-``streamlit run API3.py``
+``streamlit run oHySEM_API.py``
 
 **Solvers**:
 
