@@ -68,7 +68,7 @@ with col2:
     handle_input("Case Name:", CaseName, 'case_name', placeholder="Enter case")
     st.write("Case: ", st.session_state['case_name'])
 
-    st.session_state['raw_results'] = st.checkbox("Save the raw results:", value=st.session_state['raw_results'])
+    st.session_state['raw_results'] = st.checkbox("Save raw results:", value=st.session_state['raw_results'])
     st.write("Raw results: ", st.session_state['raw_results'])
 
     # handle_input("H2 Target Demand", arg_defaults['h2_target'], 'h2_target', input_type=float)
@@ -102,14 +102,14 @@ if isinstance(st.session_state['date'], str):
 # transform arg_defaults['date'] to a string loadlevel of format 't{hour}:04d'
 hour_of_year = (st.session_state['date'].timetuple().tm_yday-1) * 24 + st.session_state['date'].timetuple().tm_hour + 1
 loadlevel = f't{hour_of_year:04d}'
-st.write("Initial loadlevel: ", loadlevel)
+st.write("Initial load level: ", loadlevel)
 
-# fill zeros in column 'Duration' from index 't0001' to index equal to loadlevel
+# fill zeros in column 'Duration' from index 't0001' to index equal to load level
 df_duration.loc['t0001':loadlevel, 'Duration'] = 0
 
 time_steps = st.session_state['time_steps']
 
-# fill ones in column 'Duration' from index equal to number of hours in a year to index equal to loadlevel + time_step
+# fill ones in column 'Duration' from index equal to number of hours in a year to index equal to load level + time_step
 df_duration.loc[loadlevel:f't{(hour_of_year+time_steps):04d}', 'Duration'] = 1
 
 # fill zeros from hour_of_year + time_step to the end of the dataframe
@@ -196,7 +196,7 @@ datasets = {
 dataset = st.selectbox('Select a dataset to view:', list(datasets.keys()))
 
 df = load_csv(datasets[dataset].format(st.session_state['case_name']),3)
-# filter the dataframe since the second index has to be equal betwen the range of loadlevel and loadlevel + time_steps. the dataframe has 3 levels of index
+# filter the dataframe since the second index has to be equal between the range of load level and load level + time_steps. the dataframe has 3 levels of index
 df = df.loc[(slice(None), slice(None), slice(loadlevel, f't{(hour_of_year+time_steps):04d}')), :]
 # stack the dataframe
 df = df.stack().reset_index().rename(columns={0: 'Value', 'level_3': 'Component'})
@@ -205,7 +205,7 @@ df = df.stack().reset_index().rename(columns={0: 'Value', 'level_3': 'Component'
 df['DateTime'] = pd.date_range(start=st.session_state['date'], periods=len(df), freq='H')
 
 # Plotting input data
-st.subheader(f"{dataset} Over Time")
+st.subheader(f"{dataset}")
 line_chart = alt.Chart(df).mark_line(point=alt.OverlayMarkDef(filled=False, fill="white")).encode(
     x=alt.X('DateTime:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
     y='Value:Q',
@@ -298,6 +298,52 @@ if st.button('Save the modified data of the electrolyzer'):
     st.success("Dataset saved successfully!")
     st.write(modified_df[['MaximumCharge', 'MinimumCharge', 'ProductionFunction', 'StandByStatus', 'StandByPower']].head())
 
+# List of Wind Farm
+st.title("Wind Data")
+
+datasets_gen = {
+    'Wind': f'oH_Data_Generation_{st.session_state["case_name"]}.csv',
+}
+
+# modify the dataset
+df = load_csv(datasets_gen['Wind'], 1)
+
+modified_df = df.copy()
+aux_df      = df.copy()
+
+# list of wind units, select the unit from df index if the column 'Technology' is equal to 'Wind'
+list_wind_units = df[df['Technology'] == 'Wind'].index
+
+# select the unit
+unit = st.selectbox('Modify the dataset below, select a unit:', list(list_wind_units))
+
+# User inputs
+col1, col2= st.columns(2)
+
+with col1:
+    modified_df.loc[unit, 'MaximumPower'] = st.number_input("Enter the maximum installed Wind power [MW]:", value=modified_df.loc[unit, 'MaximumPower'])
+
+with col2:
+    modified_df.loc[unit, 'MustRun'] = st.selectbox("Enter the must run status [Yes or No]:", list(['Yes','No']))
+
+
+# save the modified dataset
+if st.button('Save the modified Wind Data'):
+    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['Wind']), index=True)
+    st.success("Dataset saved successfully!")
+    st.write(modified_df[['MaximumPower', 'MustRun']].head())
+
+# modify the VarMaxGeneration based on the MaximumPower value
+datasets_gen = {
+    'WindMaxGeneration': f'oH_Data_VarMaxGeneration_{st.session_state["case_name"]}.csv',
+}
+
+df = load_csv('oH_Data_VarMaxGeneration_{}.csv'.format(st.session_state['case_name']), 3)
+modified_df = df * (modified_df.loc[unit, 'MaximumPower']/aux_df.loc[unit, 'MaximumPower'])
+modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['WindMaxGeneration']), index=True)
+
+
+
 # Model execution
 st.title("Problem Solving")
 if st.button('Launch the model'):
@@ -377,14 +423,14 @@ if st.button('Launch the model'):
 
             # Total Cost Line Chart
             with col1:
-                st.subheader("Total Cost Over Time")
+                st.subheader("Total Cost")
                 selection_cost = alt.selection_point(fields=['Component'], bind='legend')
                 cost_chart = alt.Chart(total_cost).mark_bar().encode(
                     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                     y='MEUR:Q',
                     color='Component:N',
                     opacity=alt.condition(selection_cost, alt.value(0.8), alt.value(0.2))
-                ).properties(width=700, height=400).configure_axis(
+                ).properties(width=700, height=400, background='#000000').configure_axis(
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
                 ).add_params(selection_cost)
@@ -448,19 +494,19 @@ if st.button('Launch the model'):
 
 
         # Energy Balance and Network Flows
-        st.subheader("Energy Balance Overview")
+        st.subheader("Energy Balance")
         col1, col2 = st.columns(2)
 
         # Hydrogen Balance Line Chart
         with col2:
-            st.subheader("Hydrogen Balance Over Time")
+            st.subheader("Hydrogen Balance")
             selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
             hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='tH2:Q',
                 color='Component:N',
                 opacity=alt.condition(selection_hyd_balance, alt.value(0.8), alt.value(0.2))
-            ).properties(width=700, height=400).configure_axis(
+            ).properties(width=700, height=400, background='#000000').configure_axis(
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
                 ).add_params(selection_hyd_balance)
@@ -468,16 +514,17 @@ if st.button('Launch the model'):
 
         # Electricity Balance Line Chart
         with col1:
-            st.subheader("Electricity Balance Over Time")
+            st.subheader("Electricity Balance")
             selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
             electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
                 y='GWh:Q',
                 color='Component:N',
                 opacity=alt.condition(selection_ele_balance, alt.value(0.8), alt.value(0.2))
-            ).properties(width=700, height=400).configure_axis(
+                ).properties(width=700, height=400,background='#000000').configure_axis(
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
+                ).configure_view(strokeOpacity=0
                 ).add_params(selection_ele_balance)
 
             st.altair_chart(electricity_chart, use_container_width=True)
