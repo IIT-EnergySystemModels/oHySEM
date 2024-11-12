@@ -1,6 +1,16 @@
 Change Log
 =============
 
+[1.0.8] - 2024-11-12
+---------------------
+- [CHANGED] streamlit includes buttons for information help
+- [CHANGED] streamlit shows economic outputs in kEUR (need validation)
+- [CHANGED] oHySEM outputs are in kEUR
+
+[1.0.7] - 2024-11-05
+---------------------
+- [CHANGED] streamlit allows change in MaxGeneration
+
 [1.0.6] - 2024-10-15
 ---------------------
 - [CHANGED] allow the use with GAMS-HIGHS
