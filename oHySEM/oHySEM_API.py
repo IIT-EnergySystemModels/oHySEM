@@ -54,9 +54,20 @@ def handle_input(label, default_value, state_key, input_type=str, placeholder=No
 # User inputs
 col1, col2, col3 = st.columns(3)
 
+#To show/hide text for help
+if 'show_text' not in st.session_state:
+    st.session_state.show_text = False
+def toggle_text():
+    st.session_state.show_text = not st.session_state.show_text
+
+
 with col1:
     handle_input("Directory path:", DirName, 'dir_name', placeholder="Enter the path")
-    st.write("Path: ", st.session_state['dir_name'])
+    button_text = f"Path: {st.session_state.get('dir_name', 'No path selected')}"
+    if st.button(button_text, on_click=toggle_text): pass
+    if st.session_state.show_text:
+        st.markdown('<p style="color:red;">Location Path of oHySEM</p>', unsafe_allow_html=True)
+
 
     handle_input("Initial date:", arg_defaults['date'], 'date', placeholder="Enter initial date (YYYY-MM-DD HH:MM:SS)")
     st.write("Date: ", st.session_state['date'])
@@ -67,6 +78,10 @@ with col1:
 with col2:
     handle_input("Case Name:", CaseName, 'case_name', placeholder="Enter case")
     st.write("Case: ", st.session_state['case_name'])
+    button_text = f"Case: {st.session_state.get('case_name', 'No case selected')}"
+    if st.button(button_text, on_click=toggle_text): pass
+    if st.session_state.show_text:
+        st.markdown('<p style="color:red;">Folder Name where the output will be located in the Directory path</p>', unsafe_allow_html=True)
 
     st.session_state['raw_results'] = st.checkbox("Save raw results:", value=st.session_state['raw_results'])
     st.write("Raw results: ", st.session_state['raw_results'])
@@ -76,7 +91,10 @@ with col2:
 
 with col3:
     handle_input("Solver", "gurobi", 'solver', placeholder="Enter solver (e.g., gurobi, glpk)")
-    st.write("Solver: ", st.session_state['solver'])
+    button_text = f"Solver: {st.session_state.get('solver', 'No solver selected')}"
+    if st.button(button_text, on_click=toggle_text): pass
+    if st.session_state.show_text:
+        st.markdown('<p style="color:red;">Solvers available: gurobi/cplex/highs/glpk</p>', unsafe_allow_html=True)
 
     st.session_state['plot_results'] = st.checkbox("Save the plot results", value=st.session_state['plot_results'])
     st.write("Save plot results: ", st.session_state['plot_results'])
@@ -102,7 +120,19 @@ if isinstance(st.session_state['date'], str):
 # transform arg_defaults['date'] to a string loadlevel of format 't{hour}:04d'
 hour_of_year = (st.session_state['date'].timetuple().tm_yday-1) * 24 + st.session_state['date'].timetuple().tm_hour + 1
 loadlevel = f't{hour_of_year:04d}'
+<<<<<<< Updated upstream
 st.write("Initial load level: ", loadlevel)
+=======
+# Printing initial loadlevel and its button
+col1, col2 = st.columns([0.10, 0.95])
+with col1:
+    st.write("Initial loadlevel: ", loadlevel)
+with col2:
+    button_text = "❓"
+    if st.button(button_text, on_click=toggle_text): pass
+    if st.session_state.show_text:
+       st.markdown('<p style="color:red;">Initial Hour of the Optimization Scope</p>', unsafe_allow_html=True)
+>>>>>>> Stashed changes
 
 # fill zeros in column 'Duration' from index 't0001' to index equal to load level
 df_duration.loc['t0001':loadlevel, 'Duration'] = 0
@@ -184,13 +214,13 @@ if st.button('Save the modified electricity cost data'):
 st.header("Time Series Data")
 
 datasets = {
-    'Electricity Cost': 'oH_Data_ElectricityCost_{}.csv',
-    'Electricity Demand': 'oH_Data_ElectricityDemand_{}.csv',
-    'Electricity Price': 'oH_Data_ElectricityPrice_{}.csv',
-    'Hydrogen Cost': 'oH_Data_HydrogenCost_{}.csv',
-    'Hydrogen Demand': 'oH_Data_HydrogenDemand_{}.csv',
-    'Hydrogen Price': 'oH_Data_HydrogenPrice_{}.csv',
-    'Variable Max Generation': 'oH_Data_VarMaxGeneration_{}.csv'
+    'Electricity Cost [€/MWh]': 'oH_Data_ElectricityCost_{}.csv',
+    'Electricity Demand [MW]': 'oH_Data_ElectricityDemand_{}.csv',
+    'Electricity Price [€/MWh]': 'oH_Data_ElectricityPrice_{}.csv',
+    'Hydrogen Cost [€/kgH2]': 'oH_Data_HydrogenCost_{}.csv',
+    'Hydrogen Demand [kgH2]': 'oH_Data_HydrogenDemand_{}.csv',
+    'Hydrogen Price [€/kgH2]': 'oH_Data_HydrogenPrice_{}.csv',
+    'Variable Max Generation [MW]': 'oH_Data_VarMaxGeneration_{}.csv'
 }
 
 dataset = st.selectbox('Select a dataset to view:', list(datasets.keys()))
@@ -406,12 +436,12 @@ if st.button('Launch the model'):
         # Key Performance Indicators (KPIs)
         st.subheader("Key Performance Indicators")
 
-        total_cost_value = total_cost['MEUR'].sum()
+        total_cost_value = total_cost['kEUR'].sum()
         total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'H2ESS']['tH2'].sum()
         total_electricity = electricity_balance['GWh'].sum()
 
         kpi1, kpi2, kpi3 = st.columns(3)
-        kpi1.metric(label="Total Cost (MEUR)", value=f"{total_cost_value:.2f}")
+        kpi1.metric(label="Total Cost (kEUR)", value=f"{total_cost_value:.2f}")
         kpi2.metric(label="Total Hydrogen Storage (tH2)", value=f"{total_hydrogen:.2f}")
         kpi3.metric(label="Total Electricity Generation (GWh)", value=f"{total_electricity:.2f}")
 
@@ -427,7 +457,7 @@ if st.button('Launch the model'):
                 selection_cost = alt.selection_point(fields=['Component'], bind='legend')
                 cost_chart = alt.Chart(total_cost).mark_bar().encode(
                     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-                    y='MEUR:Q',
+                    y='kEUR:Q',
                     color='Component:N',
                     opacity=alt.condition(selection_cost, alt.value(0.8), alt.value(0.2))
                 ).properties(width=700, height=400, background='#000000').configure_axis(
