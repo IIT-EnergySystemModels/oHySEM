@@ -1,4 +1,5 @@
-# Developed by Erik Alvarez, Andrés Ramos
+# Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
+# Nov. 12, 2024
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
