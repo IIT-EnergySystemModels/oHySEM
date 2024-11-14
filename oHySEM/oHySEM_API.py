@@ -138,7 +138,7 @@ with col1:
     st.write("Initial loadlevel: ", loadlevel)
 with col2:
     button_text = "❓"
-    if st.button(button_text, on_click=toggle_text): pass
+    if st.button(button_text, on_click=toggle_text, key= "initial hour of the optimization"): pass
     if st.session_state.show_text:
        st.markdown('<p style="color:red;">Initial Hour of the Optimization Scope</p>', unsafe_allow_html=True)
 
@@ -444,7 +444,7 @@ if st.button('Launch the model'):
         st.error(f"Error executing oHySEM: {result.stderr}")
     if result.returncode == 0:
         # Plotting Results
-        st.title("Operational Overview")
+        st.title("OUTPUT ANALYSIS")
 
         # Load result CSVs
         # @st.cache_data
@@ -472,7 +472,7 @@ if st.button('Launch the model'):
         kpi3.metric(label="Total Electricity Generation (GWh)", value=f"{total_electricity:.2f}")
 
         # Creating a layout for energy balances and network flows
-        st.subheader("OUTPUT ANALYSIS")
+        st.subheader("TIME ANALYSIS")
         with st.container():
             # Two columns: One for the cost and profits along the date and one as a pie chart
             col1, col2 = st.columns(2)
@@ -480,6 +480,7 @@ if st.button('Launch the model'):
             # Total Cost Line Chart
             with col1:
                 st.subheader("Operating Costs")
+
                 selection_cost = alt.selection_point(fields=['Component'], bind='legend')
                 cost_chart = alt.Chart(total_cost).mark_bar().encode(
                     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
@@ -491,6 +492,16 @@ if st.button('Launch the model'):
                     titleFontSize=title_fontsize
                 ).add_params(selection_cost)
                 st.altair_chart(cost_chart, use_container_width=True)
+
+            with st.expander("Cost Components?"):
+                st.markdown("""
+                - **vTotalCCost**: Consumption Operation Cost
+                - **vTotalECost**: Emission Cost
+                - **vTotalGCost**: Operation Cost
+                - **vTotalMCost**: Market Cost              
+                - **vTotalRCost**: Reliability Cost
+                """)
+
 
             # Donut chart
             with col2:
@@ -584,5 +595,12 @@ if st.button('Launch the model'):
                 ).add_params(selection_ele_balance)
 
             st.altair_chart(electricity_chart, use_container_width=True)
+
+            with st.expander("Electricity & Hydrogen Components?"):
+                st.markdown("""
+                - **BESS**: Battery
+                - **ENS / HNS**:  Electricity/ Hydrogen Non-Supplied
+                - **H2ESS**: Electricity & Hydrogen Consumption by H2 Tank
+                """)
 
 st.write("Dashboard created for analyzing oHySEM results.")
