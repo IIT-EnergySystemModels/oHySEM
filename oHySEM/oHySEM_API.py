@@ -500,40 +500,40 @@ if st.button('Launch the model'):
                 def create_donut_charts(data):
 
                     # Filter positive values (costs)
-                    costs = data[data['MEUR'] >= 0].groupby('Component')['MEUR'].sum().reset_index()
-                    costs['Percentage'] = costs['MEUR'] / costs['MEUR'].sum() * 100
+                    costs = data[data['kEUR'] >= 0].groupby('Component')['kEUR'].sum().reset_index()
+                    costs['Percentage'] = costs['kEUR'] / costs['kEUR'].sum() * 100
 
                     # Filter negative values (profits)
-                    profits = data[data['MEUR'] < 0].groupby('Component')['MEUR'].sum().reset_index()
-                    profits['Percentage'] = profits['MEUR'] / profits['MEUR'].sum() * 100
-                    profits['MEUR'] = profits['MEUR'].abs()  # Convert profits to positive values for display
+                    profits = data[data['kEUR'] < 0].groupby('Component')['kEUR'].sum().reset_index()
+                    profits['Percentage'] = profits['kEUR'] / profits['kEUR'].sum() * 100
+                    profits['kEUR'] = profits['kEUR'].abs()  # Convert profits to positive values for display
 
                     # Helper function to create individual donut chart with labels
                     def create_donut_chart(df, title):
                         # Create the donut chart
                         donut_chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
-                            theta=alt.Theta(field="MEUR", type="quantitative"),
+                            theta=alt.Theta(field="kEUR", type="quantitative"),
                             color=alt.Color(field="Component", type="nominal"),
-                            tooltip=['Component', 'MEUR', 'Percentage']
+                            tooltip=['Component', 'kEUR', 'Percentage']
                         ).properties(
                             width=400,
                             height=300,
                             title=title
                         )
 
-                        # Add labels to the donut chart showing both percentage and MEUR
+                        # Add labels to the donut chart showing both percentage and kEUR
                         labels = alt.Chart(df).mark_text(radius=200, size=text_fontsize).encode(
-                            theta=alt.Theta(field="MEUR", type="quantitative"),
+                            theta=alt.Theta(field="kEUR", type="quantitative"),
                             text=alt.Text(field="label", type="nominal"),
                             color=alt.value('black')  # Ensures the label color is consistent
                         )
 
                         return donut_chart + labels
 
-                    # Add a label column that combines MEUR and Percentage
-                    costs['label'] = costs.apply(lambda row: f'{row["MEUR"]:.1f} MEUR ({row["Percentage"]:.1f}%)',
+                    # Add a label column that combines kEUR and Percentage
+                    costs['label'] = costs.apply(lambda row: f'{row["kEUR"]:.1f} kEUR ({row["Percentage"]:.1f}%)',
                                                  axis=1)
-                    profits['label'] = profits.apply(lambda row: f'{row["MEUR"]:.1f} MEUR ({row["Percentage"]:.1f}%)',
+                    profits['label'] = profits.apply(lambda row: f'{row["kEUR"]:.1f} kEUR ({row["Percentage"]:.1f}%)',
                                                      axis=1)
 
                     # Create donut charts for costs and profits
