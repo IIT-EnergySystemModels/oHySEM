@@ -1,3 +1,15 @@
+# Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
+# Nov. 12, 2024
+
+#    Andres Ramos
+#    Instituto de Investigacion Tecnologica
+#    Escuela Tecnica Superior de Ingenieria - ICAI
+#    UNIVERSIDAD PONTIFICIA COMILLAS
+#    Alberto Aguilera 23
+#    28015 Madrid, Spain
+#    Andres.Ramos@comillas.edu
+#    https://pascua.iit.comillas.edu/aramos/Ramos_CV.html
+
 import datetime
 import streamlit as st
 import pandas as pd
@@ -83,7 +95,7 @@ with col2:
     if st.session_state.show_text:
         st.markdown('<p style="color:red;">Folder Name where the output will be located in the Directory path</p>', unsafe_allow_html=True)
 
-    st.session_state['raw_results'] = st.checkbox("Save raw results:", value=st.session_state['raw_results'])
+    st.session_state['raw_results'] = st.checkbox("Save the raw results:", value=st.session_state['raw_results'])
     st.write("Raw results: ", st.session_state['raw_results'])
 
     # handle_input("H2 Target Demand", arg_defaults['h2_target'], 'h2_target', input_type=float)
@@ -120,9 +132,6 @@ if isinstance(st.session_state['date'], str):
 # transform arg_defaults['date'] to a string loadlevel of format 't{hour}:04d'
 hour_of_year = (st.session_state['date'].timetuple().tm_yday-1) * 24 + st.session_state['date'].timetuple().tm_hour + 1
 loadlevel = f't{hour_of_year:04d}'
-<<<<<<< Updated upstream
-st.write("Initial load level: ", loadlevel)
-=======
 # Printing initial loadlevel and its button
 col1, col2 = st.columns([0.10, 0.95])
 with col1:
@@ -132,14 +141,13 @@ with col2:
     if st.button(button_text, on_click=toggle_text): pass
     if st.session_state.show_text:
        st.markdown('<p style="color:red;">Initial Hour of the Optimization Scope</p>', unsafe_allow_html=True)
->>>>>>> Stashed changes
 
-# fill zeros in column 'Duration' from index 't0001' to index equal to load level
+# fill zeros in column 'Duration' from index 't0001' to index equal to loadlevel
 df_duration.loc['t0001':loadlevel, 'Duration'] = 0
 
 time_steps = st.session_state['time_steps']
 
-# fill ones in column 'Duration' from index equal to number of hours in a year to index equal to load level + time_step
+# fill ones in column 'Duration' from index equal to number of hours in a year to index equal to loadlevel + time_step
 df_duration.loc[loadlevel:f't{(hour_of_year+time_steps):04d}', 'Duration'] = 1
 
 # fill zeros from hour_of_year + time_step to the end of the dataframe
@@ -159,8 +167,12 @@ if st.button('Save the modified time steps'):
 
 # reading, modifying and saving the electricity cost data considering the electricity price
 st.title("Electricity Cost Data")
-
 st.header("Tariff activation")
+button_text = "❓"
+if st.button(button_text, on_click=toggle_text, key="Tariff_activation_button"): pass
+if st.session_state.show_text:
+    st.markdown('<p style="color:red;">Tariffs that can be used to buy electricity</p>', unsafe_allow_html=True)
+
 
 # activation of tariffs
 col1, col2, col3, col4, col5, col6 = st.columns(6)
@@ -214,19 +226,33 @@ if st.button('Save the modified electricity cost data'):
 st.header("Time Series Data")
 
 datasets = {
-    'Electricity Cost [€/MWh]': 'oH_Data_ElectricityCost_{}.csv',
-    'Electricity Demand [MW]': 'oH_Data_ElectricityDemand_{}.csv',
-    'Electricity Price [€/MWh]': 'oH_Data_ElectricityPrice_{}.csv',
-    'Hydrogen Cost [€/kgH2]': 'oH_Data_HydrogenCost_{}.csv',
-    'Hydrogen Demand [kgH2]': 'oH_Data_HydrogenDemand_{}.csv',
-    'Hydrogen Price [€/kgH2]': 'oH_Data_HydrogenPrice_{}.csv',
-    'Variable Max Generation [MW]': 'oH_Data_VarMaxGeneration_{}.csv'
+    'Electricity Cost [€/MWh]: Cost of buying electricity and maintenance': 'oH_Data_ElectricityCost_{}.csv',
+    'Electricity Demand [MW] : Internal electric Demand of the plant': 'oH_Data_ElectricityDemand_{}.csv',
+    'Electricity Price [€/MWh]: Day Ahead Electricity Price': 'oH_Data_ElectricityPrice_{}.csv',
+    'Hydrogen Cost [€/kgH2] : Cost of producing Hydrogen': 'oH_Data_HydrogenCost_{}.csv',
+    'Hydrogen Demand [kgH2] : Additional Hydrogen demand': 'oH_Data_HydrogenDemand_{}.csv',
+    'Hydrogen Price [€/kgH2] : Hydrogen Selling Price': 'oH_Data_HydrogenPrice_{}.csv',
+    'Variable Max Generation [MW] : Forecast of Wind Production': 'oH_Data_VarMaxGeneration_{}.csv'
+}
+
+# Dictionary of measuring units of each variable
+y_axis_titles = {
+    'Electricity Cost [€/MWh]: Cost of buying electricity and maintenance': 'Cost [€/MWh]',
+    'Electricity Demand [MW] : Internal electric Demand of the plant': 'Demand [MW]',
+    'Electricity Price [€/MWh]: Day Ahead Electricity Price': 'Price [€/MWh]',
+    'Hydrogen Cost [€/kgH2] : Cost of producing Hydrogen': 'Cost [€/kgH2]',
+    'Hydrogen Demand [kgH2] : Additional Hydrogen demand': 'Demand [kgH2]',
+    'Hydrogen Price [€/kgH2] : Hydrogen Selling Price': 'Price [€/kgH2]',
+    'Variable Max Generation [MW] : Forecast of Wind Production': 'Max Generation [MW]'
 }
 
 dataset = st.selectbox('Select a dataset to view:', list(datasets.keys()))
 
+# Obtener el título del eje Y específico según el dataset seleccionado
+y_axis_title = y_axis_titles[dataset]
+
 df = load_csv(datasets[dataset].format(st.session_state['case_name']),3)
-# filter the dataframe since the second index has to be equal between the range of load level and load level + time_steps. the dataframe has 3 levels of index
+# filter the dataframe since the second index has to be equal betwen the range of loadlevel and loadlevel + time_steps. the dataframe has 3 levels of index
 df = df.loc[(slice(None), slice(None), slice(loadlevel, f't{(hour_of_year+time_steps):04d}')), :]
 # stack the dataframe
 df = df.stack().reset_index().rename(columns={0: 'Value', 'level_3': 'Component'})
@@ -238,7 +264,7 @@ df['DateTime'] = pd.date_range(start=st.session_state['date'], periods=len(df), 
 st.subheader(f"{dataset}")
 line_chart = alt.Chart(df).mark_line(point=alt.OverlayMarkDef(filled=False, fill="white")).encode(
     x=alt.X('DateTime:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-    y='Value:Q',
+    y=alt.Y('Value:Q', axis=alt.Axis(title=y_axis_title)),
     color='Component:N'
 ).properties(width=700, height=400).configure_axis(
                     labelFontSize=label_fontsize,
@@ -453,7 +479,7 @@ if st.button('Launch the model'):
 
             # Total Cost Line Chart
             with col1:
-                st.subheader("Total Cost")
+                st.subheader("Total Cost Over Time")
                 selection_cost = alt.selection_point(fields=['Component'], bind='legend')
                 cost_chart = alt.Chart(total_cost).mark_bar().encode(
                     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
@@ -524,12 +550,12 @@ if st.button('Launch the model'):
 
 
         # Energy Balance and Network Flows
-        st.subheader("Energy Balance")
+        st.subheader("Energy Balance Overview")
         col1, col2 = st.columns(2)
 
         # Hydrogen Balance Line Chart
         with col2:
-            st.subheader("Hydrogen Balance")
+            st.subheader("Hydrogen Balance Over Time")
             selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
             hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
@@ -544,7 +570,7 @@ if st.button('Launch the model'):
 
         # Electricity Balance Line Chart
         with col1:
-            st.subheader("Electricity Balance")
+            st.subheader("Electricity Balance Over Time")
             selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
             electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
