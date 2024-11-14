@@ -1,5 +1,5 @@
 # Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
-# Nov. 12, 2024
+# Nov. 14, 2024
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
@@ -308,15 +308,15 @@ def data_processing(DirName, CaseName, model):
         else:
             parameters_dict[f'pGen{idx}'] = data_frames['dfGeneration'][idx]
 
-    parameters_dict['pGenLinearVarCost'     ] = parameters_dict['pGenLinearTerm'          ] * 1e-3 * parameters_dict['pGenFuelCost'] + parameters_dict['pGenOMVariableCost'] * 1e-3  # linear   term variable cost             [kEUR/GWh]
-    parameters_dict['pGenConstantVarCost'   ] = parameters_dict['pGenConstantTerm'        ] * 1e-6 * parameters_dict['pGenFuelCost']                                                 # constant term variable cost             [kEUR/h]
-    parameters_dict['pGenCO2EmissionCost'   ] = parameters_dict['pGenCO2EmissionRate'     ] * 1e-3 * parameters_dict['pParCO2Cost']                                                  # CO2 emission cost                       [kEUR/GWh]
-    parameters_dict['pGenStartUpCost'       ] = parameters_dict['pGenStartUpCost'         ] * 1e-6                                                                                   # generation startup cost                 [kEUR]
-    parameters_dict['pGenShutDownCost'      ] = parameters_dict['pGenShutDownCost'        ] * 1e-6                                                                                   # generation shutdown cost                [kEUR]
-    parameters_dict['pGenInvestCost'        ] = parameters_dict['pGenFixedInvestmentCost' ]        * parameters_dict['pGenFixedChargeRate']                                          # generation fixed cost                   [kEUR]
-    parameters_dict['pGenRetireCost'        ] = parameters_dict['pGenFixedRetirementCost' ]        * parameters_dict['pGenFixedChargeRate']                                          # generation fixed retirement cost        [kEUR]
-    # parameters_dict['pGenOutflowsRampUp'    ] = parameters_dict['pGenOutflowsRampUp'      ] * 1e-3                                                                                   # H2 outflows ramp up   rate              [tonH2]
-    # parameters_dict['pGenOutflowsRampDown'  ] = parameters_dict['pGenOutflowsRampDown'      ] * -1                                                                              # H2 outflows ramp down rate              [tonH2]
+    parameters_dict['pGenLinearVarCost'     ] = parameters_dict['pGenLinearTerm'          ] * 1e-3 * parameters_dict['pGenFuelCost'] + parameters_dict['pGenOMVariableCost'] * 1e-3  # linear   term variable cost             [MEUR/GWh]
+    parameters_dict['pGenConstantVarCost'   ] = parameters_dict['pGenConstantTerm'        ] * 1e-6 * parameters_dict['pGenFuelCost']                                                 # constant term variable cost             [MEUR/h]
+    parameters_dict['pGenCO2EmissionCost'   ] = parameters_dict['pGenCO2EmissionRate'     ] * 1e-3 * parameters_dict['pParCO2Cost']                                                  # CO2 emission cost                       [MEUR/GWh]
+    parameters_dict['pGenStartUpCost'       ] = parameters_dict['pGenStartUpCost'         ] * 1e-6                                                                                   # generation startup cost                 [MEUR]
+    parameters_dict['pGenShutDownCost'      ] = parameters_dict['pGenShutDownCost'        ] * 1e-6                                                                                   # generation shutdown cost                [MEUR]
+    parameters_dict['pGenInvestCost'        ] = parameters_dict['pGenFixedInvestmentCost' ]        * parameters_dict['pGenFixedChargeRate']                                          # generation fixed cost                   [MEUR]
+    parameters_dict['pGenRetireCost'        ] = parameters_dict['pGenFixedRetirementCost' ]        * parameters_dict['pGenFixedChargeRate']                                          # generation fixed retirement cost        [MEUR]
+    # parameters_dict['pGenOutflowsRampUp'    ] = parameters_dict['pGenOutflowsRampUp'      ] * 1e-3                                                                                 # H2 outflows ramp up   rate              [tonH2]
+    # parameters_dict['pGenOutflowsRampDown'  ] = parameters_dict['pGenOutflowsRampDown'      ] * -1                                                                                 # H2 outflows ramp down rate              [tonH2]
 
     parameters_dict['pNodeLat'              ] = data_frames['dfNodeLocation']['Latitude'          ]                                                                                  # node latitude                           [º]
     parameters_dict['pNodeLon'              ] = data_frames['dfNodeLocation']['Longitude'         ]                                                                                  # node longitude                          [º]
@@ -813,19 +813,19 @@ def create_variables(model, optmodel):
     StartTime = time.time()
 
     #%% total variables
-    setattr(optmodel, 'vTotalSCost',                        Var(                     within=          Reals,                                                                                                                                                                                                   doc='total system                               cost [kEUR]'))
+    setattr(optmodel, 'vTotalSCost',                        Var(                     within=          Reals,                                                                                                                                                                                                   doc='total system                               cost [MEUR]'))
 
-    setattr(optmodel, 'vTotalMCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable market                      cost [kEUR]'))
-    setattr(optmodel, 'vTotalGCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable operation                   cost [kEUR]'))
-    setattr(optmodel, 'vTotalCCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable consumption operation       cost [kEUR]'))
-    setattr(optmodel, 'vTotalECost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total system   emission                    cost [kEUR]'))
-    setattr(optmodel, 'vTotalRCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total system   reliability                 cost [kEUR]'))
-    setattr(optmodel, 'vTotalEleTradeCost',                 Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total energy buy                           cost [kEUR]'))
-    setattr(optmodel, 'vTotalEleTradeProfit',               Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total energy sell                        profit [kEUR]'))
-    setattr(optmodel, 'vTotalHydTradeCost',                 Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total hydrogen buy                         cost [kEUR]'))
-    setattr(optmodel, 'vTotalHydTradeProfit',               Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total hydrogen sell                      profit [kEUR]'))
+    setattr(optmodel, 'vTotalMCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable market                      cost [MEUR]'))
+    setattr(optmodel, 'vTotalGCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable operation                   cost [MEUR]'))
+    setattr(optmodel, 'vTotalCCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable consumption operation       cost [MEUR]'))
+    setattr(optmodel, 'vTotalECost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total system   emission                    cost [MEUR]'))
+    setattr(optmodel, 'vTotalRCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total system   reliability                 cost [MEUR]'))
+    setattr(optmodel, 'vTotalEleTradeCost',                 Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total energy buy                           cost [MEUR]'))
+    setattr(optmodel, 'vTotalEleTradeProfit',               Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total energy sell                        profit [MEUR]'))
+    setattr(optmodel, 'vTotalHydTradeCost',                 Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total hydrogen buy                         cost [MEUR]'))
+    setattr(optmodel, 'vTotalHydTradeProfit',               Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total hydrogen sell                      profit [MEUR]'))
 
-    setattr(optmodel, 'vTotalReserveProfit',                Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total profit for contributing to reserves       [kEUR]'))
+    setattr(optmodel, 'vTotalReserveProfit',                Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total profit for contributing to reserves       [MEUR]'))
 
     print('--- Defining the total variables:                                      {} seconds'.format(round(time.time() - StartTime)))
 
@@ -1249,11 +1249,11 @@ def create_objective_function(model, optmodel):
     # defining the objective function
     def eTotalSCost(optmodel):
         return optmodel.vTotalSCost
-    optmodel.__setattr__('eTotalSCost', Objective(rule=eTotalSCost, sense=minimize, doc='Total system cost [kEUR]'))
+    optmodel.__setattr__('eTotalSCost', Objective(rule=eTotalSCost, sense=minimize, doc='Total system cost [MEUR]'))
 
     def eTotalTCost(optmodel):
         return optmodel.vTotalSCost == sum(optmodel.Par['pDiscountFactor'][idx[0]] * (optmodel.__getattribute__(f'vTotalMCost')[idx] + optmodel.__getattribute__(f'vTotalGCost')[idx] + optmodel.__getattribute__(f'vTotalECost')[idx] + optmodel.__getattribute__(f'vTotalCCost')[idx] - optmodel.__getattribute__(f'vTotalRCost')[idx]) for idx in model.psn)
-    optmodel.__setattr__('eTotalTCost', Constraint(rule=eTotalTCost, doc='Total system cost [kEUR]'))
+    optmodel.__setattr__('eTotalTCost', Constraint(rule=eTotalTCost, doc='Total system cost [MEUR]'))
 
     print('--- Declaring the totals components of the ObjFunc:                    {} seconds'.format(round(time.time() - StartTime)))
 
@@ -1266,23 +1266,23 @@ def create_objective_function_market(model, optmodel):
     def eTotalMCost(optmodel, p,sc,n):
         return (optmodel.vTotalMCost[p,sc,n] ==   optmodel.vTotalEleTradeCost[p,sc,n] - optmodel.vTotalEleTradeProfit[p,sc,n] + optmodel.vTotalHydTradeCost[p,sc,n] - optmodel.vTotalHydTradeProfit[p,sc,n]
                                                 + sum(model.Par['pDuration'][n] * (model.Par['pParENSCost'] * optmodel.vENS[p,sc,n,nd] + model.Par['pParHNSCost'] * optmodel.vHNS[p,sc,n,nd]) for nd in model.nd))
-    optmodel.__setattr__('eTotalMCost', Constraint(optmodel.psn, rule=eTotalMCost, doc='Total market cost in the DA market [kEUR]'))
+    optmodel.__setattr__('eTotalMCost', Constraint(optmodel.psn, rule=eTotalMCost, doc='Total market cost in the DA market [MEUR]'))
 
     def eTotalEleTradeCost(optmodel, p,sc,n):
         return optmodel.vTotalEleTradeCost[p,sc,n] == sum(model.Par['pDuration'][n] * (model.Par['pElectricityCost'][nd][p,sc,n] * optmodel.vElectricityBuy[p,sc,n,nd]) for nd in model.nd)
-    optmodel.__setattr__('eTotalEleTradeCost', Constraint(optmodel.psn, rule=eTotalEleTradeCost, doc='Total electricity trade cost in the DA market [kEUR]'))
+    optmodel.__setattr__('eTotalEleTradeCost', Constraint(optmodel.psn, rule=eTotalEleTradeCost, doc='Total electricity trade cost in the DA market [MEUR]'))
 
     def eTotalEleTradeProfit(optmodel, p,sc,n):
         return optmodel.vTotalEleTradeProfit[p,sc,n] == sum(model.Par['pDuration'][n] * (model.Par['pElectricityPrice'][nd][p,sc,n] * optmodel.vElectricitySell[p,sc,n,nd]) for nd in model.nd)
-    optmodel.__setattr__('eTotalEleTradeProfit', Constraint(optmodel.psn, rule=eTotalEleTradeProfit, doc='Total electricity trade profit in the DA market [kEUR]'))
+    optmodel.__setattr__('eTotalEleTradeProfit', Constraint(optmodel.psn, rule=eTotalEleTradeProfit, doc='Total electricity trade profit in the DA market [MEUR]'))
 
     def eTotalHydTradeCost(optmodel, p,sc,n):
         return optmodel.vTotalHydTradeCost[p,sc,n] == sum(model.Par['pDuration'][n] * (model.Par['pHydrogenCost'][nd][p,sc,n] * optmodel.vHydrogenBuy[p,sc,n,nd]) for nd in model.nd)
-    optmodel.__setattr__('eTotalHydTradeCost', Constraint(optmodel.psn, rule=eTotalHydTradeCost, doc='Total hydrogen trade cost in the DA market [kEUR]'))
+    optmodel.__setattr__('eTotalHydTradeCost', Constraint(optmodel.psn, rule=eTotalHydTradeCost, doc='Total hydrogen trade cost in the DA market [MEUR]'))
 
     def eTotalHydTradeProfit(optmodel, p,sc,n):
         return optmodel.vTotalHydTradeProfit[p,sc,n] == sum(model.Par['pDuration'][n] * (model.Par['pHydrogenPrice'][nd][p,sc,n] * optmodel.vHydrogenSell[p,sc,n,nd]) for nd in model.nd)
-    optmodel.__setattr__('eTotalHydTradeProfit', Constraint(optmodel.psn, rule=eTotalHydTradeProfit, doc='Total hydrogen trade profit in the DA market [kEUR]'))
+    optmodel.__setattr__('eTotalHydTradeProfit', Constraint(optmodel.psn, rule=eTotalHydTradeProfit, doc='Total hydrogen trade profit in the DA market [MEUR]'))
 
     # Generation operation cost in DA [M€]
     def eTotalGCost(optmodel, p,sc,n):
@@ -1296,23 +1296,23 @@ def create_objective_function_market(model, optmodel):
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenStartUpCost'    ][hz] * 1e3 * optmodel.vEleTotalChargeRampPos[p,sc,n,hz] for hz in model.hz) +
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenShutDownCost'   ][hz] *       optmodel.vHydShutDown          [p,sc,n,hz] for hz in model.hz) +
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenOMVariableCost' ][g ] *       optmodel.vEleTotalOutput       [p,sc,n,g ] for g  in model.g ))
-    optmodel.__setattr__('eTotalGCost', Constraint(optmodel.psn, rule=eTotalGCost, doc='Total generation cost in the DA market [kEUR]'))
+    optmodel.__setattr__('eTotalGCost', Constraint(optmodel.psn, rule=eTotalGCost, doc='Total generation cost in the DA market [MEUR]'))
 
     # Generation emission cost in DA [M€]
     def eTotalECost(optmodel, p,sc,n):
         return optmodel.vTotalECost[p,sc,n] == sum(model.Par['pDuration'][n] * model.Par['pGenCO2EmissionCost'][nr] * optmodel.vEleTotalOutput[p,sc,n,nr] for nr in model.nr)
-    optmodel.__setattr__('eTotalECost', Constraint(optmodel.psn, rule=eTotalECost, doc='Total emission cost in the DA market [kEUR]'))
+    optmodel.__setattr__('eTotalECost', Constraint(optmodel.psn, rule=eTotalECost, doc='Total emission cost in the DA market [MEUR]'))
     # Consumption operation cost in DA [M€]
     def eTotalCCost(optmodel, p,sc,n):
         return optmodel.vTotalCCost[p,sc,n] == sum(model.Par['pDuration'][n] * model.Par['pGenLinearTerm'][g] * optmodel.vEleTotalCharge[p,sc,n,g] for g in model.es)
-    optmodel.__setattr__('eTotalCCost', Constraint(optmodel.psn, rule=eTotalCCost, doc='Total consumption cost in the DA market [kEUR]'))
+    optmodel.__setattr__('eTotalCCost', Constraint(optmodel.psn, rule=eTotalCCost, doc='Total consumption cost in the DA market [MEUR]'))
     # Reserve operation revenue in DA [M€]
     def eTotalRCost(optmodel, p,sc,n):
         return optmodel.vTotalRCost[p,sc,n] == (sum(                            sum(model.Par[f'pOperatingReservePrice_{idx}'][p,sc,n]                                                           * optmodel.__getattribute__(f'vEleReserveProd_{idx}')[p,sc,n,nr] for idx in ['Up_SR','Down_SR'                  ]) for nr in model.nr if model.Par['pGenNoOperatingReserve'][nr] == 0) +
                                                 sum(model.Par['pDuration'][n] * sum(model.Par[f'pOperatingReservePrice_{idx}'][p,sc,n] * model.Par[f'pOperatingReserveActivation_{idx}'][p,sc,n] * optmodel.__getattribute__(f'vEleReserveProd_{idx}')[p,sc,n,nr] for idx in ['Up_SR','Down_SR','Up_TR','Down_TR']) for nr in model.nr if model.Par['pGenNoOperatingReserve'][nr] == 0) +
                                                 sum(                            sum(model.Par[f'pOperatingReservePrice_{idx}'][p,sc,n]                                                           * optmodel.__getattribute__(f'vEleReserveCons_{idx}')[p,sc,n,eh] for idx in ['Up_SR','Down_SR'                  ]) for eh in model.eh if model.Par['pGenNoOperatingReserve'][eh] == 0) +
                                                 sum(model.Par['pDuration'][n] * sum(model.Par[f'pOperatingReservePrice_{idx}'][p,sc,n] * model.Par[f'pOperatingReserveActivation_{idx}'][p,sc,n] * optmodel.__getattribute__(f'vEleReserveCons_{idx}')[p,sc,n,eh] for idx in ['Up_TR','Down_TR','Up_TR','Down_TR']) for eh in model.eh if model.Par['pGenNoOperatingReserve'][eh] == 0))
-    optmodel.__setattr__('eTotalRCost', Constraint(optmodel.psn, rule=eTotalRCost, doc='Total reserve revenue in the market [kEUR]'))
+    optmodel.__setattr__('eTotalRCost', Constraint(optmodel.psn, rule=eTotalRCost, doc='Total reserve revenue in the market [MEUR]'))
 
     print('--- Declaring the ObjFunc components:                                  {} seconds'.format(round(time.time() - StartTime)))
 
