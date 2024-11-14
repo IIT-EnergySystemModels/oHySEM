@@ -1,5 +1,10 @@
 Change Log
 =============
+[1.0.9] - 2024-11-15
+---------------------
+- [CHANGED] streamlit includes buttons for output figures
+- [CHANGED] Excel oHySEM_InputData updates the Generation Data modified by Streamlit
+- [CHANGED] oHySEM inputs are in MEUR
 
 [1.0.8] - 2024-11-12
 ---------------------
