@@ -472,14 +472,14 @@ if st.button('Launch the model'):
         kpi3.metric(label="Total Electricity Generation (GWh)", value=f"{total_electricity:.2f}")
 
         # Creating a layout for energy balances and network flows
-        st.subheader("Cost and Profits Overview")
+        st.subheader("OUTPUT ANALYSIS")
         with st.container():
             # Two columns: One for the cost and profits along the date and one as a pie chart
             col1, col2 = st.columns(2)
 
             # Total Cost Line Chart
             with col1:
-                st.subheader("Total Cost Over Time")
+                st.subheader("Operating Costs")
                 selection_cost = alt.selection_point(fields=['Component'], bind='legend')
                 cost_chart = alt.Chart(total_cost).mark_bar().encode(
                     x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
@@ -495,7 +495,7 @@ if st.button('Launch the model'):
             # Donut chart
             with col2:
                 # Total Cost Breakdown with handling of negative values
-                st.header("Total Cost and Profit Breakdown")
+                st.header("Global Costs and Benefits")
 
                 def create_donut_charts(data):
 
@@ -550,12 +550,12 @@ if st.button('Launch the model'):
 
 
         # Energy Balance and Network Flows
-        st.subheader("Energy Balance Overview")
+        st.subheader("ENERGY BALANCE")
         col1, col2 = st.columns(2)
 
         # Hydrogen Balance Line Chart
         with col2:
-            st.subheader("Hydrogen Balance Over Time")
+            st.subheader("Hydrogen")
             selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
             hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
@@ -570,7 +570,7 @@ if st.button('Launch the model'):
 
         # Electricity Balance Line Chart
         with col1:
-            st.subheader("Electricity Balance Over Time")
+            st.subheader("Electricity")
             selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
             electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
