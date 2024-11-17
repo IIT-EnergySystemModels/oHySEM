@@ -1,5 +1,5 @@
 # Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
-# Nov. 14, 2024
+# Nov. 15, 2024
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
@@ -397,6 +397,101 @@ datasets_gen = {
 df = load_csv('oH_Data_VarMaxGeneration_{}.csv'.format(st.session_state['case_name']), 3)
 modified_df = df * (modified_df.loc[unit, 'MaximumPower']/aux_df.loc[unit, 'MaximumPower'])
 modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['WindMaxGeneration']), index=True)
+
+# List of Battery Units
+st.title("Battery Data (BESS)")
+
+datasets_gen = {
+    'BESS': f'oH_Data_Generation_{st.session_state["case_name"]}.csv',
+}
+
+# modify the dataset
+df = load_csv(datasets_gen['BESS'], 1)
+
+modified_df = df.copy()
+aux_df      = df.copy()
+
+# list of Battery units, select the unit from df index if the column 'Technology' is equal to 'BESS'
+list_battery_units = df[df['Technology'] == 'BESS'].index
+
+# select the unit
+unit = st.selectbox('Modify the dataset below, select a unit:', list(list_battery_units))
+
+# User inputs
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    modified_df.loc[unit, 'MaximumPower'] = st.number_input("Enter the Maximum Power Output  [MW]:", value=modified_df.loc[unit, 'MaximumPower'])
+
+with col2:
+    modified_df.loc[unit, 'MinimumStorage'] = st.number_input("Enter the Minimum Storage  [GWh]:", value=modified_df.loc[unit, 'MinimumStorage'], format="%.3f")
+
+with col3:
+    modified_df.loc[unit, 'MaximumStorage'] = st.number_input("Enter the Maximum Storage  [GWh]:", value=modified_df.loc[unit, 'MaximumStorage'], format="%.3f")
+
+with col4:
+    modified_df.loc[unit, 'InitialStorage'] = st.number_input("Enter the Initial Storage  [GWh]:", value=modified_df.loc[unit, 'InitialStorage'], format="%.3f")
+
+# save the modified battery dataset
+if st.button('Save the modified Battery Data'):
+    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['BESS']), index=True)
+    st.success("Dataset saved successfully!")
+    st.write(modified_df[['MaximumPower', 'MinimumStorage','MaximumStorage', 'InitialStorage']].head())
+
+# List of Battery Units
+st.title("Hydrogen Tank Data (H2ESS)")
+
+datasets_gen = {
+    'H2ESS': f'oH_Data_Generation_{st.session_state["case_name"]}.csv',
+}
+
+# modify the dataset
+df = load_csv(datasets_gen['H2ESS'], 1)
+
+modified_df = df.copy()
+aux_df      = df.copy()
+
+# list of Battery units, select the unit from df index if the column 'Technology' is equal to 'H2ESS'
+list_h2ess_units = df[df['Technology'] == 'H2ESS'].index
+
+# select the unit
+unit = st.selectbox('Modify the dataset below, select a unit:', list(list_h2ess_units))
+
+# User inputs
+col1, col2, col3, col4, col5 = st.columns(5)
+
+with col1:
+    modified_df.loc[unit, 'MaximumPower'] = st.number_input("Enter the Maximum H2 OutFlow  [kg/h]:", value=modified_df.loc[unit, 'MaximumPower'])
+
+with col2:
+    modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the Maximum H2 InFlow  [kg/h]:", value=modified_df.loc[unit, 'MaximumCharge'])
+
+with col3:
+    modified_df.loc[unit, 'MinimumStorage'] = st.number_input("Enter the Minimum Storage  [tH2]:", value=modified_df.loc[unit, 'MinimumStorage'], format="%.3f")
+
+with col4:
+    modified_df.loc[unit, 'MaximumStorage'] = st.number_input("Enter the Maximum Storage  [tH2]:", value=modified_df.loc[unit, 'MaximumStorage'], format="%.3f")
+
+with col5:
+    modified_df.loc[unit, 'InitialStorage'] = st.number_input("Enter the Initial Storage  [tH2]:", value=modified_df.loc[unit, 'InitialStorage'], format="%.3f")
+
+#Explanation of H2ESS Data
+col1, col2 = st.columns([0.50, 0.95])
+
+with col1:
+    with st.expander("H2ESS Data?"):
+         st.write("""
+         - **Maximum Power OutFlow**: Maximum H2 flow FROM the H2ESS in kilograms per hour
+         - **Maximum Power InFlow**: Maximum H2 flow INTO the H2ESS in kilograms per hour
+         - **Initial/Minimum/Maximum Storage**: H2 stored in the H2ESS in tons of H2
+         """)
+
+
+# save the modified h2ess dataset
+if st.button('Save the modified H2ESS Data'):
+    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['H2ESS']), index=True)
+    st.success("Dataset saved successfully!")
+    st.write(modified_df[['MaximumPower', 'MaximumCharge', 'MinimumStorage','MaximumStorage', 'InitialStorage']].head())
 
 
 

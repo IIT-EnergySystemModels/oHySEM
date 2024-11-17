@@ -1,6 +1,10 @@
 Change Log
 =============
-[1.0.9] - 2024-11-15
+[1.0.10] - 2024-11-15
+---------------------
+- [CHANGED] streamlit includes data parameters of BESS & H2ESS
+
+[1.0.9] - 2024-11-14
 ---------------------
 - [CHANGED] streamlit includes buttons for output figures
 - [CHANGED] Excel oHySEM_InputData updates the Generation Data modified by Streamlit
