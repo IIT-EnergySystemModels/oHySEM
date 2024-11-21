@@ -249,11 +249,12 @@ def data_processing(DirName, CaseName, model):
     parameters_dict = {f'pOpt{indicator}': data_frames['dfOption'][indicator].iloc[0].astype('int') for indicator in option_ind}
 
     # Parameter Indicators
+
     parameter_ind = data_frames['dfParameter'].columns.to_list()
 
     # Extract, process parameter variables and add to parameters_dict
     for indicator in parameter_ind:
-        if ('Cost' in indicator or 'Target' in indicator or 'Ramp' in indicator) and 'CO2' not in indicator:
+        if ('Cost' in indicator or 'Target' in indicator or 'Ramp' in indicator or 'Price' in indicator) and 'CO2' not in indicator:
             parameters_dict[f'pPar{indicator}'] = data_frames['dfParameter'][indicator].iloc[0] * factor1
         else:
             parameters_dict[f'pPar{indicator}'] = data_frames['dfParameter'][indicator].iloc[0]
@@ -604,7 +605,7 @@ def data_processing(DirName, CaseName, model):
     parameters_dict[f'pElectricityCost'  ] = parameters_dict[f'pElectricityCost'  ].loc[model.psn]
     parameters_dict[f'pElectricityPrice' ] = parameters_dict[f'pElectricityPrice' ].loc[model.psn]
     parameters_dict[f'pHydrogenCost'     ] = parameters_dict[f'pHydrogenCost'     ].loc[model.psn]
-    parameters_dict[f'pHydrogenPrice'    ] = parameters_dict[f'pHydrogenPrice'    ].loc[model.psn]
+# Pedro   parameters_dict[f'pHydrogenPrice'    ] = parameters_dict[f'pHydrogenPrice'    ].loc[model.psn]
     parameters_dict[f'pMinPower'         ] = parameters_dict[f'pMinPower'         ].loc[model.psn]
     parameters_dict[f'pMaxPower'         ] = parameters_dict[f'pMaxPower'         ].loc[model.psn]
     parameters_dict[f'pMinCharge'        ] = parameters_dict[f'pMinCharge'        ].loc[model.psn]
@@ -1277,11 +1278,11 @@ def create_objective_function_market(model, optmodel):
     optmodel.__setattr__('eTotalEleTradeProfit', Constraint(optmodel.psn, rule=eTotalEleTradeProfit, doc='Total electricity trade profit in the DA market [MEUR]'))
 
     def eTotalHydTradeCost(optmodel, p,sc,n):
-        return optmodel.vTotalHydTradeCost[p,sc,n] == sum(model.Par['pDuration'][n] * (model.Par['pHydrogenCost'][nd][p,sc,n] * optmodel.vHydrogenBuy[p,sc,n,nd]) for nd in model.nd)
+        return optmodel.vTotalHydTradeCost[p,sc,n] == sum(model.Par['pDuration'][n] * (model.Par['pParCostH2']  * optmodel.vHydrogenBuy[p,sc,n,nd]) for nd in model.nd)
     optmodel.__setattr__('eTotalHydTradeCost', Constraint(optmodel.psn, rule=eTotalHydTradeCost, doc='Total hydrogen trade cost in the DA market [MEUR]'))
 
     def eTotalHydTradeProfit(optmodel, p,sc,n):
-        return optmodel.vTotalHydTradeProfit[p,sc,n] == sum(model.Par['pDuration'][n] * (model.Par['pHydrogenPrice'][nd][p,sc,n] * optmodel.vHydrogenSell[p,sc,n,nd]) for nd in model.nd)
+        return optmodel.vTotalHydTradeProfit[p,sc,n] == sum(model.Par['pDuration'][n] * (model.Par['pParPriceH2']  * optmodel.vHydrogenSell[p,sc,n,nd]) for nd in model.nd)
     optmodel.__setattr__('eTotalHydTradeProfit', Constraint(optmodel.psn, rule=eTotalHydTradeProfit, doc='Total hydrogen trade profit in the DA market [MEUR]'))
 
     # Generation operation cost in DA [M€]
@@ -2524,21 +2525,21 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
 
     # %% outputting the hydrogen energy balance
     #%%  Hydrogen balance per period, scenario, and load level
-    OutputResults1     = pd.Series(data=[ sum(optmodel.vHydTotalOutput           [p,sc,n,h       ]() * model.Par['pDuration'][n] for h  in model.h  if (nd,h ) in model.n2h and (gt,h ) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='Generation'        ).reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='Generation'        , aggfunc='sum')
-    OutputResults2     = pd.Series(data=[-sum(optmodel.vHydTotalCharge           [p,sc,n,hs      ]() * model.Par['pDuration'][n] for hs in model.he if (nd,hs) in model.n2h and (gt,hs) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='ConsumptionHydESS' ).reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='ConsumptionHydESS')
-    OutputResults3     = pd.Series(data=[-sum(optmodel.vHydTotalCharge           [p,sc,n,hs      ]() * model.Par['pDuration'][n] for hs in model.he if (nd,hs) in model.n2g and (gt,hs) in model.t2g) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='ConsumptionHyd2Ele').reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='ConsumptionHyd2Ele')
-    OutputResults4     = pd.Series(data=[     optmodel.vHNS                      [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HNS'               )
-    OutputResults5     = pd.Series(data=[-    optmodel.vHydTotalDemand           [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenDemand'    )
-    OutputResults6     = pd.Series(data=[     optmodel.vHydrogenBuy              [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenBuy'       )
-    OutputResults7     = pd.Series(data=[-    optmodel.vHydrogenSell             [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenSell'      )
-    OutputResults8     = pd.Series(data=[-sum(optmodel.vHydNetFlow               [p,sc,n,nd,nf,cc]() * model.Par['pDuration'][n] for (nf,cc) in hout [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenFlowOut'   )
-    OutputResults9     = pd.Series(data=[ sum(optmodel.vHydNetFlow               [p,sc,n,ni,nd,cc]() * model.Par['pDuration'][n] for (ni,cc) in hin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenFlowIn'    )
-    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9], axis=1).stack().to_frame(name='tH2')
+    OutputResults1     = pd.Series(data=[ sum(optmodel.vHydTotalOutput           [p,sc,n,h       ]() * 1e3 * model.Par['pDuration'][n] for h  in model.h  if (nd,h ) in model.n2h and (gt,h ) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='Generation'        ).reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='Generation'        , aggfunc='sum')
+    OutputResults2     = pd.Series(data=[-sum(optmodel.vHydTotalCharge           [p,sc,n,hs      ]() * 1e3 * model.Par['pDuration'][n] for hs in model.he if (nd,hs) in model.n2h and (gt,hs) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='ConsumptionHydESS' ).reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='ConsumptionHydESS')
+    OutputResults3     = pd.Series(data=[-sum(optmodel.vHydTotalCharge           [p,sc,n,hs      ]() * 1e3 * model.Par['pDuration'][n] for hs in model.he if (nd,hs) in model.n2g and (gt,hs) in model.t2g) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='ConsumptionHyd2Ele').reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='ConsumptionHyd2Ele')
+    OutputResults4     = pd.Series(data=[     optmodel.vHNS                      [p,sc,n,nd      ]() * 1e3 * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HNS'               )
+    OutputResults5     = pd.Series(data=[-    optmodel.vHydTotalDemand           [p,sc,n,nd      ]() * 1e3 * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenDemand'    )
+    OutputResults6     = pd.Series(data=[     optmodel.vHydrogenBuy              [p,sc,n,nd      ]() * 1e3 * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenBuy'       )
+    OutputResults7     = pd.Series(data=[-    optmodel.vHydrogenSell             [p,sc,n,nd      ]() * 1e3 * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenSell'      )
+    OutputResults8     = pd.Series(data=[-sum(optmodel.vHydNetFlow               [p,sc,n,nd,nf,cc]() * 1e3 * model.Par['pDuration'][n] for (nf,cc) in hout [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenFlowOut'   )
+    OutputResults9     = pd.Series(data=[ sum(optmodel.vHydNetFlow               [p,sc,n,ni,nd,cc]() * 1e3 * model.Par['pDuration'][n] for (ni,cc) in hin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='HydrogenFlowIn'    )
+    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9], axis=1).stack().to_frame(name='kgH2')
 
     # select the third level of the index and create a new column date using the Date as a initial date
     OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
 
-    Output_HydBalance = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'tH2'}, inplace=False)
+    Output_HydBalance = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'kgH2'}, inplace=False)
     Output_HydBalance.to_csv(_path+'/oH_Result_rHydrogenBalance_'+CaseName+'.csv', index=False, sep=',')
     model.Output_HydBalance = Output_HydBalance
 
