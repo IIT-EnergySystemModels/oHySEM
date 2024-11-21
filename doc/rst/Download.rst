@@ -3,7 +3,7 @@
 Download & Installation
 ========================
 
-The **oHySEM** model is developed using `Python 3.12.3 <https://www.python.org/>`_ and `Pyomo 6.8.1 <https://pyomo.readthedocs.io/en/stable/>`_, with `Gurobi 12.0.0 <https://www.gurobi.com/products/gurobi-optimizer/>`_ as the commercial solver. Free solvers like `HiGHS`, `SCIP`, `GLPK`, and `CBC` are also supported. List available Pyomo solvers by running::
+The **oHySEM** model is developed using `Python 3.12.3 <https://www.python.org/>`_ and `Pyomo 6.8.2 <https://pyomo.readthedocs.io/en/stable/>`_, with `Gurobi 12.0.0 <https://www.gurobi.com/products/gurobi-optimizer/>`_ as the commercial solver. Free solvers like `HiGHS`, `SCIP`, `GLPK`, and `CBC` are also supported. List available Pyomo solvers by running::
 
   pyomo help -s
 
