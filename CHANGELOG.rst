@@ -1,12 +1,15 @@
 Change Log
 =============
-[1.0.10] - 2024-11-15
+[1.0.10] - 2024-11-21
 ---------------------
-- [CHANGED] streamlit includes data parameters of BESS & H2ESS
+- [CHANGED] streamlit shows and edit H2 market price/cost and H2 delivery contract conditions
+- [UPDATED] streamlit depicts interactive figures of Electricity and H2 balances
+- [UPDATED] Excel oHySEM_InputData updates the Generation & Parameter modified by Streamlit
+- [CHANGED] oHySEM H2 outputs are in kgH2
 
-[1.0.9] - 2024-11-14
+[1.0.9] - 2024-11-15
 ---------------------
-- [CHANGED] streamlit includes buttons for output figures
+- [CHANGED] streamlit includes info buttons for output figures
 - [CHANGED] Excel oHySEM_InputData updates the Generation Data modified by Streamlit
 - [CHANGED] oHySEM inputs are in MEUR
 
