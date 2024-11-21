@@ -171,7 +171,7 @@ st.header("Tariff activation")
 button_text = "❓"
 if st.button(button_text, on_click=toggle_text, key="Tariff_activation_button"): pass
 if st.session_state.show_text:
-    st.markdown('<p style="color:red;">Tariffs that can be used to buy electricity</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:green;">Tariffs that can be used to buy electricity</p>', unsafe_allow_html=True)
 
 
 # activation of tariffs
@@ -274,7 +274,7 @@ line_chart = alt.Chart(df).mark_line(point=alt.OverlayMarkDef(filled=False, fill
 st.altair_chart(line_chart, use_container_width=True)
 
 # reading, modifying and saving the input data
-st.title("H2 Delivery Data")
+st.title("Contracted H2 Demand Conditions")
 
 # Helper function to load CSVs
 # @st.cache_data
@@ -291,26 +291,58 @@ df = load_csv(datasets_par[dataset_par], 1)
 # st.write(df[['DemandType', 'TargetDemand', 'RampDemand']].head())
 
 # Modify the dataset
-st.write("Modify the dataset below:")
 modified_df = df.copy()
 # User inputs
 col1, col2, col3 = st.columns(3)
 
 with col1:
     # modified_df['DemandType'] = st.text_input("Enter the demand type", value=modified_df['DemandType'][0])
-    modified_df['DemandType'] = st.selectbox('Select a demand type:', list(['Hourly', 'Daily', 'Weekly']))
+    modified_df['DemandType'] = st.selectbox('Select a Demand Schedule:', list(['Hourly', 'Daily', 'Weekly']))
 
 with col2:
-    modified_df['TargetDemand'] = st.number_input("Enter the target demand [kgH2]:", value=modified_df['TargetDemand'][0])
+    modified_df['TargetDemand'] = st.number_input("Enter the Scheduled Demand [kgH2]:", value=modified_df['TargetDemand'][0])
 
 with col3:
-    modified_df['RampDemand'] = st.number_input("Enter H2 Demand Ramp [kgH2]:", value=modified_df['RampDemand'][0])
+    modified_df['RampDemand'] = st.number_input("Enter the Maximum H2 Up/Down Delivery Ramp [kgH2/h]:", value=modified_df['RampDemand'][0])
+
+#Explanation of Contracted H2 Demand Conditions
+col1, col2 = st.columns([0.80, 0.95])
+
+with col1:
+    with st.expander("Contracted H2 Demand Conditions?"):
+         st.write("""
+         - **Demand Schedule**: Time Duration for scheduling the H2 demand delivery (Hourly/Daily/Weekly)
+         - **Schedule Demand**: H2 Demand Scheduled in kilograms 
+         - **Maximum H2 Up/Down Delivery Ramp**: Maximum delivery change of H2 kilograms per hour  
+       """)
+
+# H2 Market Conditions
+st.title("H2 Market Conditions")
+# User inputs
+col1, col2 = st.columns(2)
+
+with col1:
+    modified_df['PriceH2'] = st.number_input("Enter the Market H2 Price  [€/kgH2]:", value=modified_df['PriceH2'][0])
+
+with col2:
+    modified_df['CostH2'] = st.number_input("Enter the Market H2 Cost  [€/kgH2]:", value=modified_df['CostH2'][0])
+
+#Explanation of Contracted H2 Demand Conditions
+col1, col2 = st.columns([0.80, 0.95])
+
+with col1:
+    with st.expander("H2 Market Conditions?"):
+         st.write("""
+         - **Market H2 *Price***: Market Price to *sell* H2 in € per H2 kilogram
+         - **Market H2 *Cost***: Market Cost to *buy* H2 in € per H2 kilogram 
+       """)
+
 
 # Save the modified dataset
-if st.button('Save the modified data of H2 demand'):
+if st.button('Save the modified data of **H2 Demand & Market Conditions**'):
     modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_par[dataset_par]), index=True)
     st.success("Dataset saved successfully!")
-    st.write(modified_df[['DemandType', 'TargetDemand', 'RampDemand']].head())
+    st.write(modified_df[['DemandType', 'TargetDemand', 'RampDemand', 'PriceH2', 'CostH2']].head())
 
 # reading, modifying and saving the input data
 st.title("Electrolyzer Data")
@@ -334,19 +366,32 @@ unit = st.selectbox('Modify the dataset below, select a unit:', list(list_electr
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the maximum electricity consumption [MW]:", value=modified_df.loc[unit, 'MaximumCharge'])
+    modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the Maximum Electricity Consumption [MW]:", value=modified_df.loc[unit, 'MaximumCharge'])
 
 with col2:
-    modified_df.loc[unit, 'MinimumCharge'] = st.number_input("Enter the minimum electricity consumption [MW]:", value=modified_df.loc[unit, 'MinimumCharge'])
+    modified_df.loc[unit, 'MinimumCharge'] = st.number_input("Enter the Minimum Electricity Consumption [MW]:", value=modified_df.loc[unit, 'MinimumCharge'])
 
 with col3:
-    modified_df.loc[unit, 'ProductionFunction'] = st.number_input("Enter the production function [kWh/kgH2]:", value=modified_df.loc[unit, 'ProductionFunction'])
+    modified_df.loc[unit, 'ProductionFunction'] = st.number_input("Enter the Production Function [kWh/kgH2]:", value=modified_df.loc[unit, 'ProductionFunction'])
 
 with col4:
-    modified_df.loc[unit, 'StandByStatus'] =  st.selectbox('Activate the stand-by status [Yes or No]:', list(['Yes', 'No']))
+    modified_df.loc[unit, 'StandByStatus'] =  st.selectbox('Activate the Stand-By Status [Yes or No]:', list(['Yes', 'No']))
 
 with col5:
-    modified_df.loc[unit, 'StandByPower'] = st.number_input("Enter the electricity consumption of the stand-by status [MW]:", value=modified_df.loc[unit, 'StandByPower'])
+    modified_df.loc[unit, 'StandByPower'] = st.number_input("Enter the Electricity Consumption of the Stand-By Status [MW]:", value=modified_df.loc[unit, 'StandByPower'])
+
+#Explanation of Electrolyzer Data
+col1, col2 = st.columns([0.80, 0.95])
+
+with col1:
+    with st.expander("Electrolyzer Data?"):
+         st.write("""
+         - **Maximum Electricity consumption**: Maximum Consumption of the Electrolyzer in MW
+         - **Minimum Electricity Consumption**: Minimum Consumption of the Electrolyzer in MW
+         - **Production Function**: kWh consumed to produce 1 kg of Hydrogen
+         - **Stand-By State (Y/N)**: If the Electrolyzer can get the Stand-By Status or only being shut down
+         - **Electricity Consumption of the Stand-By Status**: Consumption of the Electrolyzer in MW in the Stand-By Status
+         """)
 
 # save the modified dataset
 if st.button('Save the modified data of the electrolyzer'):
@@ -558,12 +603,12 @@ if st.button('Launch the model'):
         st.subheader("Key Performance Indicators")
 
         total_cost_value = total_cost['kEUR'].sum()
-        total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'H2ESS']['tH2'].sum()
+        total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'H2ESS']['kgH2'].sum()
         total_electricity = electricity_balance['GWh'].sum()
 
         kpi1, kpi2, kpi3 = st.columns(3)
         kpi1.metric(label="Total Cost (kEUR)", value=f"{total_cost_value:.2f}")
-        kpi2.metric(label="Total Hydrogen Storage (tH2)", value=f"{total_hydrogen:.2f}")
+        kpi2.metric(label="Total Hydrogen Storage (kgH2)", value=f"{total_hydrogen:.2f}")
         kpi3.metric(label="Total Electricity Generation (GWh)", value=f"{total_electricity:.2f}")
 
         # Creating a layout for energy balances and network flows
@@ -585,7 +630,7 @@ if st.button('Launch the model'):
                 ).properties(width=700, height=400, background='#000000').configure_axis(
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
-                ).add_params(selection_cost)
+                ).add_params(selection_cost).interactive()
                 st.altair_chart(cost_chart, use_container_width=True)
 
             with st.expander("Cost Components?"):
@@ -665,13 +710,13 @@ if st.button('Launch the model'):
             selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
             hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-                y='tH2:Q',
+                y='kgH2:Q',
                 color='Component:N',
                 opacity=alt.condition(selection_hyd_balance, alt.value(0.8), alt.value(0.2))
             ).properties(width=700, height=400, background='#000000').configure_axis(
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
-                ).add_params(selection_hyd_balance)
+                ).add_params(selection_hyd_balance).interactive()
             st.altair_chart(hydrogen_chart, use_container_width=True)
 
         # Electricity Balance Line Chart
@@ -687,7 +732,7 @@ if st.button('Launch the model'):
                     labelFontSize=label_fontsize,
                     titleFontSize=title_fontsize
                 ).configure_view(strokeOpacity=0
-                ).add_params(selection_ele_balance)
+                ).add_params(selection_ele_balance).interactive()
 
             st.altair_chart(electricity_chart, use_container_width=True)
 
