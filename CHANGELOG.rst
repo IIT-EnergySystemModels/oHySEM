@@ -1,5 +1,10 @@
 Change Log
 =============
+[1.0.11] - 2024-11-27
+---------------------
+- [CHANGED] oHySEM writes Electricity and H2 Storage levels at ESS and HSS contract conditions
+- [CHANGED] streamlit shows Electricity and H2 Storage levels at ESS and HSS contract conditions
+
 [1.0.10] - 2024-11-21
 ---------------------
 - [CHANGED] streamlit shows and edit H2 market price/cost and H2 delivery contract conditions
