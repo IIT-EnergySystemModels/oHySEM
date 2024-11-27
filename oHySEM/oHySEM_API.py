@@ -591,9 +591,11 @@ if st.button('Launch the model'):
         def load_result_csv(file_name):
             return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name))
 
-        hydrogen_balance = load_result_csv(f'oH_Result_rHydrogenBalance_{st.session_state["case_name"]}.csv')
+        hydrogen_balance    = load_result_csv(f'oH_Result_rHydrogenBalance_{st.session_state["case_name"]}.csv')
+        hydrogen_inventory  = load_result_csv(f'oH_Result_rHydInventory_{st.session_state["case_name"]}.csv')
         electricity_balance = load_result_csv(f'oH_Result_rElectricityBalance_{st.session_state["case_name"]}.csv')
-        total_cost = load_result_csv(f'oH_Result_rTotalCost_{st.session_state["case_name"]}.csv')
+        electricity_inventory = load_result_csv(f'oH_Result_rEleInventory_{st.session_state["case_name"]}.csv')
+        total_cost          = load_result_csv(f'oH_Result_rTotalCost_{st.session_state["case_name"]}.csv')
 
         # Filter unnecessary rows
         hydrogen_balance = hydrogen_balance[~hydrogen_balance['Component'].isin(['HydrogenFlowIn', 'HydrogenFlowOut', 'Wind', 'BESS'])]
@@ -604,7 +606,7 @@ if st.button('Launch the model'):
 
         total_cost_value = total_cost['kEUR'].sum()
         total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'H2ESS']['kgH2'].sum()
-        total_electricity = electricity_balance['GWh'].sum()
+        total_electricity = electricity_balance['MWh'].sum()
 
         kpi1, kpi2, kpi3 = st.columns(3)
         kpi1.metric(label="Total Cost (kEUR)", value=f"{total_cost_value:.2f}")
@@ -725,7 +727,7 @@ if st.button('Launch the model'):
             selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
             electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-                y='GWh:Q',
+                y='MWh:Q',
                 color='Component:N',
                 opacity=alt.condition(selection_ele_balance, alt.value(0.8), alt.value(0.2))
                 ).properties(width=700, height=400,background='#000000').configure_axis(
@@ -742,5 +744,76 @@ if st.button('Launch the model'):
                 - **ENS / HNS**:  Electricity/ Hydrogen Non-Supplied
                 - **H2ESS**: Electricity & Hydrogen Consumption by H2 Tank
                 """)
+
+#PEDRO
+
+        # ESS and HSS Storage Levels
+        st.subheader("ENERGY STORAGE LEVELS")
+        col1, col2 = st.columns(2)
+
+        # Hydrogen Storage Level Chart
+        with col2:
+            st.subheader("Hydrogen Storage Level (kg H2)")
+
+            # Configurar selección
+            selection_hyd_inventory = alt.selection_point(fields=['HSS'], bind='legend')
+
+            # Crear el gráfico de líneas interactivo
+            hyd_inventory_chart = (alt.Chart(hydrogen_inventory).mark_line(point=True)  # Gráfico de líneas con puntos interactivos
+                .encode(
+                    x=alt.X('Date:T',
+                        axis=alt.Axis( title='',
+                            labelAngle=-90,format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000,),),
+                    y=alt.Y('kgH2:Q', title="kg H2"),
+                    color=alt.Color('HSS:N', legend=alt.Legend(title="HSS Components")),
+                    opacity=alt.condition(
+                        selection_hyd_inventory, alt.value(0.8), alt.value(0.2)
+                    ),
+                    tooltip=['Date:T', 'kgH2:Q', 'HSS:N']  # Añade tooltips para mayor interactividad
+                )
+                .properties(width=700, height=400, background='#000000')
+                .configure_axis(labelFontSize=label_fontsize, titleFontSize=title_fontsize)
+                .add_params(selection_hyd_inventory)  # Mantener selección interactiva
+                .interactive()  # Hacer el gráfico interactivo (zoom, pan)
+            )
+
+            # Renderizar el gráfico en Streamlit
+            st.altair_chart(hyd_inventory_chart, use_container_width=True)
+
+        # Electricity Storage Level Chart
+        with col1:
+            st.subheader("Electricity Storage Level (MWh)")
+
+            # Configurar selección
+            selection_ele_inventory = alt.selection_point(fields=['ESS'], bind='legend')
+
+            # Crear el gráfico de líneas interactivo
+            ele_inventory_chart = (alt.Chart(electricity_inventory).mark_line(point=True)  # Gráfico de líneas con puntos interactivos
+                .encode(
+                    x=alt.X('Date:T',
+                        axis=alt.Axis( title='',
+                            labelAngle=-90,format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000,),),
+                    y=alt.Y('MWh:Q', title="MWh"),
+                    color=alt.Color('ESS:N', legend=alt.Legend(title="ESS Components")),
+                    opacity=alt.condition(
+                        selection_ele_inventory, alt.value(0.8), alt.value(0.2)
+                    ),
+                    tooltip=['Date:T', 'MWh:Q', 'ESS:N']  # Añade tooltips para mayor interactividad
+                )
+                .properties(width=700, height=400, background='#000000')
+                .configure_axis(labelFontSize=label_fontsize, titleFontSize=title_fontsize)
+                .add_params(selection_ele_inventory)  # Mantener selección interactiva
+                .interactive()  # Hacer el gráfico interactivo (zoom, pan)
+            )
+
+            # Renderizar el gráfico en Streamlit
+            st.altair_chart(ele_inventory_chart, use_container_width=True)
+
+            with st.expander("Energy Storage Components?"):
+                st.markdown("""
+                - **To be included soon**: 
+                """)
+
+
 
 st.write("Dashboard created for analyzing oHySEM results.")
