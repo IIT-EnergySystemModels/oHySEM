@@ -2501,23 +2501,23 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     sPNND   = [(p,sc,n,nd)    for p,sc,n,nd    in model.psn*model.nd]
     sPNNDGT = [(p,sc,n,nd,gt) for p,sc,n,nd,gt in sPNND*model.gt   ]
 
-    OutputResults1     = pd.Series(data=[ sum(optmodel.vEleTotalOutput          [p,sc,n,g       ]() * model.Par['pDuration'][n] for g  in model.g  if (nd,g ) in model.n2g and (gt,g ) in model.t2g) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='Generation'        ).reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='Generation' )
-    OutputResults2     = pd.Series(data=[-sum(optmodel.vEleTotalCharge          [p,sc,n,es      ]() * model.Par['pDuration'][n] for es in model.eh if (nd,es) in model.n2g and (gt,es) in model.t2g) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='ConsumptionEleESS' ).reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='ConsumptionEleESS')
-    OutputResults3     = pd.Series(data=[-sum(optmodel.vEleTotalCharge          [p,sc,n,es      ]() * model.Par['pDuration'][n] for es in model.eh if (nd,es) in model.n2h and (gt,es) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='ConsumptionEle2Hyd').reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='ConsumptionEle2Hyd')
-    OutputResults4     = pd.Series(data=[-sum(optmodel.vHydCompressorConsumption[p,sc,n,hs      ]() * model.Par['pDuration'][n] for hs in model.he if (nd,hs) in model.n2h and (gt,hs) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='CompressorConsumpt').reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='CompressorConsumpt')
-    OutputResults5     = pd.Series(data=[-sum(optmodel.vHydStandByConsumption   [p,sc,n,es      ]() * model.Par['pDuration'][n] for es in model.eh if (nd,es) in model.n2h and (gt,es) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='StandByConsumption').reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='StandByConsumption')
-    OutputResults6     = pd.Series(data=[     optmodel.vENS                     [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ENS'               )
-    OutputResults7     = pd.Series(data=[-       model.Par['pElectricityDemand'][nd][p,sc,n     ]   * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ElectricityDemand' )
-    OutputResults8     = pd.Series(data=[     optmodel.vElectricityBuy          [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ElectricityBuy'    )
-    OutputResults9     = pd.Series(data=[-    optmodel.vElectricitySell         [p,sc,n,nd      ]() * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ElectricitySell'   )
-    OutputResults10    = pd.Series(data=[-sum(optmodel.vEleNetFlow              [p,sc,n,nd,nf,cc]() * model.Par['pDuration'][n] for (nf,cc) in lout [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='PowerFlowOut'      )
-    OutputResults11    = pd.Series(data=[ sum(optmodel.vEleNetFlow              [p,sc,n,ni,nd,cc]() * model.Par['pDuration'][n] for (ni,cc) in lin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='PowerFlowIn'       )
-    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9, OutputResults10, OutputResults11], axis=1).stack().to_frame(name='GWh')
+    OutputResults1     = pd.Series(data=[ sum(optmodel.vEleTotalOutput          [p,sc,n,g       ]() * 1e3 * model.Par['pDuration'][n] for g  in model.g  if (nd,g ) in model.n2g and (gt,g ) in model.t2g) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='Generation'        ).reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='Generation' )
+    OutputResults2     = pd.Series(data=[-sum(optmodel.vEleTotalCharge          [p,sc,n,es      ]() * 1e3 * model.Par['pDuration'][n] for es in model.eh if (nd,es) in model.n2g and (gt,es) in model.t2g) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='ConsumptionEleESS' ).reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='ConsumptionEleESS')
+    OutputResults3     = pd.Series(data=[-sum(optmodel.vEleTotalCharge          [p,sc,n,es      ]() * 1e3 * model.Par['pDuration'][n] for es in model.eh if (nd,es) in model.n2h and (gt,es) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='ConsumptionEle2Hyd').reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='ConsumptionEle2Hyd')
+    OutputResults4     = pd.Series(data=[-sum(optmodel.vHydCompressorConsumption[p,sc,n,hs      ]() * 1e3 * model.Par['pDuration'][n] for hs in model.he if (nd,hs) in model.n2h and (gt,hs) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='CompressorConsumpt').reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='CompressorConsumpt')
+    OutputResults5     = pd.Series(data=[-sum(optmodel.vHydStandByConsumption   [p,sc,n,es      ]() * 1e3 * model.Par['pDuration'][n] for es in model.eh if (nd,es) in model.n2h and (gt,es) in model.t2h) for p,sc,n,nd,gt in sPNNDGT], index=pd.Index(sPNNDGT)).to_frame(name='StandByConsumption').reset_index().pivot_table(index=['level_0','level_1','level_2','level_3'], columns='level_4', values='StandByConsumption')
+    OutputResults6     = pd.Series(data=[     optmodel.vENS                     [p,sc,n,nd      ]() * 1e3 * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ENS'               )
+    OutputResults7     = pd.Series(data=[-       model.Par['pElectricityDemand'][nd][p,sc,n     ]   * 1e3 * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ElectricityDemand' )
+    OutputResults8     = pd.Series(data=[     optmodel.vElectricityBuy          [p,sc,n,nd      ]() * 1e3 * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ElectricityBuy'    )
+    OutputResults9     = pd.Series(data=[-    optmodel.vElectricitySell         [p,sc,n,nd      ]() * 1e3 * model.Par['pDuration'][n]                                                                      for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='ElectricitySell'   )
+    OutputResults10    = pd.Series(data=[-sum(optmodel.vEleNetFlow              [p,sc,n,nd,nf,cc]() * 1e3 * model.Par['pDuration'][n] for (nf,cc) in lout [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='PowerFlowOut'      )
+    OutputResults11    = pd.Series(data=[ sum(optmodel.vEleNetFlow              [p,sc,n,ni,nd,cc]() * 1e3 * model.Par['pDuration'][n] for (ni,cc) in lin  [nd])                                            for p,sc,n,nd    in sPNND  ], index=pd.Index(sPNND  )).to_frame(name='PowerFlowIn'       )
+    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5, OutputResults6, OutputResults7, OutputResults8, OutputResults9, OutputResults10, OutputResults11], axis=1).stack().to_frame(name='MWh')
 
     # select the third level of the index and create a new column date using the Date as an initial date
     OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
 
-    Output_EleBalance = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'GWh'}, inplace=False)
+    Output_EleBalance = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Node', 'Component', 'Date'], axis=0).reset_index().rename(columns={0: 'MWh'}, inplace=False)
     Output_EleBalance.to_csv(_path+'/oH_Result_rElectricityBalance_'+CaseName+'.csv', index=False, sep=',')
     model.Output_EleBalance = Output_EleBalance
 
@@ -2565,6 +2565,40 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     Output_EleNetFlow = OutputResults
     Output_EleNetFlow.to_csv(_path+'/oH_Result_rElectricityNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
     model.Output_EleNetFlow = Output_EleNetFlow
+
+    # Hydrogen Inventory Output
+
+    # saving the results of the H2 inventory levels
+    OutputResults = pd.Series(data=[optmodel.vHydInventory[p,sc,n,hs]() for p,sc,n,hs in model.psnhs], index=pd.Index(model.psnhs)).to_frame(name='kgH2').rename_axis(
+        ['Period', 'Scenario', 'LoadLevel', 'HSS'], axis=0)
+
+    # scale H2 inventory in kg (kilograms)
+    OutputResults = OutputResults * 1e3
+
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
+
+    OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'HSS', 'Date'], axis=0).reset_index()
+    Output_vHydInventory = OutputResults
+    Output_vHydInventory.to_csv(_path+'/oH_Result_rHydInventory_'+CaseName+'.csv', index=False, sep=',')
+    model.Output_vHydInventory = Output_vHydInventory
+
+    # Electricity Inventory Output
+
+    # saving the results of the Electricity inventory levels
+    OutputResults = pd.Series(data=[optmodel.vEleInventory[p,sc,n,es]() for p,sc,n,es in model.psnes], index=pd.Index(model.psnes)).to_frame(name='MWh').rename_axis(
+        ['Period', 'Scenario', 'LoadLevel', 'ESS'], axis=0)
+
+    # scale Electricity inventory in MWh (Megawatts hour)
+    OutputResults = OutputResults * 1e3
+
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
+
+    OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'ESS', 'Date'], axis=0).reset_index()
+    Output_vEleInventory = OutputResults
+    Output_vEleInventory.to_csv(_path + '/oH_Result_rEleInventory_' + CaseName + '.csv', index=False, sep=',')
+    model.Output_vEleInventory = Output_vEleInventory
 
     # saving the results of the hydrogen network flows
     OutputResults = pd.Series(data=[optmodel.vHydNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnhpa], index=pd.Index(model.psnhpa)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0)
