@@ -322,10 +322,10 @@ st.title("H2 Market Conditions")
 col1, col2 = st.columns(2)
 
 with col1:
-    modified_df['PriceH2'] = st.number_input("Enter the Market H2 Price  [€/kgH2]:", value=modified_df['PriceH2'][0])
+    modified_df['PriceH2'] = st.number_input("Enter (TO SELL) the Market H2 Price  [€/kgH2]:", value=modified_df['PriceH2'][0])
 
 with col2:
-    modified_df['CostH2'] = st.number_input("Enter the Market H2 Cost  [€/kgH2]:", value=modified_df['CostH2'][0])
+    modified_df['CostH2'] = st.number_input("Enter (TO BUY) the Market H2 Cost  [€/kgH2]:", value=modified_df['CostH2'][0])
 
 #Explanation of Contracted H2 Demand Conditions
 col1, col2 = st.columns([0.80, 0.95])
@@ -637,11 +637,11 @@ if st.button('Launch the model'):
 
             with st.expander("Cost Components?"):
                 st.markdown("""
-                - **vTotalCCost**: Consumption Operation Cost
-                - **vTotalECost**: Emission Cost
-                - **vTotalGCost**: Operation Cost
-                - **vTotalMCost**: Market Cost              
-                - **vTotalRCost**: Reliability Cost
+                - **vTotalCCost**: Consumption Operation Cost = Electricity Consumption Cost of Batteries and Electrolyzer (mainly O&M)
+                - **vTotalECost**: Emission Cost = **Electricity** Generation Emission Cost
+                - **vTotalGCost**: Operation Cost = **Electricity** (Generation + Commitment + StartUp + ShutDown) Cost + **Hydrogen** (Commitment + Ramp + StartUp + ShutDown) Cost
+                - **vTotalMCost**: Market Cost = **Electricity** Purchasing Cost **- Electricity** Selling Income **+ Hydrogen** Purchasing Cost **- Hydrogen** Selling Cost **+ Non supplied** Penalties           
+                - **vTotalRCost**: Reserve Revenue = **Secondary Reserve Power** (Up + Down) Revenue + **Secondary Reserve Activation** (Up + Down) Revenue
                 """)
 
 
@@ -765,7 +765,7 @@ if st.button('Launch the model'):
                         axis=alt.Axis( title='',
                             labelAngle=-90,format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000,),),
                     y=alt.Y('kgH2:Q', title="kg H2"),
-                    color=alt.Color('HSS:N', legend=alt.Legend(title="HSS Components")),
+                    color=alt.Color('HSS:N', legend=alt.Legend(title="HSS Components"),scale=alt.Scale(scheme='lighttealblue')),
                     opacity=alt.condition(
                         selection_hyd_inventory, alt.value(0.8), alt.value(0.2)
                     ),
