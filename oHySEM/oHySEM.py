@@ -1,5 +1,5 @@
 # Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
-# Nov. 21, 2024
+# Dec. 13, 2024
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
@@ -921,6 +921,10 @@ def create_variables(model, optmodel):
         setattr(optmodel, 'vHydNetCommit',                  Var(model.psnhpa,  within=Binary,       initialize=0.0,                                                                                                                                                                                   doc= 'binary variable for the flow of the line             '))
 
     print('--- Defining the binary variables:                                     {} seconds'.format(round(time.time() - StartTime)))
+
+    #Pedro´s Commitment Checking
+    optmodel.vHydCommitment['period1','sc01','t8383','AEL_01'].fix(1.0)
+    optmodel.vHydCommitment['period1','sc01','t8400','AEL_01'].fix(0.0)
 
     EnergyPrefix = {}
     for g in model.g:
