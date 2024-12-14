@@ -45,7 +45,7 @@ arg_defaults = {
     'date': datetime.datetime.now().replace(second=0, microsecond=0),
     'raw_results': False,
     'plot_results': False,
-    'time_steps': 24,
+    'time_steps': 168,
     # 'h2_target': 3.0,
     # 'delivery_type': 'Daily'
 }
@@ -171,7 +171,7 @@ st.header("Tariff activation")
 button_text = "❓"
 if st.button(button_text, on_click=toggle_text, key="Tariff_activation_button"): pass
 if st.session_state.show_text:
-    st.markdown('<p style="color:green;">Tariffs that can be used to buy electricity</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:green;">Selection of available Tariffs to buy electricity</p>', unsafe_allow_html=True)
 
 
 # activation of tariffs
@@ -213,7 +213,7 @@ df_tariff = load_csv('oH_Data_Tariff_{}.csv'.format(st.session_state['case_name'
 for i in range(hour_of_year, hour_of_year+time_steps+1):
     value = df_tariff.loc[(slice(None), slice(None), f't{i:04d}'), 'Tariff']
     if activation_tariff[value.iloc[0]] == True:  # If you expect one value
-        df_ele_cost.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1'] = df_ele_price.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1']
+        df_ele_cost.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1'] = df_ele_cost.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1']
     else:
         df_ele_cost.loc[(slice(None), slice(None), f't{i:04d}'), 'Node1'] = 1000
 
@@ -290,14 +290,25 @@ df = load_csv(datasets_par[dataset_par], 1)
 # # Display the columns ('DemandType', 'TargetDemand', 'RampDemand') of the dataset and the first few rows
 # st.write(df[['DemandType', 'TargetDemand', 'RampDemand']].head())
 
+
+
+
+
+
+
+
 # Modify the dataset
 modified_df = df.copy()
+# Option of demand type by default
+demand_options = ['Hourly', 'Daily', 'Weekly']
+default_demand_type = modified_df['DemandType'][0]
+default_index = demand_options.index(default_demand_type) if default_demand_type in demand_options else 0
+
 # User inputs
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    # modified_df['DemandType'] = st.text_input("Enter the demand type", value=modified_df['DemandType'][0])
-    modified_df['DemandType'] = st.selectbox('Select a Demand Schedule:', list(['Hourly', 'Daily', 'Weekly']))
+    modified_df['DemandType'] = st.selectbox('Select a Demand Schedule:', demand_options, index=default_index)
 
 with col2:
     modified_df['TargetDemand'] = st.number_input("Enter the Scheduled Demand [kgH2]:", value=modified_df['TargetDemand'][0])
@@ -605,13 +616,44 @@ if st.button('Launch the model'):
         st.subheader("Key Performance Indicators")
 
         total_cost_value = total_cost['kEUR'].sum()
-        total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'H2ESS']['kgH2'].sum()
-        total_electricity = electricity_balance['MWh'].sum()
+        total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'Electrolyzer']['kgH2'].sum()
+        total_hydrogen_storage = hydrogen_balance[(hydrogen_balance['Component'] == 'H2ESS') & (hydrogen_balance['kgH2'] > 0)]['kgH2'].sum()
+        total_electricity_sell = electricity_balance[electricity_balance['Component'] == 'ElectricitySell']['MWh'].sum()
+        total_electricity_buy = electricity_balance[electricity_balance['Component'] == 'ElectricityBuy']['MWh'].sum()
 
-        kpi1, kpi2, kpi3 = st.columns(3)
-        kpi1.metric(label="Total Cost (kEUR)", value=f"{total_cost_value:.2f}")
-        kpi2.metric(label="Total Hydrogen Storage (kgH2)", value=f"{total_hydrogen:.2f}")
-        kpi3.metric(label="Total Electricity Generation (GWh)", value=f"{total_electricity:.2f}")
+
+        def style_kpi(label, value, background_color):
+            return f"""
+            <div style="
+                border: 1px solid #d3d3d3; 
+                border-radius: 10px; 
+                padding: 10px; 
+                margin: 5px; 
+                background-color: {background_color}; 
+                text-align: center;">
+                <h5 style="color: #555555; margin: 0;">{label}</h5>
+                <h3 style="color: #333333; margin: 5px 0;">{value}</h3>
+            </div>
+            """
+
+        kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+
+        # Mostrar KPIs con colores suaves
+        with kpi1:
+            st.markdown(style_kpi("Total Cost (kEUR)", f"{total_cost_value:.2f}", "#f0f8ff"),
+                        unsafe_allow_html=True)  # AliceBlue
+        with kpi2:
+            st.markdown(style_kpi("Total Hydrogen Production (kgH2)", f"{total_hydrogen:.2f}", "#f5fffa"),
+                        unsafe_allow_html=True)  # MintCream
+        with kpi3:
+            st.markdown(style_kpi("Hydrogen Storage (kgH2)", f"{total_hydrogen_storage:.2f}", "#fafad2"),
+                        unsafe_allow_html=True)  # LightGoldenRodYellow
+        with kpi4:
+            st.markdown(style_kpi("Total Electricity Sold (MWh)", f"{total_electricity_sell:.2f}", "#e6e6fa"),
+                        unsafe_allow_html=True)  # Lavender
+        with kpi5:
+            st.markdown(style_kpi("Total Electricity Purchased (MWh)", f"{total_electricity_buy:.2f}", "#fff5ee"),
+                        unsafe_allow_html=True)  # SeaShell
 
         # Creating a layout for energy balances and network flows
         st.subheader("TIME ANALYSIS")
