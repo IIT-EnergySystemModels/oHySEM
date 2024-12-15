@@ -1,5 +1,10 @@
 Change Log
 =============
+[1.0.12] - 2024-12-15
+---------------------
+- [CHANGED] streamlit shows Electricity and H2 Storage balances simultaneously with storage levels at ESS and HSS
+- [CHANGED] streamlit shows Solar PV Data and Solar PV VarMaxGeneration
+
 [1.0.11] - 2024-11-27
 ---------------------
 - [CHANGED] oHySEM writes Electricity and H2 Storage levels at ESS and HSS contract conditions
