@@ -1,5 +1,5 @@
 # Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
-# Nov. 21, 2024
+# Dec. 15, 2024
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
@@ -181,27 +181,27 @@ activation_tariff = {}
 
 with col1:
     # checkbox
-    activation_tariff[1] = st.checkbox("P1", value=False)
+    activation_tariff[1] = st.checkbox("P1", value=True)
     st.write("P1: ", activation_tariff[1])
 with col2:
     # checkbox
-    activation_tariff[2] = st.checkbox("P2", value=False)
+    activation_tariff[2] = st.checkbox("P2", value=True)
     st.write("P2: ", activation_tariff[2])
 with col3:
     # checkbox
-    activation_tariff[3] = st.checkbox("P3", value=False)
+    activation_tariff[3] = st.checkbox("P3", value=True)
     st.write("P3: ", activation_tariff[3])
 with col4:
     # checkbox
-    activation_tariff[4] = st.checkbox("P4", value=False)
+    activation_tariff[4] = st.checkbox("P4", value=True)
     st.write("P4: ", activation_tariff[4])
 with col5:
     # checkbox
-    activation_tariff[5] = st.checkbox("P5", value=False)
+    activation_tariff[5] = st.checkbox("P5", value=True)
     st.write("P5: ", activation_tariff[5])
 with col6:
     # checkbox
-    activation_tariff[6] = st.checkbox("P6", value=False)
+    activation_tariff[6] = st.checkbox("P6", value=True)
     st.write("P6: ", activation_tariff[6])
 
 
@@ -232,7 +232,7 @@ datasets = {
     'Hydrogen Cost [€/kgH2] : Cost of producing Hydrogen': 'oH_Data_HydrogenCost_{}.csv',
     'Hydrogen Demand [kgH2] : Additional Hydrogen demand': 'oH_Data_HydrogenDemand_{}.csv',
     'Hydrogen Price [€/kgH2] : Hydrogen Selling Price': 'oH_Data_HydrogenPrice_{}.csv',
-    'Variable Max Generation [MW] : Forecast of Wind Production': 'oH_Data_VarMaxGeneration_{}.csv'
+    'Variable Max Generation [MW] : Forecast of Renewable Productions': 'oH_Data_VarMaxGeneration_{}.csv'
 }
 
 # Dictionary of measuring units of each variable
@@ -243,7 +243,7 @@ y_axis_titles = {
     'Hydrogen Cost [€/kgH2] : Cost of producing Hydrogen': 'Cost [€/kgH2]',
     'Hydrogen Demand [kgH2] : Additional Hydrogen demand': 'Demand [kgH2]',
     'Hydrogen Price [€/kgH2] : Hydrogen Selling Price': 'Price [€/kgH2]',
-    'Variable Max Generation [MW] : Forecast of Wind Production': 'Max Generation [MW]'
+    'Variable Max Generation [MW] : Forecast of Renewable Productions': 'Max Generation [MW]'
 }
 
 dataset = st.selectbox('Select a dataset to view:', list(datasets.keys()))
@@ -386,10 +386,10 @@ with col3:
     modified_df.loc[unit, 'ProductionFunction'] = st.number_input("Enter the Production Function [kWh/kgH2]:", value=modified_df.loc[unit, 'ProductionFunction'])
 
 with col4:
-    modified_df.loc[unit, 'StandByStatus'] =  st.selectbox('Activate the Stand-By Status [Yes or No]:', list(['Yes', 'No']))
+    modified_df.loc[unit, 'StartUpCost'] = st.number_input("Enter the Start Up Cost [€]:", value=modified_df.loc[unit, 'StartUpCost'])
 
 with col5:
-    modified_df.loc[unit, 'StandByPower'] = st.number_input("Enter the Electricity Consumption of the Stand-By Status [MW]:", value=modified_df.loc[unit, 'StandByPower'])
+    modified_df.loc[unit, 'ShutDownCost'] = st.number_input("Enter the Shut Down Cost [€]:", value=modified_df.loc[unit, 'ShutDownCost'])
 
 #Explanation of Electrolyzer Data
 col1, col2 = st.columns([0.80, 0.95])
@@ -400,15 +400,15 @@ with col1:
          - **Maximum Electricity consumption**: Maximum Consumption of the Electrolyzer in MW
          - **Minimum Electricity Consumption**: Minimum Consumption of the Electrolyzer in MW
          - **Production Function**: kWh consumed to produce 1 kg of Hydrogen
-         - **Stand-By State (Y/N)**: If the Electrolyzer can get the Stand-By Status or only being shut down
-         - **Electricity Consumption of the Stand-By Status**: Consumption of the Electrolyzer in MW in the Stand-By Status
+         - **Start Up Cost:** Cost of Starting Up the electrolyzer to its minimum consumption value in €
+         - **Shut Down Cost:** Cost of Shutting Down the electrolyzer from its minimum consumption value to zero in €
          """)
 
 # save the modified dataset
 if st.button('Save the modified data of the electrolyzer'):
     modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['Electrolyzer']), index=True)
     st.success("Dataset saved successfully!")
-    st.write(modified_df[['MaximumCharge', 'MinimumCharge', 'ProductionFunction', 'StandByStatus', 'StandByPower']].head())
+    st.write(modified_df[['MaximumCharge', 'MinimumCharge', 'ProductionFunction', 'StartUpCost', 'ShutDownCost']].head())
 
 # List of Wind Farm
 st.title("Wind Data")
@@ -452,7 +452,57 @@ datasets_gen = {
 
 df = load_csv('oH_Data_VarMaxGeneration_{}.csv'.format(st.session_state['case_name']), 3)
 modified_df = df * (modified_df.loc[unit, 'MaximumPower']/aux_df.loc[unit, 'MaximumPower'])
-modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['WindMaxGeneration']), index=True)
+#modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['WindMaxGeneration']), index=True)
+
+####################
+
+# List of Solar_PV Data
+st.title("Solar PV Data")
+
+datasets_gen = {
+    'Solar_PV': f'oH_Data_Generation_{st.session_state["case_name"]}.csv',
+}
+
+# modify the dataset
+df = load_csv(datasets_gen['Solar_PV'], 1)
+
+modified_df = df.copy()
+aux_df      = df.copy()
+
+# list of Solar_PV units, select the unit from df index if the column 'Technology' is equal to 'Wind'
+list_Solar_PV_units = df[df['Technology'] == 'Solar_PV'].index
+
+# select the unit
+unit = st.selectbox('Modify the dataset below, select a unit:', list(list_Solar_PV_units))
+
+# User inputs
+col1, col2= st.columns(2)
+
+with col1:
+    modified_df.loc[unit, 'MaximumPower'] = st.number_input("Enter the maximum installed Solar PV power [MW]:", value=modified_df.loc[unit, 'MaximumPower'])
+
+with col2:
+    modified_df.loc[unit, 'MustRun'] = st.selectbox("Enter the must run status [Yes or No]:", list(['Yes','No']), key=f"must_run_{unit}")
+
+
+# save the modified dataset
+if st.button('Save the modified Solar PV Data'):
+    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['Solar_PV']), index=True)
+    st.success("Dataset saved successfully!")
+    st.write(modified_df[['MaximumPower', 'MustRun']].head())
+
+# modify the VarMaxGeneration based on the MaximumPower value
+datasets_gen = {
+    'SolarPVMaxGeneration': f'oH_Data_VarMaxGeneration_{st.session_state["case_name"]}.csv',
+}
+
+df = load_csv('oH_Data_VarMaxGeneration_{}.csv'.format(st.session_state['case_name']), 3)
+modified_df = df * (modified_df.loc[unit, 'MaximumPower']/aux_df.loc[unit, 'MaximumPower'])
+modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['SolarPVMaxGeneration']), index=True)
+#######################
+
+
+
 
 # List of Battery Units
 st.title("Battery Data (BESS)")
@@ -646,7 +696,7 @@ if st.button('Launch the model'):
             st.markdown(style_kpi("Total Hydrogen Production (kgH2)", f"{total_hydrogen:.2f}", "#f5fffa"),
                         unsafe_allow_html=True)  # MintCream
         with kpi3:
-            st.markdown(style_kpi("Hydrogen Storage (kgH2)", f"{total_hydrogen_storage:.2f}", "#fafad2"),
+            st.markdown(style_kpi("Hydrogen through Tank (kgH2)", f"{total_hydrogen_storage:.2f}", "#fafad2"),
                         unsafe_allow_html=True)  # LightGoldenRodYellow
         with kpi4:
             st.markdown(style_kpi("Total Electricity Sold (MWh)", f"{total_electricity_sell:.2f}", "#e6e6fa"),
@@ -658,7 +708,7 @@ if st.button('Launch the model'):
         # Creating a layout for energy balances and network flows
         st.subheader("TIME ANALYSIS")
         with st.container():
-            # Two columns: One for the cost and profits along the date and one as a pie chart
+            # Two columns: One timeline for the cost and a pie chart for total cost and profits
             col1, col2 = st.columns(2)
 
             # Total Cost Line Chart
@@ -690,7 +740,7 @@ if st.button('Launch the model'):
             # Donut chart
             with col2:
                 # Total Cost Breakdown with handling of negative values
-                st.header("Global Costs and Benefits")
+                st.header("Total Costs and Profits")
 
                 def create_donut_charts(data):
 
@@ -745,117 +795,141 @@ if st.button('Launch the model'):
 
 
         # Energy Balance and Network Flows
-        st.subheader("ENERGY BALANCE")
-        col1, col2 = st.columns(2)
-
-        # Hydrogen Balance Line Chart
-        with col2:
-            st.subheader("Hydrogen")
-            selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
-            hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
-                x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-                y='kgH2:Q',
-                color='Component:N',
-                opacity=alt.condition(selection_hyd_balance, alt.value(0.8), alt.value(0.2))
-            ).properties(width=700, height=400, background='#000000').configure_axis(
-                    labelFontSize=label_fontsize,
-                    titleFontSize=title_fontsize
-                ).add_params(selection_hyd_balance).interactive()
-            st.altair_chart(hydrogen_chart, use_container_width=True)
+        st.subheader("*ENERGY BALANCE*")
 
         # Electricity Balance Line Chart
-        with col1:
-            st.subheader("Electricity")
-            selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
-            electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
-                x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+        st.subheader("Electricity")
+
+        selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
+        electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
+                x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30,
+                                                labelLimit=1000)),
                 y='MWh:Q',
-                color='Component:N',
+                color=alt.Color('Component:N'),
                 opacity=alt.condition(selection_ele_balance, alt.value(0.8), alt.value(0.2))
-                ).properties(width=700, height=400,background='#000000').configure_axis(
-                    labelFontSize=label_fontsize,
-                    titleFontSize=title_fontsize
-                ).configure_view(strokeOpacity=0
-                ).add_params(selection_ele_balance).interactive()
+            ).properties(width=700, height=400, background='#000000').configure_axis(
+                labelFontSize=label_fontsize,
+                titleFontSize=title_fontsize
+            ).configure_view(strokeOpacity=0).add_params(selection_ele_balance).interactive()
 
-            st.altair_chart(electricity_chart, use_container_width=True)
+        st.altair_chart(electricity_chart, use_container_width=True)
 
-            with st.expander("Electricity & Hydrogen Components?"):
+        with st.expander("Electricity & Hydrogen Components?"):
                 st.markdown("""
                 - **BESS**: Battery
                 - **ENS / HNS**:  Electricity/ Hydrogen Non-Supplied
-                - **H2ESS**: Electricity & Hydrogen Consumption by H2 Tank
+                - **H2ESS**: Electricity & Hydrogen Consumption by Hydrogen Tank
                 """)
 
-#PEDRO
+        # Hydrogen Balance Line Chart
+
+        st.subheader("Hydrogen")
+
+        selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
+
+        hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
+            x=alt.X('Date:T',  axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+            y=alt.Y('kgH2:Q', title='kg H2'),
+            color=alt.Color('Component:N', scale=alt.Scale(domain=['Electrolyzer', 'H2ESS', 'HNS', 'HydrogenBuy',
+                                                                   'HydrogenDemand', 'HydrogenSell', 'Solar_PV'],
+                                                           range=['#FF5733', '#33FF57', '#FF33A1', '#FFC300',
+                                                                  '#33C1FF', '#FF914D', '#DAF7A6'])),
+            opacity=alt.condition(selection_hyd_balance, alt.value(0.8), alt.value(0.2)),
+            tooltip=['Date:T', 'kgH2:Q', 'Component:N']
+        ).properties(width=700, height=400, background='#000000').configure_axis(
+            labelFontSize=label_fontsize, titleFontSize=title_fontsize, labelColor='#FFFFFF'
+        ).configure_legend(
+            labelColor='#FFFFFF', titleColor='#FFFFFF'
+        ).add_params(selection_hyd_balance).interactive()
+
+        st.altair_chart(hydrogen_chart, use_container_width=True)
+
+        #PEDRO
 
         # ESS and HSS Storage Levels
-        st.subheader("ENERGY STORAGE LEVELS")
-        col1, col2 = st.columns(2)
-
-        # Hydrogen Storage Level Chart
-        with col2:
-            st.subheader("Hydrogen Storage Level (kg H2)")
-
-            # Configurar selección
-            selection_hyd_inventory = alt.selection_point(fields=['HSS'], bind='legend')
-
-            # Crear el gráfico de líneas interactivo
-            hyd_inventory_chart = (alt.Chart(hydrogen_inventory).mark_line(point=True)  # Gráfico de líneas con puntos interactivos
-                .encode(
-                    x=alt.X('Date:T',
-                        axis=alt.Axis( title='',
-                            labelAngle=-90,format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000,),),
-                    y=alt.Y('kgH2:Q', title="kg H2"),
-                    color=alt.Color('HSS:N', legend=alt.Legend(title="HSS Components"),scale=alt.Scale(scheme='lighttealblue')),
-                    opacity=alt.condition(
-                        selection_hyd_inventory, alt.value(0.8), alt.value(0.2)
-                    ),
-                    tooltip=['Date:T', 'kgH2:Q', 'HSS:N']  # Añade tooltips para mayor interactividad
-                )
-                .properties(width=700, height=400, background='#000000')
-                .configure_axis(labelFontSize=label_fontsize, titleFontSize=title_fontsize)
-                .add_params(selection_hyd_inventory)  # Mantener selección interactiva
-                .interactive()  # Hacer el gráfico interactivo (zoom, pan)
-            )
-
-            # Renderizar el gráfico en Streamlit
-            st.altair_chart(hyd_inventory_chart, use_container_width=True)
+        st.subheader("*ENERGY STORAGE LEVELS*")
 
         # Electricity Storage Level Chart
-        with col1:
-            st.subheader("Electricity Storage Level (MWh)")
+        st.subheader("ELECTRICITY Storage Level (kWh)")
 
-            # Configurar selección
-            selection_ele_inventory = alt.selection_point(fields=['ESS'], bind='legend')
+        selection = alt.selection_point(fields=['Component', 'ESS'], bind='legend')
 
-            # Crear el gráfico de líneas interactivo
-            ele_inventory_chart = (alt.Chart(electricity_inventory).mark_line(point=True)  # Gráfico de líneas con puntos interactivos
-                .encode(
-                    x=alt.X('Date:T',
-                        axis=alt.Axis( title='',
-                            labelAngle=-90,format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000,),),
-                    y=alt.Y('MWh:Q', title="MWh"),
-                    color=alt.Color('ESS:N', legend=alt.Legend(title="ESS Components")),
-                    opacity=alt.condition(
-                        selection_ele_inventory, alt.value(0.8), alt.value(0.2)
-                    ),
-                    tooltip=['Date:T', 'MWh:Q', 'ESS:N']  # Añade tooltips para mayor interactividad
-                )
-                .properties(width=700, height=400, background='#000000')
-                .configure_axis(labelFontSize=label_fontsize, titleFontSize=title_fontsize)
-                .add_params(selection_ele_inventory)  # Mantener selección interactiva
-                .interactive()  # Hacer el gráfico interactivo (zoom, pan)
-            )
+        combined_chart = (alt.layer(
+              alt.Chart(electricity_balance).mark_bar().encode(
+                x=alt.X('Date:T', axis=alt.Axis( title='',
+                            labelAngle=-90,format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                y=alt.Y('MWh:Q', title='MWh'),
+                color=alt.Color('Component:N',
+                                scale=alt.Scale(domain=['BESS', 'ENS', 'ElectricityBuy', 'ElectricityDemand',
+                                                        'ElectricitySell', 'Electrolyzer', 'H2ESS', 'Solar_PV', 'Wind'],
+                                                range=['#1F77B4', '#E377C2', '#FF0000', '#E377C2', '#2CA02C',
+                                                       '#17BECF', '#1F77B4', '#FFBB78', '#9467BD'])),
+                opacity=alt.condition(selection, alt.value(0.8), alt.value(0.2)),
+                tooltip=['Date:T', 'MWh:Q', 'Component:N']
+              ),
+              alt.Chart(electricity_inventory).mark_line(strokeWidth=4, color='#FFFF00').encode(
+                x=alt.X('Date:T', axis=alt.Axis(format="%A, %b %d, %H:%M", title='')),
+                y=alt.Y('MWh:Q', title='MWh'),
+                tooltip=['Date:T', 'MWh:Q', 'ESS:N']
+              )
+          ).add_params(selection).interactive().
+             properties(width=700, height=400, background='#000000'
+             ).configure_axis(
+            labelFontSize=label_fontsize, titleFontSize=title_fontsize, labelColor='#FFFFFF', titleColor='#FFFFFF'
+        ).configure_legend(
+            labelColor='#FFFFFF', titleColor='#FFFFFF'
+        ).configure_view(
+            strokeOpacity=0
+        ))
 
-            # Renderizar el gráfico en Streamlit
-            st.altair_chart(ele_inventory_chart, use_container_width=True)
+        st.altair_chart(combined_chart, use_container_width=True)
 
-            with st.expander("Energy Storage Components?"):
+
+        # Hydrogen Storage Level Chart
+
+        st.subheader("HYDROGEN Storage Level (kgH2)")
+
+
+        selection_hydrogen = alt.selection_point(fields=['Component', 'HSS'], bind='legend')
+
+        bar_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
+            x=alt.X('Date:T',
+                    axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+            y=alt.Y('kgH2:Q', title='kg H2 (Bars)', axis=alt.Axis(titleColor='#FFFFFF')),
+            color=alt.Color('Component:N', scale=alt.Scale(domain=['Electrolyzer', 'H2ESS', 'HNS', 'HydrogenBuy',
+                                                                   'HydrogenDemand', 'HydrogenSell', 'Solar_PV'],
+                                                           range=['#FF5733', '#33FF57', '#FF33A1', '#FFC300',
+                                                                  '#33C1FF', '#FF914D', '#DAF7A6']),
+                            legend=alt.Legend(title="Hydrogen Balance Components")),
+            opacity=alt.condition(selection_hydrogen, alt.value(0.8), alt.value(0.2)),
+            tooltip=['Date:T', 'kgH2:Q', 'Component:N']
+        )
+
+        line_chart = alt.Chart(hydrogen_inventory).mark_line(strokeWidth=4, color='#FFFF00').encode(
+            x='Date:T',
+            y=alt.Y('kgH2:Q', title='kg H2 (Line)', axis=alt.Axis(titleColor='#00BFFF', orient='right')),
+            tooltip=['Date:T', 'kgH2:Q', 'HSS:N'],
+            opacity=alt.condition(selection_hydrogen, alt.value(0.8), alt.value(0.2))
+        )
+
+        combined_chart = alt.layer(bar_chart, line_chart).add_params(selection_hydrogen).resolve_scale(
+            y='independent'
+        ).properties(
+            width=700, height=400, background='#000000'
+        ).configure_axis(
+            labelFontSize=label_fontsize, titleFontSize=title_fontsize, labelColor='#FFFFFF'
+        ).configure_legend(
+            labelColor='#FFFFFF', titleColor='#FFFFFF'
+        ).configure_view(
+            strokeOpacity=0
+        ).interactive()
+
+        st.altair_chart(combined_chart, use_container_width=True)
+
+    with st.expander("Energy Storage Components?"):
                 st.markdown("""
                 - **To be included soon**: 
                 """)
-
 
 
 st.write("Dashboard created for analyzing oHySEM results.")
