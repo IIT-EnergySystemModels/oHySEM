@@ -446,13 +446,14 @@ if st.button('Save the modified Wind Data'):
     st.write(modified_df[['MaximumPower', 'MustRun']].head())
 
 # modify the VarMaxGeneration based on the MaximumPower value
-datasets_gen = {
-    'WindMaxGeneration': f'oH_Data_VarMaxGeneration_{st.session_state["case_name"]}.csv',
-}
+    datasets_gen = {
+        'WindMaxGeneration': f'oH_Data_VarMaxGeneration_{st.session_state["case_name"]}.csv',
+    }
 
-df = load_csv('oH_Data_VarMaxGeneration_{}.csv'.format(st.session_state['case_name']), 3)
-modified_df = df * (modified_df.loc[unit, 'MaximumPower']/aux_df.loc[unit, 'MaximumPower'])
-#modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['WindMaxGeneration']), index=True)
+    df = load_csv('oH_Data_VarMaxGeneration_{}.csv'.format(st.session_state['case_name']), 3)
+    df[unit] = df[unit] * (modified_df.loc[unit, 'MaximumPower']/aux_df.loc[unit, 'MaximumPower'])
+    st.write(df)
+    df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['WindMaxGeneration']), index=True)
 
 ####################
 
@@ -490,19 +491,17 @@ if st.button('Save the modified Solar PV Data'):
     modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['Solar_PV']), index=True)
     st.success("Dataset saved successfully!")
     st.write(modified_df[['MaximumPower', 'MustRun']].head())
+   # modify the VarMaxGeneration based on the MaximumPower value
+    datasets_gen = {
+        'SolarPVMaxGeneration': f'oH_Data_VarMaxGeneration_{st.session_state["case_name"]}.csv',
+    }
 
-# modify the VarMaxGeneration based on the MaximumPower value
-datasets_gen = {
-    'SolarPVMaxGeneration': f'oH_Data_VarMaxGeneration_{st.session_state["case_name"]}.csv',
-}
+    df = load_csv('oH_Data_VarMaxGeneration_{}.csv'.format(st.session_state['case_name']), 3)
+    df[unit] = df[unit] * (modified_df.loc[unit, 'MaximumPower']/aux_df.loc[unit, 'MaximumPower'])
+    st.write(df)
+    df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['SolarPVMaxGeneration']), index=True)
 
-df = load_csv('oH_Data_VarMaxGeneration_{}.csv'.format(st.session_state['case_name']), 3)
-modified_df = df * (modified_df.loc[unit, 'MaximumPower']/aux_df.loc[unit, 'MaximumPower'])
-modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['SolarPVMaxGeneration']), index=True)
 #######################
-
-
-
 
 # List of Battery Units
 st.title("Battery Data (BESS)")
@@ -797,52 +796,56 @@ if st.button('Launch the model'):
         # Energy Balance and Network Flows
         st.subheader("*ENERGY BALANCE*")
 
+        # Two figures in a row
+        col1, col2 = st.columns(2)
+
         # Electricity Balance Line Chart
-        st.subheader("Electricity")
+        with col1:
+            st.subheader("Electricity")
 
-        selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
-        electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
-                x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30,
-                                                labelLimit=1000)),
-                y='MWh:Q',
-                color=alt.Color('Component:N'),
-                opacity=alt.condition(selection_ele_balance, alt.value(0.8), alt.value(0.2))
-            ).properties(width=700, height=400, background='#000000').configure_axis(
-                labelFontSize=label_fontsize,
-                titleFontSize=title_fontsize
-            ).configure_view(strokeOpacity=0).add_params(selection_ele_balance).interactive()
+            selection_ele_balance = alt.selection_point(fields=['Component'], bind='legend')
+            electricity_chart = alt.Chart(electricity_balance).mark_bar().encode(
+                    x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30,
+                                                    labelLimit=1000)),
+                    y='MWh:Q',
+                    color=alt.Color('Component:N'),
+                    opacity=alt.condition(selection_ele_balance, alt.value(0.8), alt.value(0.2))
+                ).properties(width=700, height=400, background='#000000').configure_axis(
+                    labelFontSize=label_fontsize,
+                    titleFontSize=title_fontsize
+                ).configure_view(strokeOpacity=0).add_params(selection_ele_balance).interactive()
 
-        st.altair_chart(electricity_chart, use_container_width=True)
+            st.altair_chart(electricity_chart, use_container_width=True)
 
-        with st.expander("Electricity & Hydrogen Components?"):
-                st.markdown("""
-                - **BESS**: Battery
-                - **ENS / HNS**:  Electricity/ Hydrogen Non-Supplied
-                - **H2ESS**: Electricity & Hydrogen Consumption by Hydrogen Tank
-                """)
+            with st.expander("Electricity & Hydrogen Components?"):
+                    st.markdown("""
+                    - **BESS**: Battery
+                    - **ENS / HNS**:  Electricity/ Hydrogen Non-Supplied
+                    - **H2ESS**: Electricity & Hydrogen Consumption by Hydrogen Tank
+                    """)
 
         # Hydrogen Balance Line Chart
+        with col2:
+            st.subheader("Hydrogen")
 
-        st.subheader("Hydrogen")
+            selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
 
-        selection_hyd_balance = alt.selection_point(fields=['Component'], bind='legend')
+            hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
+                x=alt.X('Date:T',  axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                y=alt.Y('kgH2:Q', title='kg H2'),
+                color=alt.Color('Component:N', scale=alt.Scale(domain=['Electrolyzer', 'H2ESS', 'HNS', 'HydrogenBuy',
+                                                                       'HydrogenDemand', 'HydrogenSell', 'Solar_PV'],
+                                                               range=['#FF5733', '#33FF57', '#FF33A1', '#FFC300',
+                                                                      '#33C1FF', '#FF914D', '#DAF7A6'])),
+                opacity=alt.condition(selection_hyd_balance, alt.value(0.8), alt.value(0.2)),
+                tooltip=['Date:T', 'kgH2:Q', 'Component:N']
+            ).properties(width=700, height=400, background='#000000').configure_axis(
+                labelFontSize=label_fontsize, titleFontSize=title_fontsize, labelColor='#FFFFFF'
+            ).configure_legend(
+                labelColor='#FFFFFF', titleColor='#FFFFFF'
+            ).add_params(selection_hyd_balance).interactive()
 
-        hydrogen_chart = alt.Chart(hydrogen_balance).mark_bar().encode(
-            x=alt.X('Date:T',  axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
-            y=alt.Y('kgH2:Q', title='kg H2'),
-            color=alt.Color('Component:N', scale=alt.Scale(domain=['Electrolyzer', 'H2ESS', 'HNS', 'HydrogenBuy',
-                                                                   'HydrogenDemand', 'HydrogenSell', 'Solar_PV'],
-                                                           range=['#FF5733', '#33FF57', '#FF33A1', '#FFC300',
-                                                                  '#33C1FF', '#FF914D', '#DAF7A6'])),
-            opacity=alt.condition(selection_hyd_balance, alt.value(0.8), alt.value(0.2)),
-            tooltip=['Date:T', 'kgH2:Q', 'Component:N']
-        ).properties(width=700, height=400, background='#000000').configure_axis(
-            labelFontSize=label_fontsize, titleFontSize=title_fontsize, labelColor='#FFFFFF'
-        ).configure_legend(
-            labelColor='#FFFFFF', titleColor='#FFFFFF'
-        ).add_params(selection_hyd_balance).interactive()
-
-        st.altair_chart(hydrogen_chart, use_container_width=True)
+            st.altair_chart(hydrogen_chart, use_container_width=True)
 
         #PEDRO
 
