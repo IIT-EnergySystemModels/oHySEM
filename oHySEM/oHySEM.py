@@ -922,10 +922,6 @@ def create_variables(model, optmodel):
 
     print('--- Defining the binary variables:                                     {} seconds'.format(round(time.time() - StartTime)))
 
-    #Pedro´s Commitment Checking
-    optmodel.vHydCommitment['period1','sc01','t8383','AEL_01'].fix(1.0)
-    optmodel.vHydCommitment['period1','sc01','t8400','AEL_01'].fix(0.0)
-
     EnergyPrefix = {}
     for g in model.g:
         EnergyPrefix[g] = 'Ele'
