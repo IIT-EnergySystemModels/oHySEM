@@ -374,7 +374,7 @@ list_electrolizer_units = df[df['Technology'] == 'Electrolyzer'].index
 unit = st.selectbox('Modify the dataset below, select a unit:', list(list_electrolizer_units))
 
 # User inputs
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
 
 with col1:
     modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the Maximum Electricity Consumption [MW]:", value=modified_df.loc[unit, 'MaximumCharge'])
@@ -391,6 +391,12 @@ with col4:
 with col5:
     modified_df.loc[unit, 'ShutDownCost'] = st.number_input("Enter the Shut Down Cost [€]:", value=modified_df.loc[unit, 'ShutDownCost'])
 
+with col6:
+    modified_df.loc[unit, 'StandByStatus'] = st.selectbox("Enter the Stand By status [Yes or No]:", list(['Yes','No']))
+
+with col7:
+    modified_df.loc[unit, 'StandByPower'] = st.number_input("Enter the Stand By Power [MW]:", value=modified_df.loc[unit, 'StandByPower'])
+
 #Explanation of Electrolyzer Data
 col1, col2 = st.columns([0.80, 0.95])
 
@@ -402,13 +408,15 @@ with col1:
          - **Production Function**: kWh consumed to produce 1 kg of Hydrogen
          - **Start Up Cost:** Cost of Starting Up the electrolyzer to its minimum consumption value in €
          - **Shut Down Cost:** Cost of Shutting Down the electrolyzer from its minimum consumption value to zero in €
+         - **Stand By Status:** To let the electrolyzer to be at Stand By state (no H2 production)
+         - **Stand By Power:** The electrolyzer consumption in MW
          """)
 
 # save the modified dataset
 if st.button('Save the modified data of the electrolyzer'):
     modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['Electrolyzer']), index=True)
     st.success("Dataset saved successfully!")
-    st.write(modified_df[['MaximumCharge', 'MinimumCharge', 'ProductionFunction', 'StartUpCost', 'ShutDownCost']].head())
+    st.write(modified_df[['MaximumCharge', 'MinimumCharge', 'ProductionFunction', 'StartUpCost', 'ShutDownCost','StandByStatus','StandByPower']].head())
 
 # List of Wind Farm
 st.title("Wind Data")
