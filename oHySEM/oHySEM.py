@@ -1,5 +1,5 @@
 # Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
-# Dec. 15, 2024
+# Jan. 17, 2024
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
@@ -135,7 +135,8 @@ def main():
     # start_time = time.time()
     # defining the constraints
     model = create_constraints(model, model)
-    # model.vHydStandBy['period1', 'sc01', 't5013', 'AEL_01'].fix(1.0)
+    #model.vHydCommitment['period1','sc01','t0128', 'AEL_01'].fix(0.0)
+    #model.vHydStandBy['period1', 'sc01', 't0128', 'AEL_01'].fix(0.0)
     print('fixing standby')
     print('- Total time for defining the DA constraints:                          {} seconds\n'.format(round(time.time() - start_time  )))
     start_time = time.time()
@@ -406,6 +407,7 @@ def data_processing(DirName, CaseName, model):
     model.esc  = model.ec | model.hc             # set for the candidate ESS and hydrogen units
 
 
+
     print('--- Defining the sets:                                                 {} seconds'.format(round(time.time() - start_time)))
 
     # instrumental sets
@@ -470,6 +472,7 @@ def data_processing(DirName, CaseName, model):
     model.psnhpn   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.hpn]
     model.psnhpa   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.hpa]
     model.psnhpe   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.hpe]
+
 
     # replacing string values by numerical values
     idxDict        = dict()
@@ -1291,10 +1294,10 @@ def create_objective_function_market(model, optmodel):
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenConstantVarCost'][nr] *       optmodel.vGenMaxCommitment     [p,sc,n,nr] for nr in model.nr) +
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenStartUpCost'    ][nr] *       optmodel.vGenStartUp           [p,sc,n,nr] for nr in model.nr) +
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenShutDownCost'   ][nr] *       optmodel.vGenShutDown          [p,sc,n,nr] for nr in model.nr) -
-                                                # sum(model.Par['pDuration'][n] * 1e-5                                 *       optmodel.vHydInventory         [p,sc,n,hs] for hs in model.hs) +
+                                                # sum(model.Par['pDuration'][n] * 1e-5                                 *       optmodel.vHydInventory       [p,sc,n,hs] for hs in model.hs) +
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenLinearVarCost'  ][hz] *       optmodel.vEleTotalCharge       [p,sc,n,hz] for hz in model.hz) +
-                                                sum(model.Par['pDuration'][n] * model.Par['pGenConstantVarCost'][hz] *      (optmodel.vHydCommitment        [p,sc,n,hz] - optmodel.vHydStandBy[p,sc,n,hz]) for hz in model.hz) +
-                                                sum(model.Par['pDuration'][n] * model.Par['pGenStartUpCost'    ][hz] * 1e3 * optmodel.vEleTotalChargeRampPos[p,sc,n,hz] for hz in model.hz) +
+                                                sum(model.Par['pDuration'][n] * model.Par['pGenConstantVarCost'][hz] *       optmodel.vHydCommitment        [p,sc,n,hz] for hz in model.hz) +
+                                                sum(model.Par['pDuration'][n] * model.Par['pGenStartUpCost'    ][hz] *       optmodel.vHydStartUp           [p,sc,n,hz] for hz in model.hz) +
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenShutDownCost'   ][hz] *       optmodel.vHydShutDown          [p,sc,n,hz] for hz in model.hz) +
                                                 sum(model.Par['pDuration'][n] * model.Par['pGenOMVariableCost' ][g ] *       optmodel.vEleTotalOutput       [p,sc,n,g ] for g  in model.g ))
     optmodel.__setattr__('eTotalGCost', Constraint(optmodel.psn, rule=eTotalGCost, doc='Total generation cost in the DA market [MEUR]'))
@@ -2030,7 +2033,7 @@ def create_constraints(model, optmodel):
             if n == model.n.first():
                 return optmodel.vHydCommitment[p,sc,n,hz] - model.Par['pInitialUC'][p,sc,hz]                 == optmodel.vHydStartUp[p,sc,n,hz] - optmodel.vHydShutDown[p,sc,n,hz]
             else:
-                return optmodel.vHydCommitment[p,sc,n,hz] - optmodel.vHydCommitment[p,sc,model.n.prev(n),hz] == optmodel.vHydStartUp[p,sc,n,hz] - optmodel.vHydShutDown[p,sc,n,hz]
+                return optmodel.vHydCommitment[p,sc,n,hz] - optmodel.vHydCommitment[p,sc,model.n.prev(n),hz] + optmodel.vHydStandBy[p,sc,n,hz] - optmodel.vHydStandBy[p,sc,model.n.prev(n),hz]== optmodel.vHydStartUp[p,sc,n,hz] - optmodel.vHydShutDown[p,sc,n,hz]
         else:
             return Constraint.Skip
     optmodel.__setattr__('eHydCommitmentStartupShutdown', Constraint(optmodel.psnhz, rule=eHydCommitmentStartupShutdown, doc='Hydrogen relation among commitment startup and shutdown'))
@@ -2262,24 +2265,24 @@ def create_constraints(model, optmodel):
             return Constraint.Skip
     optmodel.__setattr__('eEleStandBy_consumption_LowerBound', Constraint(optmodel.psnhz, rule=eEleStandBy_consumption_LowerBound, doc='standby consumption of the electrolyzer'))
 
-    def eEleStandBy_production_UpperBound(optmodel, p,sc,n,hz):
-        if model.Par['pGenStandByStatus'][hz]:
-            return optmodel.vEleTotalCharge[p,sc,n,hz] <= model.Par['pMaxCharge'][hz][p,sc,n] * (1 - optmodel.vHydStandBy[p,sc,n,hz])
-        else:
-            return Constraint.Skip
-    optmodel.__setattr__('eEleStandBy_production_UpperBound', Constraint(optmodel.psnhz, rule=eEleStandBy_production_UpperBound, doc='standby charge of the electrolyzer'))
+    #def eEleStandBy_production_UpperBound(optmodel, p,sc,n,hz):
+    #    if model.Par['pGenStandByStatus'][hz]:
+    #        return optmodel.vEleTotalCharge[p,sc,n,hz] <= model.Par['pMaxCharge'][hz][p,sc,n] * (1 - optmodel.vHydStandBy[p,sc,n,hz])
+    #    else:
+    #        return Constraint.Skip
+    #optmodel.__setattr__('eEleStandBy_production_UpperBound', Constraint(optmodel.psnhz, rule=eEleStandBy_production_UpperBound, doc='standby charge of the electrolyzer'))
 
-    def eEleStandBy_production_LowerBound(optmodel, p,sc,n,hz):
-        if model.Par['pGenStandByStatus'][hz]:
-            return optmodel.vEleTotalCharge[p,sc,n,hz] >= model.Par['pMinCharge'][hz][p,sc,n] * (1 - optmodel.vHydStandBy[p,sc,n,hz])
-        else:
-            return Constraint.Skip
-    optmodel.__setattr__('eEleStandBy_production_LowerBound', Constraint(optmodel.psnhz, rule=eEleStandBy_production_LowerBound, doc='standby charge of the electrolyzer'))
+    #def eEleStandBy_production_LowerBound(optmodel, p,sc,n,hz):
+    #    if model.Par['pGenStandByStatus'][hz]:
+    #         return optmodel.vEleTotalCharge[p,sc,n,hz] >= model.Par['pMinCharge'][hz][p,sc,n] * (1 - optmodel.vHydStandBy[p,sc,n,hz])
+    #    else:
+    #        return Constraint.Skip
+    #optmodel.__setattr__('eEleStandBy_production_LowerBound', Constraint(optmodel.psnhz, rule=eEleStandBy_production_LowerBound, doc='standby charge of the electrolyzer'))
 
     def eHydAvoidTransition_Off_StandBy(optmodel, p,sc,n,hz):
         if model.Par['pGenStandByStatus'][hz]:
             # return 1 - optmodel.vHydCommitment[p,sc,n,hz] + optmodel.vHydStandBy[p,sc,n,hz] <= 1
-            return  optmodel.vHydStandBy[p,sc,n,hz] <= optmodel.vHydCommitment[p,sc,n,hz]
+            return  optmodel.vHydStandBy[p,sc,n,hz] + optmodel.vHydCommitment[p,sc,n,hz] <= 1
         else:
             return Constraint.Skip
     optmodel.__setattr__('eHydAvoidTransition_Off_StandBy', Constraint(optmodel.psnhz, rule=eHydAvoidTransition_Off_StandBy, doc='transition avoid from off to standby'))
@@ -2565,6 +2568,57 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     Output_EleNetFlow = OutputResults
     Output_EleNetFlow.to_csv(_path+'/oH_Result_rElectricityNetworkFlows_'+CaseName+'.csv', index=False, sep=',')
     model.Output_EleNetFlow = Output_EleNetFlow
+
+    # Electrolyzer Commitment, Standby, StartUp, ShutDown
+
+    OutputResults1 = pd.Series(data=[optmodel.vHydCommitment[p,sc,n,hz]() * 4 for p,sc,n,hz in model.psnhz], index=pd.Index(model.psnhz)).to_frame(name='Value').rename_axis(
+        ['Period', 'Scenario', 'LoadLevel', 'Unit'], axis=0)
+
+    OutputResults2 = pd.Series(data=[optmodel.vHydStandBy[p,sc,n,hz]() * 3 for p,sc,n,hz in model.psnhz], index=pd.Index(model.psnhz)).to_frame(name='Value').rename_axis(
+        ['Period', 'Scenario', 'LoadLevel', 'Unit'], axis=0)
+
+    OutputResults3 = pd.Series(data=[optmodel.vHydStartUp[p, sc, n, hz]() * 2 for p, sc, n, hz in model.psnhz], index=pd.Index(model.psnhz)).to_frame(name='Value').rename_axis(
+        ['Period', 'Scenario', 'LoadLevel', 'Unit'], axis=0)
+
+    OutputResults4 = pd.Series(data=[optmodel.vHydShutDown[p, sc, n, hz]() * 1 for p, sc, n, hz in model.psnhz], index=pd.Index(model.psnhz)).to_frame(name='Value').rename_axis(
+        ['Period', 'Scenario', 'LoadLevel', 'Unit'], axis=0)
+
+    OutputResults1['Status'] = 'Commitment'
+    OutputResults2['Status'] = 'Standby'
+    OutputResults3['Status'] = 'StartUp'
+    OutputResults4['Status'] = 'ShutDown'
+
+    # select the third level of the index and create a new column date using the Date as a initial date
+    OutputResults1['Date'] = OutputResults1.index.get_level_values(2).map(
+        lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
+    OutputResults2['Date'] = OutputResults2.index.get_level_values(2).map(
+        lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
+    OutputResults3['Date'] = OutputResults3.index.get_level_values(2).map(
+        lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
+    OutputResults4['Date'] = OutputResults4.index.get_level_values(2).map(
+        lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
+
+    OutputResults1 = OutputResults1.set_index(['Date','Status'], append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Unit', 'Date','Status'], axis=0).reset_index()
+    OutputResults2 = OutputResults2.set_index(['Date','Status'], append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Unit', 'Date','Status'], axis=0).reset_index()
+    OutputResults3 = OutputResults3.set_index(['Date','Status'], append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Unit', 'Date','Status'], axis=0).reset_index()
+    OutputResults4 = OutputResults4.set_index(['Date','Status'], append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'Unit', 'Date','Status'], axis=0).reset_index()
+
+    # Concatenar los DataFrames verticalmente (axis=0)
+    OutputResults = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4], ignore_index=True)
+
+    # Configurar el índice incluyendo 'Status'
+    OutputResults = OutputResults.set_index(['Period', 'Scenario', 'LoadLevel', 'Unit', 'Date', 'Status'])
+    # Restablecer el índice y reorganizar para que 'Status' sea una columna y los valores queden en una sola columna
+    OutputResults = OutputResults.stack().reset_index()
+    # Renombrar las columnas para mayor claridad
+    OutputResults.columns = ['Period', 'Scenario', 'LoadLevel', 'Unit', 'Date', 'Status', 'Metric', 'Value']
+    # Eliminar la columna 'Metric' si solo tienes una métrica (puedes omitir este paso si tienes múltiples)
+    OutputResults = OutputResults.drop(columns=['Metric'])
+
+    Output_vCommitment_hz = OutputResults
+    Output_vCommitment_hz.to_csv(_path + '/oH_Result_rCommitment_hz_' + CaseName + '.csv', index=False, sep=',')
+    model.Output_vCommitment_hz = Output_vCommitment_hz
+
 
     # Hydrogen Inventory Output
 
