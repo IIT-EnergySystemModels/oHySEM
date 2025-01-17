@@ -1,5 +1,10 @@
 Change Log
 =============
+[1.0.13] - 2025-01-17
+---------------------
+- [CHANGED] streamlit shows Electrolyzer Commitment
+- [CHANGED] oHySEM has fixed the use of StandBy status of the electrolyzer
+
 [1.0.12] - 2024-12-15
 ---------------------
 - [CHANGED] streamlit shows Electricity and H2 Storage balances simultaneously with storage levels at ESS and HSS
