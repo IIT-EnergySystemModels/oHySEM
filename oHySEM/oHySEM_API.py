@@ -1,5 +1,5 @@
 # Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
-# Dec. 15, 2024
+# Jan. 17, 2025
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
@@ -16,6 +16,7 @@ import pandas as pd
 import altair as alt
 import os
 import subprocess
+import matplotlib.pyplot as plt
 
 # Set the page config
 st.set_page_config(page_title="oHySEM Dashboard", layout="wide")
@@ -377,10 +378,10 @@ unit = st.selectbox('Modify the dataset below, select a unit:', list(list_electr
 col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
 
 with col1:
-    modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the Maximum Electricity Consumption [MW]:", value=modified_df.loc[unit, 'MaximumCharge'])
+    modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the Maximum Consumption [MW]:", value=modified_df.loc[unit, 'MaximumCharge'])
 
 with col2:
-    modified_df.loc[unit, 'MinimumCharge'] = st.number_input("Enter the Minimum Electricity Consumption [MW]:", value=modified_df.loc[unit, 'MinimumCharge'])
+    modified_df.loc[unit, 'MinimumCharge'] = st.number_input("Enter the Minimum Consumption [MW]:", value=modified_df.loc[unit, 'MinimumCharge'])
 
 with col3:
     modified_df.loc[unit, 'ProductionFunction'] = st.number_input("Enter the Production Function [kWh/kgH2]:", value=modified_df.loc[unit, 'ProductionFunction'])
@@ -659,11 +660,12 @@ if st.button('Launch the model'):
         def load_result_csv(file_name):
             return pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], file_name))
 
-        hydrogen_balance    = load_result_csv(f'oH_Result_rHydrogenBalance_{st.session_state["case_name"]}.csv')
-        hydrogen_inventory  = load_result_csv(f'oH_Result_rHydInventory_{st.session_state["case_name"]}.csv')
-        electricity_balance = load_result_csv(f'oH_Result_rElectricityBalance_{st.session_state["case_name"]}.csv')
+        hydrogen_balance      = load_result_csv(f'oH_Result_rHydrogenBalance_{st.session_state["case_name"]}.csv')
+        hydrogen_inventory    = load_result_csv(f'oH_Result_rHydInventory_{st.session_state["case_name"]}.csv')
+        electricity_balance   = load_result_csv(f'oH_Result_rElectricityBalance_{st.session_state["case_name"]}.csv')
         electricity_inventory = load_result_csv(f'oH_Result_rEleInventory_{st.session_state["case_name"]}.csv')
-        total_cost          = load_result_csv(f'oH_Result_rTotalCost_{st.session_state["case_name"]}.csv')
+        total_cost            = load_result_csv(f'oH_Result_rTotalCost_{st.session_state["case_name"]}.csv')
+        commitment_hz         = load_result_csv(f'oH_Result_rCommitment_hz_{st.session_state["case_name"]}.csv')
 
         # Filter unnecessary rows
         hydrogen_balance = hydrogen_balance[~hydrogen_balance['Component'].isin(['HydrogenFlowIn', 'HydrogenFlowOut', 'Wind', 'BESS'])]
@@ -829,7 +831,16 @@ if st.button('Launch the model'):
                     st.markdown("""
                     - **BESS**: Battery
                     - **ENS / HNS**:  Electricity/ Hydrogen Non-Supplied
-                    - **H2ESS**: Electricity & Hydrogen Consumption by Hydrogen Tank
+                    - **ElectricityBuy**: Electricity purchased from the market
+                    - **ElectricityDemand**: Auxiliary demand by the plant
+                    - **ElectricitySell**: Electricity sold to the market
+                    - **Electrolyzer**: Electricity consumed by the electrolyzer / Hydrogen produced by the electrolyzer
+                    - **H2ESS**: Hydrogen stored in the Tank
+                    - **Solar_PV**: Electricity produced by the PV plant
+                    - **Wind**: Electricity produced by the Wind plant
+                    - **HydrogenBuy**: Hydrogen bought from the market
+                    - **HydrogenDemand**: Hydrogen demanded by the offtaker 
+                    - **HydrogenSell**: Hydrogen sold to the market
                     """)
 
         # Hydrogen Balance Line Chart
@@ -855,7 +866,6 @@ if st.button('Launch the model'):
 
             st.altair_chart(hydrogen_chart, use_container_width=True)
 
-        #PEDRO
 
         # ESS and HSS Storage Levels
         st.subheader("*ENERGY STORAGE LEVELS*")
@@ -939,8 +949,34 @@ if st.button('Launch the model'):
 
     with st.expander("Energy Storage Components?"):
                 st.markdown("""
-                - **To be included soon**: 
+                - **Yellow line** at the **Electricity** Storage Level: State of Charge (SoC) of the BESS
+                - **Yellow line** at the **Hydrogen** Storage Level: Hydrogen stored in the HESS
                 """)
+
+    st.title("Electrolyzer Commitment Graph")
+    commitment_hz = pd.read_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'],
+                                         f'oH_Result_rCommitment_hz_{st.session_state["case_name"]}.csv'))
+    commitment_hz_filtered = commitment_hz[commitment_hz['Value'] != 0]
+
+
+    # Crear el gráfico con Altair
+    chart = alt.Chart(commitment_hz_filtered).mark_circle(size=100).encode(
+                 x=alt.X('Date:T', axis=alt.Axis(title='', labelAngle=-90, format="%A, %b %d, %H:%M", tickCount=30, labelLimit=1000)),
+                 y=alt.Y('Value:Q', title='Status'),
+                          color=alt.Color('Status:N', title='Estado',scale=alt.Scale(domain=['StartUp', 'ShutDown', 'Commitment', 'Standby'],
+                                    range=['green', 'red', 'blue', 'orange'])
+                                    ),
+                 tooltip=['Date:T', 'Value:Q', 'Status:N']  # Información en el hover
+                 ).properties(
+                 title="Commitment AEL_01",
+                 width=800,
+                 height=400
+                 ).interactive()
+
+                  # Mostrar el gráfico en Streamlit
+    st.altair_chart(chart, use_container_width=True)
+
+
 
 
 st.write("Dashboard created for analyzing oHySEM results.")
