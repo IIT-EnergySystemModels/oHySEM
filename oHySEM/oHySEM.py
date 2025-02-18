@@ -1610,7 +1610,12 @@ def create_constraints(model, optmodel):
     # Energy conversion from energy from electricity to hydrogen and vice versa [p.u.]
     def eAllEnergy2Hyd(optmodel, p,sc,n, hz):
         if model.Par['pMaxPower'][hz][p,sc,n] and hz in model.h:
-            return optmodel.vHydTotalOutput[p,sc,n,hz] == optmodel.vEleTotalCharge[p,sc,n,hz] / model.Par['pGenProductionFunction'][hz]
+#Previous efficiency equation
+#            return optmodel.vHydTotalOutput[p,sc,n,hz] == optmodel.vEleTotalCharge[p,sc,n,hz] / model.Par['pGenProductionFunction'][hz]
+#Approximation of the efficiency assuming 50 kWh/kgH2 at minimum consumption and 60 kWh/kgH2 at maximum consumption
+
+             return optmodel.vHydTotalOutput[p, sc, n, hz] == 21.111 * optmodel.vEleTotalCharge[p, sc, n, hz] - 222.22 * optmodel.vEleTotalCharge[p, sc, n, hz] ** 2
+
         else:
             return Constraint.Skip
     optmodel.__setattr__('eAllEnergy2Hyd', Constraint(optmodel.psnhz, rule=eAllEnergy2Hyd, doc='energy conversion from different energy type to hydrogen [p.u.]'))
@@ -2325,6 +2330,14 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         SubSolverName = 'highs'
         SolverName = 'gams'
 
+#    if SolverName == 'ipopt':
+#        SubSolverName = 'ipopt'
+#        SolverName = 'gams'
+
+    if SolverName == 'conopt':
+        SubSolverName = 'conopt'
+        SolverName = 'gams'
+
     Solver = SolverFactory(SolverName)  # select solver
     if SolverName == 'gurobi':
         Solver.options['LogFile'] = _path + '/oH_' + CaseName + '.log'
@@ -2337,12 +2350,14 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         Solver.options['Crossover'] = -1
         Solver.options['FeasibilityTol'] = 1e-9
         # Solver.options['BarConvTol'    ] = 1e-9
-        # Solver.options['BarQCPConvTol' ] = 0.025
+        Solver.options['BarQCPConvTol' ] = 0.03
         # Solver.options['NumericFocus'  ] = 3
-        Solver.options['MIPGap'] = 0.01
+        Solver.options['MIPGap'] = 0.03
         Solver.options['Threads'] = int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)
         Solver.options['TimeLimit'] = 1800
-        Solver.options['IterationLimit'] = 1800000
+        Solver.options['IterationLimit'] = 18000000
+        Solver.options['NonConvex'] = 2
+
     if SubSolverName == 'cplex':
         solver_options = {
             'file COPT / cplex.opt / ; put COPT putclose "EPGap 0.01" / "LPMethod 4" / "RINSHeur 100" / ; GAMS_MODEL.OptFile = 1 ;'
@@ -2359,6 +2374,43 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
             'option ResLim  = 36000 ; option IterLim = 36000000 ;',
             'option Threads = ' + str(int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)) + ' ;'
             }
+
+    if SubSolverName == 'ipopt':
+        Solver.options['print_level'] = 5  # Nivel de detalle en la salida del solver (0 = silencioso, 5 = detallado)
+        Solver.options['file_print_level'] = 5  # Nivel de detalle en archivos de log
+        Solver.options['output_file'] = _path + '/oH_' + CaseName + '.log'  # Archivo de salida de IPOPT
+        Solver.options['max_iter'] = 18000000  # Límite de iteraciones
+        Solver.options['tol'] = 1e-9  # Tolerancia de factibilidad
+        Solver.options['acceptable_tol'] = 1e-9  # Tolerancia aceptable
+        Solver.options['acceptable_iter'] = 10  # Número de iteraciones aceptables antes de parar
+        Solver.options['linear_solver'] = 'mumps'  # Método de resolución de sistemas lineales (alternativas: ma27, ma57, ma77, etc.)
+        Solver.options['warm_start_init_point'] = 'yes'  # Habilitar warm start si es aplicable
+        Solver.options['mu_strategy'] = 'adaptive'  # Estrategia de selección de mu
+        Solver.options['hessian_approximation'] = 'limited-memory'  # Aproximación de la Hessiana (alternativa: 'exact')
+        Solver.options['dual_inf_tol'] = 1e-9  # Tolerancia para infeasibilidad dual
+        Solver.options['constr_viol_tol'] = 1e-9  # Tolerancia para violación de restricciones
+        Solver.options['compl_inf_tol'] = 1e-9  # Tolerancia para complementariedad
+        Solver.options['cpu_time_limit'] = 1800  # Límite de tiempo en segundos
+        Solver.options['max_cpu_time'] = 1800  # Límite de tiempo en segundos
+        Solver.options['max_wall_time'] = 1800  # Límite de tiempo real
+        Solver.options['print_timing_statistics'] = 'yes'  # Mostrar estadísticas de tiempos
+
+    if SubSolverName == 'conopt':
+        solver_options = {
+                'file COPT / conopt4.opt / ; put COPT putclose '
+                '"Tol 1e-6" / '  # Tolerancia de convergencia
+                '"Max_Iter 36000000" / '  # Límite de iteraciones
+                '"Max_CPU_Time 36000" / '  # Límite de tiempo en segundos
+                '"Print_Level 5" / '  # Nivel de salida
+                '"Threads ' + str(int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)) + '" / ;'
+                                                                                                                 'GAMS_MODEL.OptFile = 1 ;'
+                                                                                                                 'option SysOut  = off   ;'
+                                                                                                                 'option NLP      = conopt4 ; option MINLP   = conopt4    ;'
+                                                                                                                 'option ResLim  = 36000 ; option IterLim = 36000000 ;'
+                                                                                                                 'option Threads = ' + str(
+                    int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)) + ' ;'
+        }
+
     idx = 0
     for var in optmodel.component_data_objects(Var, active=False, descend_into=True):
         if not var.is_continuous():
