@@ -123,7 +123,7 @@ To run the Streamlit API, execute the following command in the terminal that sho
 
 .. code-block:: bash
 
-    streamlit run API3.py
+    streamlit run oHySEM_API.py
 
 **Solvers**:
 
