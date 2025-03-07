@@ -1,5 +1,5 @@
-# Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
-# Feb. 18, 2024
+# Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez, Orlando Valarezo
+# Feb. 19, 2025
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
@@ -302,7 +302,7 @@ def data_processing(DirName, CaseName, model):
 
     # generation indicators
     generation_ind = data_frames['dfGeneration'].columns.to_list()
-    idx_factoring  = ['MaximumPower', 'MinimumPower', 'StandByPower', 'MaximumCharge', 'MinimumCharge', 'OMVariableCost', 'ProductionFunction', 'MaxCompressorConsumption',
+    idx_factoring  = ['MaximumPower', 'MinimumPower', 'StandByPower', 'MaximumCharge', 'MinimumCharge', 'OMVariableCost', 'ProductionFunctionMin', 'ProductionFunctionMax', 'MaxCompressorConsumption',
                       'RampUp', 'RampDown', 'CO2EmissionRate', 'MaxOutflowsProd', 'MinOutflowsProd', 'MaxInflowsCons', 'MinInflowsCons', 'OutflowsRampDown', 'OutflowsRampUp']
     for idx in generation_ind:
         if idx in idx_factoring:
@@ -310,6 +310,7 @@ def data_processing(DirName, CaseName, model):
         else:
             parameters_dict[f'pGen{idx}'] = data_frames['dfGeneration'][idx]
 
+    #parameters_dict['pGenProductionFunction']=56*factor1
     parameters_dict['pGenLinearVarCost'     ] = parameters_dict['pGenLinearTerm'          ] * 1e-3 * parameters_dict['pGenFuelCost'] + parameters_dict['pGenOMVariableCost'] * 1e-3  # linear   term variable cost             [MEUR/GWh]
     parameters_dict['pGenConstantVarCost'   ] = parameters_dict['pGenConstantTerm'        ] * 1e-6 * parameters_dict['pGenFuelCost']                                                 # constant term variable cost             [MEUR/h]
     parameters_dict['pGenCO2EmissionCost'   ] = parameters_dict['pGenCO2EmissionRate'     ] * 1e-3 * parameters_dict['pParCO2Cost']                                                  # CO2 emission cost                       [MEUR/GWh]
@@ -375,11 +376,11 @@ def data_processing(DirName, CaseName, model):
     model.n2   = Set(initialize=model.nn                                           , ordered=True , doc='load levels           ', filter=lambda model, value: value in model.nn          and  parameters_dict['pDuration']                [value] >  0  )
     model.g    = Set(initialize=model.gg                                           , ordered=False, doc='generating      units ', filter=lambda model, value: value in model.gg          and (parameters_dict['pGenMaximumPower']         [value] >  0.0 or   parameters_dict['pGenMaximumCharge']     [value] >  0.0) and parameters_dict['pGenInitialPeriod']     [value] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pGenFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
     model.t    = Set(initialize=model.g                                            , ordered=False, doc='thermal         units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenConstantVarCost']      [value] >  0.0)
-    model.re   = Set(initialize=model.g                                            , ordered=False, doc='RES             units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenConstantVarCost']      [value] == 0.0 and  parameters_dict['pGenMaximumStorage']    [value] == 0.0  and parameters_dict['pGenProductionFunction'][value] == 0.0)
+    model.re   = Set(initialize=model.g                                            , ordered=False, doc='RES             units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenConstantVarCost']      [value] == 0.0 and  parameters_dict['pGenMaximumStorage']    [value] == 0.0  and parameters_dict['pGenProductionFunctionMax'][value] == 0.0)
     model.es   = Set(initialize=model.g                                            , ordered=False, doc='ESS             units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenMaximumStorage']       [value]  > 0.0 and (parameters_dict['pVarMaxInflows'].sum()  [value] >  0.0  or  parameters_dict['pVarMaxOutflows'].sum() [value] >  0.0 or parameters_dict['pGenMaximumCharge'][value] > 0.0))
     model.h    = Set(initialize=model.hh                                           , ordered=False, doc='hydrogen        units ', filter=lambda model, value: value in model.hh          and (parameters_dict['pGenMaximumPower']         [value]  > 0.0 or   parameters_dict['pGenMaximumCharge']     [value] >  0.0) and parameters_dict['pGenInitialPeriod']     [value] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pGenFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
-    model.hz   = Set(initialize=model.h                                            , ordered=False, doc='electrolyzer    units ', filter=lambda model, value: value in model.h           and                                                               parameters_dict['pGenProductionFunction']   [value] >  0.0)
-    model.hs   = Set(initialize=model.h                                            , ordered=False, doc='storage         units ', filter=lambda model, value: value in model.h           and  parameters_dict['pGenMaximumStorage']       [value]  > 0.0 and  parameters_dict['pGenProductionFunction'][value] == 0.0  and (parameters_dict['pVarMaxInflows'].sum() [value] >  0.0 or parameters_dict['pVarMaxOutflows'].sum()[value]  > 0.0 or parameters_dict['pGenMaximumCharge'][value] > 0.0))
+    model.hz   = Set(initialize=model.h                                            , ordered=False, doc='electrolyzer    units ', filter=lambda model, value: value in model.h           and                                                               parameters_dict['pGenProductionFunctionMax']   [value] >  0.0)
+    model.hs   = Set(initialize=model.h                                            , ordered=False, doc='storage         units ', filter=lambda model, value: value in model.h           and  parameters_dict['pGenMaximumStorage']       [value]  > 0.0 and  parameters_dict['pGenProductionFunctionMax'][value] == 0.0  and (parameters_dict['pVarMaxInflows'].sum() [value] >  0.0 or parameters_dict['pVarMaxOutflows'].sum()[value]  > 0.0 or parameters_dict['pGenMaximumCharge'][value] > 0.0))
     model.gc   = Set(initialize=model.g                                            , ordered=False, doc='candidate       units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenInvestCost']           [value]  > 0.0)
     model.gd   = Set(initialize=model.g                                            , ordered=False, doc='retirement      units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenRetireCost']           [value] != 0.0)
     model.ec   = Set(initialize=model.es                                           , ordered=False, doc='candidate ESS   units ', filter=lambda model, value: value in model.es          and  parameters_dict['pGenInvestCost']           [value] >  0.0)
@@ -1608,17 +1609,93 @@ def create_constraints(model, optmodel):
     StartTime = time.time() # to compute elapsed time
 
     # Energy conversion from energy from electricity to hydrogen and vice versa [p.u.]
-    def eAllEnergy2Hyd(optmodel, p,sc,n, hz):
-        if model.Par['pMaxPower'][hz][p,sc,n] and hz in model.h:
+#    def eAllEnergy2Hyd(optmodel, p,sc,n, hz):
+#        if model.Par['pMaxPower'][hz][p,sc,n] and hz in model.h:
 #Previous efficiency equation
 #            return optmodel.vHydTotalOutput[p,sc,n,hz] == optmodel.vEleTotalCharge[p,sc,n,hz] / model.Par['pGenProductionFunction'][hz]
 #Approximation of the efficiency assuming 50 kWh/kgH2 at minimum consumption and 60 kWh/kgH2 at maximum consumption
 
-             return optmodel.vHydTotalOutput[p, sc, n, hz] == 21.111 * optmodel.vEleTotalCharge[p, sc, n, hz] - 222.22 * optmodel.vEleTotalCharge[p, sc, n, hz] ** 2
+#             return optmodel.vHydTotalOutput[p, sc, n, hz] == 21.111 * optmodel.vEleTotalCharge[p, sc, n, hz] - 222.22 * optmodel.vEleTotalCharge[p, sc, n, hz] ** 2
+
+#        else:
+#            return Constraint.Skip
+#    optmodel.__setattr__('eAllEnergy2Hyd', Constraint(optmodel.psnhz, rule=eAllEnergy2Hyd, doc='energy conversion from different energy type to hydrogen [p.u.]'))
+
+
+    # Energy conversion from energy from electricity to hydrogen and vice versa [p.u.] - P_min
+    def eAllEnergy2Hyd1(optmodel, p, sc, n, hz):
+        if model.Par['pMaxPower'][hz][p, sc, n] and hz in model.h:
+            #'''
+            #1. Energy production conversion to (tH2/GWh), pGenProductionFunctionMin are expressed in GWh/tH2
+            R_min = 1/model.Par['pGenProductionFunctionMin'][hz]
+            R_max = 1/model.Par['pGenProductionFunctionMax'][hz]
+            P_max = model.Par['pGenMaximumCharge'][hz]
+            P_min = model.Par['pGenMinimumCharge'][hz]
+            #P_mean = (P_max + P_min)/2
+            #2.Calculate H(pmin)
+            H_Pmin = ((R_max - R_min)/(P_max-P_min))*(P_min**2) + (R_min - ((R_max - R_min)/(P_max-P_min))*P_min)*P_min
+            #3.Calculate H'(pmin)
+            H_M_Pmin = ((R_max - R_min)/(P_max-P_min))*(P_min*2) + R_min - ((R_max - R_min)/(P_max-P_min))*P_min
+            #4. Formulate the equation H <= H(pmin) + H'(pmin)(P-p_min)
+            return optmodel.vHydTotalOutput[p, sc, n, hz] <= H_Pmin + H_M_Pmin*(optmodel.vEleTotalCharge[p, sc, n, hz] - P_min)
+            #'''
+            #return optmodel.vHydTotalOutput[p, sc, n, hz] <= 18.8878 * optmodel.vEleTotalCharge[p, sc, n, hz] + 0.00561
 
         else:
             return Constraint.Skip
-    optmodel.__setattr__('eAllEnergy2Hyd', Constraint(optmodel.psnhz, rule=eAllEnergy2Hyd, doc='energy conversion from different energy type to hydrogen [p.u.]'))
+
+    optmodel.__setattr__('eAllEnergy2Hyd1', Constraint(optmodel.psnhz, rule=eAllEnergy2Hyd1,
+                                                      doc='energy conversion from different energy type to hydrogen [p.u.] segment 1'))
+
+    # Energy conversion from energy from electricity to hydrogen and vice versa [p.u.] - P_mean
+    def eAllEnergy2Hyd2(optmodel, p, sc, n, hz):
+        if model.Par['pMaxPower'][hz][p, sc, n] and hz in model.h:
+            #'''
+            #1. Energy production conversion to (tH2/GWh), pGenProductionFunctionMin are expressed in GWh/tH2
+            R_min = 1/model.Par['pGenProductionFunctionMin'][hz]
+            R_max = 1/model.Par['pGenProductionFunctionMax'][hz]
+            P_max = model.Par['pGenMaximumCharge'][hz]
+            P_min = model.Par['pGenMinimumCharge'][hz]
+            P_mean = (P_max + P_min)/2
+            #2.Calculate H(pmean)
+            H_Pmean = ((R_max - R_min)/(P_max-P_min))*(P_mean**2) + (R_min - ((R_max - R_min)/(P_max-P_min))*P_min)*P_mean
+            #3.Calculate H'(pmean)
+            H_M_Pmean = ((R_max - R_min)/(P_max-P_min))*(P_mean*2) + R_min - ((R_max - R_min)/(P_max-P_min))*P_min
+            #4. Formulate the equation H <= H(pmean) + H'(pmean)(P-p_mean)
+            return optmodel.vHydTotalOutput[p, sc, n, hz] <= H_Pmean + H_M_Pmean*(optmodel.vEleTotalCharge[p, sc, n, hz] - P_mean)
+            #'''
+            #return optmodel.vHydTotalOutput[p, sc, n, hz] <= 15.5545 * optmodel.vEleTotalCharge[p, sc, n, hz] + 0.03276
+
+        else:
+            return Constraint.Skip
+
+    optmodel.__setattr__('eAllEnergy2Hyd2', Constraint(optmodel.psnhz, rule=eAllEnergy2Hyd2,
+                                                      doc='energy conversion from different energy type to hydrogen [p.u.] segment 2'))
+
+    # Energy conversion from energy from electricity to hydrogen and vice versa [p.u.] - P_max
+    def eAllEnergy2Hyd3(optmodel, p, sc, n, hz):
+        if model.Par['pMaxPower'][hz][p, sc, n] and hz in model.h:
+            #'''
+            #1. Energy production conversion to (tH2/GWh), pGenProductionFunctionMin are expressed in GWh/tH2
+            R_min = 1/model.Par['pGenProductionFunctionMin'][hz]
+            R_max = 1/model.Par['pGenProductionFunctionMax'][hz]
+            P_max = model.Par['pGenMaximumCharge'][hz]
+            P_min = model.Par['pGenMinimumCharge'][hz]
+            #P_mean = (P_max + P_min)/2
+            #2.Calculate H(pmax)
+            H_Pmax = ((R_max - R_min)/(P_max-P_min))*(P_max**2) + (R_min - ((R_max - R_min)/(P_max-P_min))*P_min)*P_max
+            #3.Calculate H'(pmax)
+            H_M_Pmax = ((R_max - R_min)/(P_max-P_min))*(P_max*2) + R_min - ((R_max - R_min)/(P_max-P_min))*P_min
+            #4. Formulate the equation H <= H(pmax) + H'(pmax)(P-p_max)
+            return optmodel.vHydTotalOutput[p, sc, n, hz] <= H_Pmax + H_M_Pmax*(optmodel.vEleTotalCharge[p, sc, n, hz] - P_max)
+            #'''
+            #return optmodel.vHydTotalOutput[p, sc, n, hz] <= 12.2212 * optmodel.vEleTotalCharge[p, sc, n, hz] + 0.088676
+
+        else:
+            return Constraint.Skip
+
+    optmodel.__setattr__('eAllEnergy2Hyd3', Constraint(optmodel.psnhz, rule=eAllEnergy2Hyd3,
+                                                      doc='energy conversion from different energy type to hydrogen [p.u.] segment 3'))
 
     def eAllEnergy2Ele(optmodel, p,sc,n, g):
         if model.Par['pMaxPower'][g][p,sc,n] and g in model.t:
@@ -2352,7 +2429,7 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         # Solver.options['BarConvTol'    ] = 1e-9
         Solver.options['BarQCPConvTol' ] = 0.03
         # Solver.options['NumericFocus'  ] = 3
-        Solver.options['MIPGap'] = 0.03
+        Solver.options['MIPGap'] = 0.001
         Solver.options['Threads'] = int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)
         Solver.options['TimeLimit'] = 1800
         Solver.options['IterationLimit'] = 18000000
@@ -3005,6 +3082,7 @@ def network_map(DirName, CaseName, model, optmodel):
 
     PlottingNetMapsTime = time.time() - StartTime
     print('Plotting  electric network maps        ... ', round(PlottingNetMapsTime), 's')
+
 
 
 if __name__ == '__main__':
