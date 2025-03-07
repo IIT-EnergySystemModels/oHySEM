@@ -1,5 +1,10 @@
 Change Log
 =============
+[1.0.14] - 2025-03-07
+---------------------
+- [CHANGED] streamlit shows min and max values of Electrolyzer production function
+- [CHANGED] oHySEM has approximated by three piecewise inequalities the electrolyzer hydrogen production
+
 [1.0.13] - 2025-01-17
 ---------------------
 - [CHANGED] streamlit shows Electrolyzer Commitment
