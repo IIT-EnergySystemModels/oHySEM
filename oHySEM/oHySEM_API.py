@@ -1,4 +1,4 @@
-# Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez
+# Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez, Orlando Valarezo
 # Jan. 17, 2025
 
 #    Andres Ramos
@@ -375,27 +375,30 @@ list_electrolizer_units = df[df['Technology'] == 'Electrolyzer'].index
 unit = st.selectbox('Modify the dataset below, select a unit:', list(list_electrolizer_units))
 
 # User inputs
-col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
 
 with col1:
-    modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the Maximum Consumption [MW]:", value=modified_df.loc[unit, 'MaximumCharge'])
-
-with col2:
     modified_df.loc[unit, 'MinimumCharge'] = st.number_input("Enter the Minimum Consumption [MW]:", value=modified_df.loc[unit, 'MinimumCharge'])
 
+with col2:
+    modified_df.loc[unit, 'MaximumCharge'] = st.number_input("Enter the Maximum Consumption [MW]:", value=modified_df.loc[unit, 'MaximumCharge'])
+
 with col3:
-    modified_df.loc[unit, 'ProductionFunction'] = st.number_input("Enter the Production Function [kWh/kgH2]:", value=modified_df.loc[unit, 'ProductionFunction'])
+    modified_df.loc[unit, 'ProductionFunctionMin'] = st.number_input("Enter the Production Function Min [kWh/kgH2]:", value=modified_df.loc[unit, 'ProductionFunctionMin'])
 
 with col4:
-    modified_df.loc[unit, 'StartUpCost'] = st.number_input("Enter the Start Up Cost [€]:", value=modified_df.loc[unit, 'StartUpCost'])
+    modified_df.loc[unit, 'ProductionFunctionMax'] = st.number_input("Enter the Production Function Max [kWh/kgH2]:", value=modified_df.loc[unit, 'ProductionFunctionMax'])
 
 with col5:
-    modified_df.loc[unit, 'ShutDownCost'] = st.number_input("Enter the Shut Down Cost [€]:", value=modified_df.loc[unit, 'ShutDownCost'])
+    modified_df.loc[unit, 'StartUpCost'] = st.number_input("Enter the Start Up Cost [€]:", value=modified_df.loc[unit, 'StartUpCost'])
 
 with col6:
-    modified_df.loc[unit, 'StandByStatus'] = st.selectbox("Enter the Stand By status [Yes or No]:", list(['Yes','No']))
+    modified_df.loc[unit, 'ShutDownCost'] = st.number_input("Enter the Shut Down Cost [€]:", value=modified_df.loc[unit, 'ShutDownCost'])
 
 with col7:
+    modified_df.loc[unit, 'StandByStatus'] = st.selectbox("Enter the Stand By status [Yes or No]:", list(['Yes','No']))
+
+with col8:
     modified_df.loc[unit, 'StandByPower'] = st.number_input("Enter the Stand By Power [MW]:", value=modified_df.loc[unit, 'StandByPower'])
 
 #Explanation of Electrolyzer Data
@@ -404,9 +407,10 @@ col1, col2 = st.columns([0.80, 0.95])
 with col1:
     with st.expander("Electrolyzer Data?"):
          st.write("""
-         - **Maximum Electricity consumption**: Maximum Consumption of the Electrolyzer in MW
-         - **Minimum Electricity Consumption**: Minimum Consumption of the Electrolyzer in MW
-         - **Production Function**: kWh consumed to produce 1 kg of Hydrogen
+         - **Minimum Electricity consumption**: Minimum Consumption of the Electrolyzer in MW
+         - **Maximum Electricity Consumption**: Maximum Consumption of the Electrolyzer in MW
+         - **Production Function Min**: kWh consumed to produce 1 kg of Hydrogen (Minimum Electricity consumption)
+         - **Production Function Max**: kWh consumed to produce 1 kg of Hydrogen (Maximum Electricity consumption)
          - **Start Up Cost:** Cost of Starting Up the electrolyzer to its minimum consumption value in €
          - **Shut Down Cost:** Cost of Shutting Down the electrolyzer from its minimum consumption value to zero in €
          - **Stand By Status:** To let the electrolyzer to be at Stand By state (no H2 production)
@@ -417,7 +421,7 @@ with col1:
 if st.button('Save the modified data of the electrolyzer'):
     modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['Electrolyzer']), index=True)
     st.success("Dataset saved successfully!")
-    st.write(modified_df[['MaximumCharge', 'MinimumCharge', 'ProductionFunction', 'StartUpCost', 'ShutDownCost','StandByStatus','StandByPower']].head())
+    st.write(modified_df[['MaximumCharge', 'MinimumCharge', 'ProductionFunctionMin', 'ProductionFunctionMax', 'StartUpCost', 'ShutDownCost','StandByStatus','StandByPower']].head())
 
 # List of Wind Farm
 st.title("Wind Data")
@@ -442,7 +446,7 @@ unit = st.selectbox('Modify the dataset below, select a unit:', list(list_wind_u
 col1, col2= st.columns(2)
 
 with col1:
-    modified_df.loc[unit, 'MaximumPower'] = st.number_input("Enter the maximum installed Wind power [MW]:", value=modified_df.loc[unit, 'MaximumPower'])
+    modified_df.loc[unit, 'MaximumPower'] = st.number_input("Enter the maximum installed Wind power [MW]:", value=float(modified_df.loc[unit, 'MaximumPower']),format="%.3f",step=0.001)
 
 with col2:
     modified_df.loc[unit, 'MustRun'] = st.selectbox("Enter the must run status [Yes or No]:", list(['Yes','No']))
