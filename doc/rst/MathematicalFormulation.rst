@@ -38,6 +38,7 @@ Indices
 :math:`hz`    Hydrogen electrolyzer
 :math:`hs`    Hydrogen energy storage system (e.g., hydrogen tank)
 :math:`R_i`   Reserve market number :math:`i` (secondary and tertiary)
+:math:`k`     Segment of production function piecewise approximation
 ============  =======================================================================================================================
 
 Parameters
@@ -94,7 +95,8 @@ They are written in **uppercase** letters.
 :math:`EF_e`                                                                                Round-trip efficiency of the charge/discharge of an electricity ESS                                      p.u.         «``pGenEfficiency``»
 :math:`EF_h`                                                                                Round-trip efficiency of the charge/discharge of a hydrogen ESS                                          p.u.         «``pGenEfficiency``»
 :math:`PF_{he}`                                                                             Production function of electricity from hydrogen                                                         kWh/kgH2     «``pGenProductionFunction``»
-:math:`PF_{eh}`                                                                             Production function of hydrogen from electricity                                                         kgH2/kWh     «``pGenProductionFunction``»
+:math:`PF1_{ehk}`                                                                           Intercept of piecewise Production function of hydrogen from electricity                                                         kgH2/kWh     «``pGenProductionFunction``»
+:math:`PF2_{ehk}`                                                                           slope of piecewise Production function of hydrogen from electricity
 :math:`URA^{SR}_{n}, DRA^{SR}_{n}`                                                          :math:`SR` upward and downward activation                                                                p.u.         «``pOperatingReserveActivation_Up_SR``, ``pOperatingReserveActivation_Down_SR``»
 :math:`URA^{TR}_{n}, DRA^{TR}_{n}`                                                          :math:`TR` upward and downward activation                                                                p.u.         «``pOperatingReserveActivation_Up_TR``, ``pOperatingReserveActivation_Down_TR``»
 ==========================================================================================  =======================================================================================================  ===========  =======================================================================================================
@@ -291,7 +293,7 @@ Energy conversion from energy from electricity to hydrogen and vice versa [p.u.]
 
 :math:`ep_{neg} = PF_{he} hc_{neg} \quad \forall neg`
 
-:math:`hp_{nhz} = PF_{eh} gc_{nhz} \quad \forall nhz`
+:math:`hp_{nhz} \leq PF1_{ehk} +  PF2_{ehk} gc_{nhz} \quad \forall nhz`
 
 Relationship between electricity outflows and commitment of the units [p.u.] («``eMaxEleOutflows2Commitment``, ``eMinEleOutflows2Commitment``»)
 
