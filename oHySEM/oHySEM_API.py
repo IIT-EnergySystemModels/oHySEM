@@ -703,7 +703,7 @@ if st.button('Launch the model'):
 
         # Mostrar KPIs con colores suaves
         with kpi1:
-            st.markdown(style_kpi("Total Cost (kEUR)", f"{total_cost_value:.2f}", "#f0f8ff"),
+            st.markdown(style_kpi("Net Cost (kEUR)", f"{total_cost_value:.2f}", "#f0f8ff"),
                         unsafe_allow_html=True)  # AliceBlue
         with kpi2:
             st.markdown(style_kpi("Total Hydrogen Production (kgH2)", f"{total_hydrogen:.2f}", "#f5fffa"),
@@ -721,7 +721,7 @@ if st.button('Launch the model'):
         # Creating a layout for energy balances and network flows
         st.subheader("TIME ANALYSIS")
         with st.container():
-            # Two columns: One timeline for the cost and a pie chart for total cost and profits
+            # Two columns: One timeline for the cost and a pie chart for total cost and revenues
             col1, col2 = st.columns(2)
 
             # Total Cost Line Chart
@@ -753,7 +753,7 @@ if st.button('Launch the model'):
             # Donut chart
             with col2:
                 # Total Cost Breakdown with handling of negative values
-                st.header("Total Costs and Profits")
+                st.header("Total Costs and Incomes")
 
                 def create_donut_charts(data):
 
@@ -762,9 +762,9 @@ if st.button('Launch the model'):
                     costs['Percentage'] = costs['kEUR'] / costs['kEUR'].sum() * 100
 
                     # Filter negative values (profits)
-                    profits = data[data['kEUR'] < 0].groupby('Component')['kEUR'].sum().reset_index()
-                    profits['Percentage'] = profits['kEUR'] / profits['kEUR'].sum() * 100
-                    profits['kEUR'] = profits['kEUR'].abs()  # Convert profits to positive values for display
+                    incomes = data[data['kEUR'] < 0].groupby('Component')['kEUR'].sum().reset_index()
+                    incomes['Percentage'] = incomes['kEUR'] / incomes['kEUR'].sum() * 100
+                    incomes['kEUR'] = incomes['kEUR'].abs()  # Convert incomes to positive values for display
 
                     # Helper function to create individual donut chart with labels
                     def create_donut_chart(df, title):
@@ -791,15 +791,15 @@ if st.button('Launch the model'):
                     # Add a label column that combines kEUR and Percentage
                     costs['label'] = costs.apply(lambda row: f'{row["kEUR"]:.1f} kEUR ({row["Percentage"]:.1f}%)',
                                                  axis=1)
-                    profits['label'] = profits.apply(lambda row: f'{row["kEUR"]:.1f} kEUR ({row["Percentage"]:.1f}%)',
+                    incomes['label'] = incomes.apply(lambda row: f'{row["kEUR"]:.1f} kEUR ({row["Percentage"]:.1f}%)',
                                                      axis=1)
 
                     # Create donut charts for costs and profits
                     cost_donut_chart = create_donut_chart(costs, "Costs")
-                    profit_donut_chart = create_donut_chart(profits, "Profits")
+                    incomes_donut_chart = create_donut_chart(incomes, "Incomes")
 
                     # Display both charts side by side
-                    chart = cost_donut_chart | profit_donut_chart
+                    chart = cost_donut_chart | incomes_donut_chart
 
                     return chart
 
