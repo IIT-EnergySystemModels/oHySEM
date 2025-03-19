@@ -68,8 +68,8 @@ File                                        Description
 ``oH_Data_OperatingReservePrice.csv``    Price of the operating reserve sold
 ``oH_Data_Generation.csv``               Generation data
 ``oH_Data_EnergyInflows.csv``            Energy inflows  for ESS (e.g., storage hydro or open-loop pumped-storage hydro) by load level
-``oH_Data_VariableMinOutflows.csv``      Minimum product outflows for ESS (e.g., kg of H2) by load level
-``oH_Data_VariableMaxOutflows.csv``      Maximum product outflows for ESS (e.g., kg of H2) by load level
+``oH_Data_VariableMinOutflows.csv``      Minimum product outflows for ESS (e.g., kgH2) by load level
+``oH_Data_VariableMaxOutflows.csv``      Maximum product outflows for ESS (e.g., kgH2) by load level
 ``oH_Data_VariableMaxGeneration.csv``    Variable maximum power generation  by load level
 ``oH_Data_VariableMinGeneration.csv``    Variable minimum power generation  by load level
 ``oH_Data_VariableMaxConsumption.csv``   Variable maximum power consumption by load level
