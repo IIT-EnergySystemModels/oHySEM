@@ -54,9 +54,9 @@ Input files
 -----------
 This is the list of the input data files and their brief description.
 
-==========================================  ==========================================================================================================
+=======================================  ==========================================================================================================
 File                                        Description
-==========================================  ==========================================================================================================
+=======================================  ==========================================================================================================
 ``oH_Data_Option.csv``                   Options of use of the **oHySEM** model
 ``oH_Data_Parameter.csv``                General system parameters
 ``oH_Data_Period.csv``                   Weight of each period
@@ -76,7 +76,7 @@ File                                        Description
 ``oH_Data_VariableMinConsumption.csv``   Variable minimum power consumption by load level
 ``oH_Data_VariableMaxStorage.csv``       Variable maximum storage           by load level
 ``oH_Data_VariableMinStorage.csv``       Variable minimum storage           by load level
-==========================================  ==========================================================================================================
+=======================================  ==========================================================================================================
 
 In any input file, only the columns indicated in this document will be read. For example, you can add a column for comments or additional information as needed, but it will not be read by the model.
 
