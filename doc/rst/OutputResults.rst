@@ -1,6 +1,6 @@
 .. oHySEM documentation master file, created by Erik Alvarez
 
-Output results
+Output Results
 ==============
 
 The output includes several maps of the electricity and hydrogen network and plots showing the energy share of different technologies.

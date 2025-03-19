@@ -1,6 +1,6 @@
 .. oHySEM documentation master file, created by Erik Alvarez
 
-Research projects
+Research Projects
 =================
 
 The model has being used in this research project:
