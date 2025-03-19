@@ -33,7 +33,7 @@ from   colour            import Color
 for i in range(0, 117):
     print('-', end="")
 
-print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.5 - October 11, 2024')
+print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.14 - March 07, 2025')
 print('#### Non-commercial use only ####')
 
 parser = argparse.ArgumentParser(description='Introducing main arguments...')
@@ -56,7 +56,7 @@ def main():
     args = parser.parse_args()
     # args.dir = default_DirName
     # %% Model declaration
-    oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.5 - October 11, 2024')
+    oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.14 - March 07, 2025')
 
     if args.dir == "":
         args.dir = default_DirName
