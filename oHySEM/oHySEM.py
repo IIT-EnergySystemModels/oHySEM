@@ -1,5 +1,5 @@
 # Developed by Erik Alvarez, Andrés Ramos, Pedro Sánchez, Orlando Valarezo
-# Feb. 19, 2025
+# April 21, 2025
 
 #    Andres Ramos
 #    Instituto de Investigacion Tecnologica
@@ -33,7 +33,7 @@ from   colour            import Color
 for i in range(0, 117):
     print('-', end="")
 
-print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.5 - October 11, 2024')
+print('\nSoftware for Optimizing Hybrid Systems for Energy and Market management (oHySEM) - Version 1.0.14 - March 07, 2025')
 print('#### Non-commercial use only ####')
 
 parser = argparse.ArgumentParser(description='Introducing main arguments...')
@@ -56,7 +56,7 @@ def main():
     args = parser.parse_args()
     # args.dir = default_DirName
     # %% Model declaration
-    oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.5 - October 11, 2024')
+    oHySEM = ConcreteModel('Program for Optimizing the Operation Scheduling of Hydrogen base virtual power plant in Short-Term Electricity Markets (HySTEM) - Version 1.0.14 - March 07, 2025')
 
     if args.dir == "":
         args.dir = default_DirName
@@ -185,9 +185,8 @@ def data_processing(DirName, CaseName, model):
         'st': ('Storage',    'st'), 'gt':  ('Technology', 'gt'),
         'nd': ('Node',       'nd'), 'ni':  ('Node',     'nd'), 'nf': ('Node',       'nd'),
         'zn': ('Zone',       'zn'), 'cc':  ('Circuit',  'cc'), 'c2': ('Circuit',    'cc'),
-        'ndzn': ('NodeToZone', 'ndzn'),
-        'gg': ('ElectricityGeneration', 'g' ), 'hh': ('HydrogenGeneration', 'h' )}
-
+        'ndzn': ('NodeToZone', 'ndzn'),'gg': ('ElectricityGeneration', 'g' ), 'hh': ('HydrogenGeneration', 'h' ),
+        'sgg': ('Segment', 'sg'), 'hr': ('Hour', 'hr'), 'nnhr': ('LoadLevelToHour', 'nnhr' )}
     dictSets = DataPortal()
 
     # Reading dictionaries from CSV and adding elements to the dictSets
@@ -202,7 +201,7 @@ def data_processing(DirName, CaseName, model):
 
     #%% Reading the input data
     data_frames = {}
-
+    #All oh_Data files in the path_to_read
     files_list = [file.split("_")[2] for file in os.listdir(os.path.join(path_to_read)) if 'oH_Data' in file]
 
     for file_set_name in files_list:
@@ -264,6 +263,9 @@ def data_processing(DirName, CaseName, model):
     #parameters_dict['pLevelToIDmarket'] = data_frames['dfDuration']['IDMarket'].astype('int')
     parameters_dict['pPeriodWeight'   ] = data_frames['dfPeriod']['Weight'].astype('int')
     parameters_dict['pScenProb'       ] = data_frames['dfScenario']['Probability'].astype('float')
+    #Hydrogen Schedule
+    data_frames['dfHydrogenSchedule']['TargetDemandSeg'] = data_frames['dfHydrogenSchedule']['TargetDemandSeg'] * factor1
+    parameters_dict['pHydrogenSchedule'] = data_frames['dfHydrogenSchedule']
 
     # Extract and cast nodal parameters
     for suffix in model.nodal_frames_suffixes:
@@ -369,34 +371,58 @@ def data_processing(DirName, CaseName, model):
 
     # %% defining subsets: active load levels (n,n2), thermal units (t), RES units (re), ESS units (es), candidate gen units (gc), candidate ESS units (ec), all the electric lines (la),
     # candidate electric lines (lc), electric lines with losses (ll), reference node (rf)
-    model.p    = Set(initialize=model.pp                                           , ordered=True , doc='periods               ', filter=lambda model, value: value in model.pp          and  parameters_dict['pPeriodWeight']            [value] >  0.0)
-    model.sc   = Set(initialize=model.scc                                          , ordered=True , doc='scenarios             ', filter=lambda model, value: value in model.scc                                                                        )
-    model.ps   = Set(initialize=model.p*model.sc                                   , ordered=True , doc='periods/scenarios     ', filter=lambda model, value: value in model.p * model.sc and parameters_dict['pScenProb']   [value[0], value[1]] >  0.0)
-    model.n    = Set(initialize=model.nn                                           , ordered=True , doc='load levels           ', filter=lambda model, value: value in model.nn          and  parameters_dict['pDuration']                [value] >  0  )
-    model.n2   = Set(initialize=model.nn                                           , ordered=True , doc='load levels           ', filter=lambda model, value: value in model.nn          and  parameters_dict['pDuration']                [value] >  0  )
-    model.g    = Set(initialize=model.gg                                           , ordered=False, doc='generating      units ', filter=lambda model, value: value in model.gg          and (parameters_dict['pGenMaximumPower']         [value] >  0.0 or   parameters_dict['pGenMaximumCharge']     [value] >  0.0) and parameters_dict['pGenInitialPeriod']     [value] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pGenFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
-    model.t    = Set(initialize=model.g                                            , ordered=False, doc='thermal         units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenConstantVarCost']      [value] >  0.0)
-    model.re   = Set(initialize=model.g                                            , ordered=False, doc='RES             units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenConstantVarCost']      [value] == 0.0 and  parameters_dict['pGenMaximumStorage']    [value] == 0.0  and parameters_dict['pGenProductionFunctionMax'][value] == 0.0)
-    model.es   = Set(initialize=model.g                                            , ordered=False, doc='ESS             units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenMaximumStorage']       [value]  > 0.0 and (parameters_dict['pVarMaxInflows'].sum()  [value] >  0.0  or  parameters_dict['pVarMaxOutflows'].sum() [value] >  0.0 or parameters_dict['pGenMaximumCharge'][value] > 0.0))
-    model.h    = Set(initialize=model.hh                                           , ordered=False, doc='hydrogen        units ', filter=lambda model, value: value in model.hh          and (parameters_dict['pGenMaximumPower']         [value]  > 0.0 or   parameters_dict['pGenMaximumCharge']     [value] >  0.0) and parameters_dict['pGenInitialPeriod']     [value] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pGenFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
-    model.hz   = Set(initialize=model.h                                            , ordered=False, doc='electrolyzer    units ', filter=lambda model, value: value in model.h           and                                                               parameters_dict['pGenProductionFunctionMax']   [value] >  0.0)
-    model.hs   = Set(initialize=model.h                                            , ordered=False, doc='storage         units ', filter=lambda model, value: value in model.h           and  parameters_dict['pGenMaximumStorage']       [value]  > 0.0 and  parameters_dict['pGenProductionFunctionMax'][value] == 0.0  and (parameters_dict['pVarMaxInflows'].sum() [value] >  0.0 or parameters_dict['pVarMaxOutflows'].sum()[value]  > 0.0 or parameters_dict['pGenMaximumCharge'][value] > 0.0))
-    model.gc   = Set(initialize=model.g                                            , ordered=False, doc='candidate       units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenInvestCost']           [value]  > 0.0)
-    model.gd   = Set(initialize=model.g                                            , ordered=False, doc='retirement      units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenRetireCost']           [value] != 0.0)
-    model.ec   = Set(initialize=model.es                                           , ordered=False, doc='candidate ESS   units ', filter=lambda model, value: value in model.es          and  parameters_dict['pGenInvestCost']           [value] >  0.0)
-    model.hc   = Set(initialize=model.hs                                           , ordered=False, doc='candidate H2    units ', filter=lambda model, value: value in model.hs          and  parameters_dict['pGenInvestCost']           [value] >  0.0)
-    model.ebr  = Set(initialize=sEleBrList                                         , ordered=False, doc='all input    branches '                                                                                                                        )
-    model.eln  = Set(initialize=data_frames['dfElectricityNetwork'].index.to_list(), ordered=False, doc='all input       lines '                                                                                                                        )
-    model.ela  = Set(initialize=model.eln                                          , ordered=False, doc='all real        lines ', filter=lambda model, value: value in model.eln         and parameters_dict['pEleNetReactance']          [value] != 0.0 and  parameters_dict['pEleNetTTC']            [value] >  0.0  and parameters_dict['pEleNetTTCBck'][value] > 0.0 and parameters_dict['pEleNetInitialPeriod'][value]  <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pEleNetFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
-    model.els  = Set(initialize=model.ela                                          , ordered=False, doc='all real switch lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetSwitching']          [value]       )
-    model.elc  = Set(initialize=model.ela                                          , ordered=False, doc='candidate       lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetFixedInvestmentCost'][value] >  0.0)
-    model.ell  = Set(initialize=model.ela                                          , ordered=False, doc='loss            lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetLossFactor']         [value] >  0.0 and  parameters_dict['pOptIndBinNetLosses']           >  0  )
-    model.ndrf = Set(initialize=model.nd                                           , ordered=True , doc='reference node        ', filter=lambda model,nd  : nd      in                       parameters_dict['pParReferenceNode']                       )
-    model.hbr  = Set(initialize=sHydBrList                                         , ordered=False, doc='all input    branches '                                                                                                                        )
-    model.hpn  = Set(initialize=data_frames['dfHydrogenNetwork'].index.to_list()   , ordered=False, doc='all input H2 pipelines'                                                                                                                        )
-    model.hpa  = Set(initialize=model.hpn                                          , ordered=False, doc='all real  H2 pipelines', filter=lambda model, value: value in model.hpn       and                                                                    parameters_dict['pHydNetTTC']            [value] >  0.0  and parameters_dict['pHydNetTTCBck'][value] > 0.0 and parameters_dict['pHydNetInitialPeriod'][value]  <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pHydNetFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
-    model.hpc  = Set(initialize=model.hpa                                          , ordered=False, doc='candidate H2 pipelines', filter=lambda model, value: value in model.hpa       and parameters_dict['pHydNetFixedInvestmentCost']  [value] >  0.0)
-
+    #model.p    = Set(initialize=model.pp                                           , ordered=True , doc='periods               ', filter=lambda model, value: value in model.pp          and  parameters_dict['pPeriodWeight']            [value] >  0.0)
+    model.p  = Set(doc='periods          ', ordered=True, initialize= [ pp for pp in model.pp if parameters_dict['pPeriodWeight'][pp] > 0.0])
+    #model.sc   = Set(initialize=model.scc                                          , ordered=True , doc='scenarios             ', filter=lambda model, value: value in model.scc                                                                        )
+    model.sc = Set(doc='scenarios        ', ordered=True, initialize= [ scc for scc in model.scc])
+    #model.ps   = Set(initialize=model.p*model.sc                                   , ordered=True , doc='periods/scenarios     ', filter=lambda model, value: value in model.p * model.sc and parameters_dict['pScenProb']   [value[0], value[1]] >  0.0)
+    model.ps = Set(doc='periods/scenarios', ordered=True, initialize= [(p,sc) for p,sc in model.p*model.sc if parameters_dict['pScenProb'][p,sc] >  0.0])
+    #model.n    = Set(initialize=model.nn                                           , ordered=True , doc='load levels           ', filter=lambda model, value: value in model.nn          and  parameters_dict['pDuration']                [value] >  0  )
+    model.n  = Set(doc='load levels      ', ordered=True, initialize= [ nn for nn in model.nn if parameters_dict['pDuration'][nn] > 0])
+    #model.n2   = Set(initialize=model.nn                                           , ordered=True , doc='load levels           ', filter=lambda model, value: value in model.nn          and  parameters_dict['pDuration']                [value] >  0  )
+    model.n2 = Set(doc='load levels      ', ordered=True, initialize= [ nn for nn in model.nn if parameters_dict['pDuration'][nn] > 0])
+    #model.g    = Set(initialize=model.gg                                           , ordered=False, doc='generating      units ', filter=lambda model, value: value in model.gg
+    model.sg = Set(doc='segments         ', ordered=True, initialize= [ sgg for sgg in model.sgg if parameters_dict['pHydrogenSchedule'].loc[sgg]['Duration'] > 0])
+    model.g  = Set(doc='generating units', ordered=False, initialize= [ gg for gg in model.gg if (parameters_dict['pGenMaximumPower'][gg] > 0.0 or parameters_dict['pGenMaximumCharge'][gg] > 0.0) and parameters_dict['pGenInitialPeriod'][gg] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pGenFinalPeriod'][gg] >= parameters_dict['pParEconomicBaseYear']])
+    #model.t    = Set(initialize=model.g                                            , ordered=False, doc='thermal         units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenConstantVarCost']      [value] >  0.0)
+    model.t  = Set(doc='thermal units', ordered=False, initialize= [ g for g in model.g if parameters_dict['pGenConstantVarCost'][g] > 0.0])
+    #model.re   = Set(initialize=model.g                                            , ordered=False, doc='RES             units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenConstantVarCost']      [value] == 0.0 and  parameters_dict['pGenMaximumStorage']    [value] == 0.0  and parameters_dict['pGenProductionFunctionMax'][value] == 0.0)
+    model.re = Set(doc='RES units    ', ordered=False, initialize= [ g for g in model.g if parameters_dict['pGenConstantVarCost'][g] == 0.0 and parameters_dict['pGenMaximumStorage'][g] == 0.0 and parameters_dict['pGenProductionFunctionMax'][g] == 0.0])
+    #model.es   = Set(initialize=model.g                                            , ordered=False, doc='ESS             units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenMaximumStorage']       [value]  > 0.0 and (parameters_dict['pVarMaxInflows'].sum()  [value] >  0.0  or  parameters_dict['pVarMaxOutflows'].sum() [value] >  0.0 or parameters_dict['pGenMaximumCharge'][value] > 0.0))
+    model.es = Set(doc='ESS units    ', ordered=False, initialize= [ g for g in model.g if parameters_dict['pGenMaximumStorage'][g] > 0.0 and (parameters_dict['pVarMaxInflows'].sum()[g] > 0.0 or parameters_dict['pVarMaxOutflows'].sum()[g] > 0.0 or parameters_dict['pGenMaximumCharge'][g] > 0.0)])
+    #model.h    = Set(initialize=model.hh                                           , ordered=False, doc='hydrogen        units ', filter=lambda model, value: value in model.hh          and (parameters_dict['pGenMaximumPower']         [value]  > 0.0 or   parameters_dict['pGenMaximumCharge']     [value] >  0.0) and parameters_dict['pGenInitialPeriod']     [value] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pGenFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
+    model.h  = Set(doc='hydrogen units', ordered=False, initialize= [ hh for hh in model.hh if (parameters_dict['pGenMaximumPower'][hh] > 0.0 or parameters_dict['pGenMaximumCharge'][hh] > 0.0) and parameters_dict['pGenInitialPeriod'][hh] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pGenFinalPeriod'][hh] >= parameters_dict['pParEconomicBaseYear']])
+    #model.hz   = Set(initialize=model.h                                            , ordered=False, doc='electrolyzer    units ', filter=lambda model, value: value in model.h           and                                                               parameters_dict['pGenProductionFunctionMax']   [value] >  0.0)
+    model.hz = Set(doc='electrolyzer units', ordered=False, initialize= [ h for h in model.h if parameters_dict['pGenProductionFunctionMax'][h] > 0.0])
+    #model.hs   = Set(initialize=model.h                                            , ordered=False, doc='storage         units ', filter=lambda model, value: value in model.h           and  parameters_dict['pGenMaximumStorage']       [value]  > 0.0 and  parameters_dict['pGenProductionFunctionMax'][value] == 0.0  and (parameters_dict['pVarMaxInflows'].sum() [value] >  0.0 or parameters_dict['pVarMaxOutflows'].sum()[value]  > 0.0 or parameters_dict['pGenMaximumCharge'][value] > 0.0))
+    model.hs = Set(doc='storage units ', ordered=False, initialize= [ h for h in model.h if parameters_dict['pGenMaximumStorage'][h] > 0.0 and parameters_dict['pGenProductionFunctionMax'][h] == 0.0 and (parameters_dict['pVarMaxInflows'].sum()[h] > 0.0 or parameters_dict['pVarMaxOutflows'].sum()[h] > 0.0 or parameters_dict['pGenMaximumCharge'][h] > 0.0)])
+    #model.gc   = Set(initialize=model.g                                            , ordered=False, doc='candidate       units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenInvestCost']           [value]  > 0.0)
+    model.gc = Set(doc='candidate units', ordered=False, initialize= [ g for g in model.g if parameters_dict['pGenInvestCost'][g] > 0.0])
+    #model.gd   = Set(initialize=model.g                                            , ordered=False, doc='retirement      units ', filter=lambda model, value: value in model.g           and  parameters_dict['pGenRetireCost']           [value] != 0.0)
+    model.gd = Set(doc='retirement units', ordered=False, initialize= [ g for g in model.g if parameters_dict['pGenRetireCost'][g] != 0.0])
+    #model.ec   = Set(initialize=model.es                                           , ordered=False, doc='candidate ESS   units ', filter=lambda model, value: value in model.es          and  parameters_dict['pGenInvestCost']           [value] >  0.0)
+    model.ec = Set(doc='candidate ESS units', ordered=False, initialize= [ es for es in model.es if parameters_dict['pGenInvestCost'][es] > 0.0])
+    #model.hc   = Set(initialize=model.hs                                           , ordered=False, doc='candidate H2    units ', filter=lambda model, value: value in model.hs          and  parameters_dict['pGenInvestCost']           [value] >  0.0)
+    model.hc   = Set(doc='candidate H2 units', ordered=False, initialize= [ hs for hs in model.hs if parameters_dict['pGenInvestCost'][hs] > 0.0])
+    model.ebr  = Set(doc='all input branches', ordered=False, initialize= sEleBrList)
+    model.eln  = Set(doc='all input lines', ordered=False, initialize= data_frames['dfElectricityNetwork'].index.to_list())
+    model.ela  = Set(doc='all real lines', ordered=False, initialize=[(ni,nf,cc) for ni,nf,cc in model.eln if parameters_dict['pEleNetReactance'][ni,nf,cc] != 0.0 and  parameters_dict['pEleNetTTC'][ni,nf,cc] >  0.0  and parameters_dict['pEleNetTTCBck'][ni,nf,cc] > 0.0 and parameters_dict['pEleNetInitialPeriod'][ni,nf,cc] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pEleNetFinalPeriod'][ni,nf,cc] >= parameters_dict['pParEconomicBaseYear']])
+    #model.els  = Set(initialize=model.ela                                          , ordered=False, doc='all real switch lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetSwitching']          [value]       )
+    model.els  = Set(doc='all real switch lines', ordered=False, initialize=[(ni,nf,cc) for ni,nf,cc in model.ela if parameters_dict['pEleNetSwitching'][ni,nf,cc]==1])
+    #model.elc  = Set(initialize=model.ela                                          , ordered=False, doc='candidate       lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetFixedInvestmentCost'][value] >  0.0)
+    model.elc  = Set(doc='candidate lines', ordered=False, initialize=[(ni,nf,cc) for ni,nf,cc in model.ela if parameters_dict['pEleNetFixedInvestmentCost'][ni,nf,cc] > 0.0])
+    #model.ell  = Set(initialize=model.ela                                          , ordered=False, doc='loss            lines ', filter=lambda model, value: value in model.ela         and parameters_dict['pEleNetLossFactor']         [value] >  0.0 and  parameters_dict['pOptIndBinNetLosses']           >  0  )
+    model.ell  = Set(doc='loss lines', ordered=False, initialize=[(ni,nf,cc) for ni,nf,cc in model.ela if parameters_dict['pEleNetLossFactor'][ni,nf,cc] > 0.0 and parameters_dict['pOptIndBinNetLosses'] > 0])
+    #model.ndrf = Set(initialize=model.nd                                           , ordered=True , doc='reference node        ', filter=lambda model,nd  : nd      in                       parameters_dict['pParReferenceNode']                       )
+    model.ndrf = Set(doc='reference node', ordered=True, initialize= [nd for nd in model.nd if nd in parameters_dict['pParReferenceNode']])
+    model.ndhd = Set(doc='hydrogen demand node', ordered=True, initialize= [nd for nd in model.nd if nd in parameters_dict['pParHydDemandNode']])
+    model.hbr  = Set(doc='all input branches', ordered=False, initialize=sHydBrList)
+    model.hpn  = Set(doc='all input H2 pipelines', ordered=False, initialize=data_frames['dfHydrogenNetwork'].index.to_list())
+    #model.hpa  = Set(initialize=model.hpn                                          , ordered=False, doc='all real  H2 pipelines', filter=lambda model, value: value in model.hpn       and                                                                    parameters_dict['pHydNetTTC']            [value] >  0.0  and parameters_dict['pHydNetTTCBck'][value] > 0.0 and parameters_dict['pHydNetInitialPeriod'][value]  <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pHydNetFinalPeriod'][value]  >= parameters_dict['pParEconomicBaseYear'])
+    model.hpa  = Set(doc='all real H2 pipelines', ordered=False, initialize= [(ni,nf,pp) for ni,nf,pp in model.hpn if parameters_dict['pHydNetTTC'][ni,nf,pp] >  0.0  and parameters_dict['pHydNetTTCBck'][ni,nf,pp] > 0.0 and parameters_dict['pHydNetInitialPeriod'][ni,nf,pp]  <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pHydNetFinalPeriod'][ni,nf,pp]  >= parameters_dict['pParEconomicBaseYear']])
+    #model.hpc  = Set(initialize=model.hpa                                          , ordered=False, doc='candidate H2 pipelines', filter=lambda model, value: value in model.hpa       and parameters_dict['pHydNetFixedInvestmentCost']  [value] >  0.0)
+    model.hpc  = Set(doc='candidate H2 pipelines', ordered=False, initialize= [(ni,nf,pp) for ni,nf,pp in model.hpa if parameters_dict['pHydNetFixedInvestmentCost'][ni,nf,pp] > 0.0])
+    model.nhr  = Set(doc='Load level/Hours',  ordered=False, initialize= [(nn,hr) for nn,hr in model.nnhr if parameters_dict['pDuration'][nn] > 0])
 
     model.nr   = model.g   - model.re            # non-RES units, they can be committed and also contribute to the operating reserves
     model.ele  = model.ela - model.elc           # existing electric lines (le)
@@ -457,6 +483,8 @@ def data_processing(DirName, CaseName, model):
     model.psnec    = [(p, sc, n, ec        )     for p, sc, n, ec             in model.psn   * model.ec ]
     model.psnhz    = [(p, sc, n, hz        )     for p, sc, n, hz             in model.psn   * model.hz ]
     model.psnnd    = [(p, sc, n, nd        )     for p, sc, n, nd             in model.psn   * model.nd ]
+    #H2 Offtaker Node
+    model.psnndhd  = [(p, sc, n, nd        )     for p, sc, n, nd             in model.psn   * model.ndhd]
     model.psngt    = [(p, sc, n, gt        )     for p, sc, n, gt             in model.psn   * model.gt ]
     model.psneh    = [(p, sc, n, eh        )     for p, sc, n, eh             in model.psn   * model.eh ]
     model.psnhe    = [(p, sc, n, he        )     for p, sc, n, he             in model.psn   * model.he ]
@@ -465,6 +493,12 @@ def data_processing(DirName, CaseName, model):
     model.psnh     = [(p, sc, n, h         )     for p, sc, n, h              in model.psn   * model.h  ]
     model.psnhz    = [(p, sc, n, hz        )     for p, sc, n, hz             in model.psn   * model.hz ]
     model.psnhs    = [(p, sc, n, hs        )     for p, sc, n, hs             in model.psn   * model.hs ]
+    model.psndsg   = [(p, sc, nd, sg       )     for p, sc, nd, sg            in model.psc * model.nd * model.sg]
+    #H2 Offtaker Node for time segment consumptions
+    model.psnndhdsg = [(p, sc, n, nd, sg    )    for p, sc, n, nd, sg         in model.psc * model.n * model.ndhd * model.sg]
+    model.psnndhr  = [(p, sc, n, nd, hr    )     for p, sc, n, nd, hr         in model.psnnd * model.hr if (n,hr) in model.nhr]
+    model.hrsg     = [(hr,sg)                    for hr,sg                    in model.hr*model.sg if model.hr.ord(hr) >= model.hr.ord(parameters_dict['pHydrogenSchedule'].loc[sg]['InitialHour']) and model.hr.ord(hr) <= model.hr.ord(parameters_dict['pHydrogenSchedule'].loc[sg]['FinalHour'])]
+    model.psnndhrsg = [(p, sc, n, nd, hr, sg)    for p, sc, n, nd, hr, sg     in model.psnndhr * model.sg if (hr,sg) in model.hrsg]
     model.psneln   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.eln]
     model.psnela   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.ela]
     model.psnele   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.ele]
@@ -473,6 +507,7 @@ def data_processing(DirName, CaseName, model):
     model.psnhpn   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.hpn]
     model.psnhpa   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.hpa]
     model.psnhpe   = [(p, sc, n, ni, nf, cc)     for p, sc, n, ni, nf, cc     in model.psn   * model.hpe]
+
 
 
     # replacing string values by numerical values
@@ -502,16 +537,23 @@ def data_processing(DirName, CaseName, model):
     parameters_dict['pGenStandByStatus'      ] = parameters_dict['pGenStandByStatus'      ].map(idxDict)
 
     # define AC existing  lines
-    model.elea = Set(initialize=model.ele, ordered=False, doc='AC existing  lines and non-switchable lines', filter=lambda model,value: value in model.ele and not parameters_dict['pEleNetType'][value] == 'DC')
+
+    #model.elea = Set(initialize=model.ele, ordered=False, doc='AC existing  lines and non-switchable lines', filter=lambda model,value: value in model.ele and not parameters_dict['pEleNetType'][value] == 'DC')
+    model.elea = Set(doc='AC existing  lines and non-switchable lines', ordered=False, initialize = [(ni, nf, cc) for ni, nf, cc in model.ele if not parameters_dict['pEleNetType'][ni, nf, cc] == 'DC'])
+
     # define AC candidate lines
-    model.elca = Set(initialize=model.ela, ordered=False, doc='AC candidate lines and     switchable lines', filter=lambda model,value: value in model.elc and not parameters_dict['pEleNetType'][value] == 'DC')
+    #model.elca = Set(initialize=model.ela, ordered=False, doc='AC candidate lines and switchable lines', filter=lambda model,value: value in model.elc and not parameters_dict['pEleNetType'][value] == 'DC')
+    model.elca = Set(doc='AC candidate lines and switchable lines', ordered=False, initialize = [(ni, nf, cc) for ni, nf, cc in model.elc if not parameters_dict['pEleNetType'][ni, nf, cc] == 'DC'])
 
     model.elaa = model.elea | model.elca
 
     # define DC existing  lines
-    model.eled = Set(initialize=model.ele, ordered=False, doc='DC existing  lines and non-switchable lines', filter=lambda model,value: value in model.ele and     parameters_dict['pEleNetType'][value] == 'DC')
+    #model.eled = Set(initialize=model.ele, ordered=False, doc='DC existing  lines and non-switchable lines', filter=lambda model,value: value in model.ele and     parameters_dict['pEleNetType'][value] == 'DC')
+    model.eled = Set(doc='DC existing  lines and non-switchable lines', ordered=False, initialize = [(ni, nf, cc) for ni, nf, cc  in model.ele if parameters_dict['pEleNetType'][ni, nf, cc] == 'DC'])
+
     # define DC candidate lines
-    model.elcd = Set(initialize=model.ela, ordered=False, doc='DC candidate lines and     switchable lines', filter=lambda model,value: value in model.elc and     parameters_dict['pEleNetType'][value] == 'DC')
+    #model.elcd = Set(initialize=model.ela, ordered=False, doc='DC candidate lines and     switchable lines', filter=lambda model,value: value in model.elc and     parameters_dict['pEleNetType'][value] == 'DC')
+    model.elcd = Set(doc='DC candidate lines and switchable lines', ordered=False, initialize = [(ni, nf, cc) for ni, nf, cc in model.elc if  parameters_dict['pEleNetType'][ni, nf, cc] == 'DC'])
 
     model.elad = model.eled | model.elcd
 
@@ -609,7 +651,7 @@ def data_processing(DirName, CaseName, model):
     parameters_dict[f'pElectricityCost'  ] = parameters_dict[f'pElectricityCost'  ].loc[model.psn]
     parameters_dict[f'pElectricityPrice' ] = parameters_dict[f'pElectricityPrice' ].loc[model.psn]
     parameters_dict[f'pHydrogenCost'     ] = parameters_dict[f'pHydrogenCost'     ].loc[model.psn]
-# Pedro   parameters_dict[f'pHydrogenPrice'    ] = parameters_dict[f'pHydrogenPrice'    ].loc[model.psn]
+    parameters_dict[f'pHydrogenPrice'    ] = parameters_dict[f'pHydrogenPrice'    ].loc[model.psn]
     parameters_dict[f'pMinPower'         ] = parameters_dict[f'pMinPower'         ].loc[model.psn]
     parameters_dict[f'pMaxPower'         ] = parameters_dict[f'pMaxPower'         ].loc[model.psn]
     parameters_dict[f'pMinCharge'        ] = parameters_dict[f'pMinCharge'        ].loc[model.psn]
@@ -855,7 +897,7 @@ def create_variables(model, optmodel):
     setattr(optmodel, 'vHydrogenSell',                      Var(model.psnnd,  within=NonNegativeReals, bounds=lambda model,p,sc,n,nd:(                                                        0.0,                                             1e4),                                                  doc='hydrogen sell       in node                      [tH2]'))
     setattr(optmodel, 'vHNS',                               Var(model.psnnd,  within=NonNegativeReals, bounds=lambda model,p,sc,n,nd:(                                                        0.0, model.Par[f'pHydrogenDemand'      ][nd][p,sc,n]),                                                  doc='hydrogen not served in node                      [tH2]'))
     setattr(optmodel, f'vHydTotalDemand',                   Var(model.psnnd,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'total hydrogen demand of the node               [tH2]'))
-    setattr(optmodel, f'vHydTotalDemandDelta',              Var(model.psnnd,  within=Reals           , bounds=lambda model,p,sc,n,nd:(            -model.Par['pHydrogenDemand'      ][nd][p,sc,n], model.Par[f'pHydrogenDemand'      ][nd][p,sc,n]),                                                  doc=f'total hydrogen demand of the node               [tH2]'))
+    setattr(optmodel, f'vHydTotalDemandDelta',              Var(model.psnnd,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'total hydrogen demand of the node               [tH2]'))
     setattr(optmodel, f'vHydTotalOutput',                   Var(model.psnh ,  within=NonNegativeReals, bounds=lambda model,p,sc,n,h :(                                                        0.0, model.Par[f'pMaxPower'            ][h ][p,sc,n]),                                                  doc=f'total hydrogen output of the unit               [tH2]'))
     setattr(optmodel, f'vHydTotalOutputDelta',              Var(model.psnh ,  within=Reals           , bounds=lambda model,p,sc,n,h :(            -model.Par['pVarPositionGeneration'][h][p,sc,n], model.Par[f'pMaxPower'            ][h ][p,sc,n]-model.Par['pVarPositionGeneration'][h][p,sc,n]),   doc=f'total hydrogen output of the unit               [tH2]'))
     setattr(optmodel, f'vHydTotalOutput2ndBlock',           Var(model.psnh ,  within=NonNegativeReals, bounds=lambda model,p,sc,n,h :(                                                        0.0, model.Par[f'pMaxPower2ndBlock'    ][h ][p,sc,n]),                                                  doc=f'second block of the unit                        [tH2]'))
@@ -1165,11 +1207,11 @@ def create_variables(model, optmodel):
             nFixedVariables += 1
 
     # fixing the vHydTotalDemandDelta variable in nodes with no hydrogen demand in market
-    for nd in model.nd:
-        if sum(model.Par[f'pHydrogenDemand'][nd][idx] for idx in model.psn) == 0.0:
-            for idx in model.psn:
-                optmodel.__getattribute__(f'vHydTotalDemandDelta')[idx+(nd,)].fix(0.0)
-                nFixedVariables += 1
+#    for nd in model.nd:
+#        if sum(model.Par[f'pHydrogenDemand'][nd][idx] for idx in model.psn) == 0.0:
+#            for idx in model.psn:
+#                optmodel.__getattribute__(f'vHydTotalDemandDelta')[idx+(nd,)].fix(0.0)
+#                nFixedVariables += 1
 
     # incoming and outgoing lines (lin) (lout)
     lin   = defaultdict(list)
@@ -1185,14 +1227,20 @@ def create_variables(model, optmodel):
         hout [ni].append((nf,cc))
 
     # setting up the lower and upper bounds for the vHydTotalDemandDelta variable
+#    for nd in model.nd:
+#        if sum(model.Par[f'pHydrogenDemand'][nd][idx] for idx in model.psn) != 0.0:
+#            for idx in model.psn:
+#               if model.Par[f'pHydrogenDemand'][nd][idx] == 0.0:
+#                    optmodel.__getattribute__(f'vHydTotalDemandDelta')[idx+(nd,)].setlb(0.0)
+#                    optmodel.__getattribute__(f'vHydTotalDemandDelta')[idx+(nd,)].setub(max(0.0, sum(model.Par[f'pGenMaximumPower'][hz] for hz in model.hz for cc in model.cc if (model.Par[f'pGenNode'][hz],cc) in hin[nd]), sum(model.Par[f'pGenMaximumPower'][hs] for hs in model.hs for cc in model.cc if (model.Par[f'pGenNode'][hs],cc) in hin[nd])))
+#                else:
+#                    optmodel.__getattribute__(f'vHydTotalDemandDelta')[idx+(nd,)].fix(0.0)
+
+    # setting up the lower and upper bounds for the vHydTotalDemand variable
     for nd in model.nd:
-        if sum(model.Par[f'pHydrogenDemand'][nd][idx] for idx in model.psn) != 0.0:
+        if nd not in model.ndhd:
             for idx in model.psn:
-                if model.Par[f'pHydrogenDemand'][nd][idx] == 0.0:
-                    optmodel.__getattribute__(f'vHydTotalDemandDelta')[idx+(nd,)].setlb(0.0)
-                    optmodel.__getattribute__(f'vHydTotalDemandDelta')[idx+(nd,)].setub(max(0.0, sum(model.Par[f'pGenMaximumPower'][hz] for hz in model.hz for cc in model.cc if (model.Par[f'pGenNode'][hz],cc) in hin[nd]), sum(model.Par[f'pGenMaximumPower'][hs] for hs in model.hs for cc in model.cc if (model.Par[f'pGenNode'][hs],cc) in hin[nd])))
-                else:
-                    optmodel.__getattribute__(f'vHydTotalDemandDelta')[idx+(nd,)].fix(0.0)
+               optmodel.__getattribute__(f'vHydTotalDemand')[idx + (nd,)].fix(0.0)
 
     # detecting infeasibility: total min ESS output greater than total inflows, total max ESS charge lower than total outflows
     for es in model.es:
@@ -1755,12 +1803,23 @@ def create_constraints(model, optmodel):
     optmodel.__setattr__('eHydMaxEnergyOutflows', Constraint(optmodel.psnhs, rule=eHydMaxEnergyOutflows, doc='hydrogen energy outflows of an ESS unit [tH2]'))
 
     # Demand cycle target
-    def eHydDemandCycleTarget(optmodel, p,sc,n, nd):
-        if model.Par['pParTargetDemand'] > 0.0 and sum(1 for idx in model.psn if model.Par['pHydrogenDemand'][nd][idx]) > 0.0 and model.n.ord(n) % model.Par['pParDemandType'] == 0:
-            return sum(optmodel.vHydTotalDemand[p,sc,n2,nd]                                             for n2 in list(model.n2)[model.n.ord(n) - int(model.Par['pParDemandType']):model.n.ord(n)]) - model.Par['pParTargetDemand'] == 0.0
+    def eHydDemandCycleTarget(optmodel, p,sc,n,ndhd):
+        if model.Par['pParTargetDemand'] > 0.0 and model.n.ord(n) % model.Par['pParDemandType'] == 0:
+#       if model.Par['pParTargetDemand'] > 0.0 and sum(1 for idx in model.psn if model.Par['pHydrogenDemand'][nd][idx]) > 0.0 and model.n.ord(n) % model.Par['pParDemandType'] == 0:
+            return sum(optmodel.vHydTotalDemand[p,sc,n2,ndhd]                                             for n2 in list(model.n2)[model.n.ord(n) - int(model.Par['pParDemandType']):model.n.ord(n)]) - model.Par['pParTargetDemand'] == 0.0
         else:
             return Constraint.Skip
-    optmodel.__setattr__('eHydDemandCycleTarget', Constraint(optmodel.psnnd, rule=eHydDemandCycleTarget, doc='hydrogen demand cycle target [tH2]'))
+    optmodel.__setattr__('eHydDemandCycleTarget', Constraint(optmodel.psnndhd, rule=eHydDemandCycleTarget, doc='hydrogen demand cycle target [tH2]'))
+
+
+    # Demand segment target
+    def eHydDemandSegmentTarget(optmodel, p,sc,n,ndhd,sg):
+#       if model.Par['pParTargetDemand'] > 0.0 and model.Par['pHydrogenSchedule'].loc[sg]['TargetDemandSeg'] > 0 and sum(1 for idx in model.psn if model.Par['pHydrogenDemand'][nd][idx]) > 0.0 and model.n.ord(n) % model.Par['pParDemandType'] == 0:
+        if model.Par['pParTargetDemand'] > 0.0 and model.Par['pHydrogenSchedule'].loc[sg]['TargetDemandSeg'] > 0 and model.n.ord(n) % model.Par['pParDemandType'] == 0:
+            return sum(optmodel.vHydTotalDemand[p, sc, n2, ndhd] for n2, hr in model.nhr if (hr,sg) in model.hrsg and model.n2.ord(n2) <= model.n.ord(n) and model.n2.ord(n2) >= (model.n.ord(n) - int(model.Par['pParDemandType']))) >= model.Par['pHydrogenSchedule'].loc[sg]['TargetDemandSeg']
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eHydDemandSegmentTarget', Constraint(optmodel.psnndhdsg, rule=eHydDemandSegmentTarget, doc='hydrogen demand segment target [tH2]'))
 
     # def eHydMinEnergyOutflowsHZ(optmodel, p,sc,n,hz):
     #     if model.Par['pMaxCharge'][hz][p,sc,n] + model.Par['pMaxPower'][hz][p,sc,n] and (n,hz) in model.nhhzo and sum(1 for (nd,h) in optmodel.n2h if nd == model.Par['pGenNode'][hz] and h not in model.hz) == 0 and sum(1 for (nf, pa) in hout[model.Par['pGenNode'][hz]] for h in model.hs if (nf, h) in model.n2h) == 0:
@@ -2317,7 +2376,8 @@ def create_constraints(model, optmodel):
     # Compressor modeling
     def eCompressorOperStatus(optmodel, p,sc,n,hs):
         if model.Par['pGenMaxCompressorConsumption'][hs]:
-            return optmodel.vHydCompressorConsumption[p,sc,n,hs] >= optmodel.vHydTotalOutput[p,sc,n,'AEL_01']/model.Par['pMaxPower']['AEL_01'][p,sc,n] * model.Par['pGenMaxCompressorConsumption'][hs] - 1e3* (1 - optmodel.vHydCompressorOperat[p,sc,n,hs])
+            return optmodel.vHydCompressorConsumption[p,sc,n,hs] >= optmodel.vHydTotalCharge[p,sc,n,hs]/model.Par['pMaxPower']['PEMEL_01'][p,sc,n] * model.Par['pGenMaxCompressorConsumption'][hs] - 1e3* (1 - optmodel.vHydCompressorOperat[p,sc,n,hs])
+#           return optmodel.vHydCompressorConsumption[p,sc,n,hs] >= optmodel.vHydTotalOutput[p,sc,n,'AEL_01']/model.Par['pMaxPower']['AEL_01'][p,sc,n] * model.Par['pGenMaxCompressorConsumption'][hs] - 1e3* (1 - optmodel.vHydCompressorOperat[p,sc,n,hs])
         else:
             return Constraint.Skip
     optmodel.__setattr__('eCompressorOperStatus', Constraint(optmodel.psnhs, rule=eCompressorOperStatus, doc='relationship between hydrogen charge and electricity consumption [GW]'))
@@ -2429,7 +2489,7 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         # Solver.options['BarConvTol'    ] = 1e-9
         Solver.options['BarQCPConvTol' ] = 0.03
         # Solver.options['NumericFocus'  ] = 3
-        Solver.options['MIPGap'] = 0.001
+        Solver.options['MIPGap'] = 0.01
         Solver.options['Threads'] = int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)
         Solver.options['TimeLimit'] = 1800
         Solver.options['IterationLimit'] = 18000000
