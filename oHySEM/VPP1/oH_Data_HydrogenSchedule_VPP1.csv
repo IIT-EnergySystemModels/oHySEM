@@ -1,0 +1,7 @@
+,InitialHour,FinalHour,TargetDemandSeg,Duration
+sg01,h20,h22, 100 , 1 
+sg02,h20,h20, 50 , 1 
+sg03,h01,h02, 50 , 1 
+sg04,h07,h07, 50 , 1 
+sg05,,,, 0 
+sg06,,,, 0 
