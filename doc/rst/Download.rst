@@ -3,7 +3,7 @@
 Download & Installation
 ========================
 
-The **oHySEM** model is developed using `Python 3.12.3 <https://www.python.org/>`_ and `Pyomo 6.8.2 <https://pyomo.readthedocs.io/en/stable/>`_, with `Gurobi 12.0.0 <https://www.gurobi.com/products/gurobi-optimizer/>`_ as the commercial solver. Free solvers like `HiGHS`, `SCIP`, `GLPK`, and `CBC` are also supported. List available Pyomo solvers by running::
+The **oHySEM** model is developed using `Python 3.12.3 <https://www.python.org/>`_ and `Pyomo 6.9.2 <https://pyomo.readthedocs.io/en/stable/>`_, with `Gurobi 12.0.1 <https://www.gurobi.com/products/gurobi-optimizer/>`_ as the commercial solver. Free solvers like `HiGHS`, `SCIP`, `GLPK`, and `CBC` are also supported. List available Pyomo solvers by running::
 
   pyomo help -s
 
@@ -44,10 +44,10 @@ To run the Streamlit API, execute the following command in the terminal that sho
 
 **Solvers**:
 
-- `HiGHS <https://ergo-code.github.io/HiGHS/>`_ (free)
+- `HiGHS <https://www.scipopt.org/index.php#download>`_ (free)
 - `Gurobi <https://www.gurobi.com/>`_ (academic license available)
 - `GLPK <https://www.gnu.org/software/glpk/>`_ (free)
-- `CBC <https://github.com/coin-or/Cbc>`_ (free)
+- `CBC <https://github.com/coin-or/Cbc/releases>`_ (free)
 
 **Additional requirements:**
 

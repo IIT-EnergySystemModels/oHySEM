@@ -1,5 +1,6 @@
 Change Log
-=============
+==========
+
 [1.0.14] - 2025-03-07
 ---------------------
 - [CHANGED] streamlit shows min and max values of Electrolyzer production function

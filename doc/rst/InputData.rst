@@ -54,9 +54,9 @@ Input files
 -----------
 This is the list of the input data files and their brief description.
 
-==========================================  ==========================================================================================================
+=======================================  ==========================================================================================================
 File                                        Description
-==========================================  ==========================================================================================================
+=======================================  ==========================================================================================================
 ``oH_Data_Option.csv``                   Options of use of the **oHySEM** model
 ``oH_Data_Parameter.csv``                General system parameters
 ``oH_Data_Period.csv``                   Weight of each period
@@ -68,15 +68,15 @@ File                                        Description
 ``oH_Data_OperatingReservePrice.csv``    Price of the operating reserve sold
 ``oH_Data_Generation.csv``               Generation data
 ``oH_Data_EnergyInflows.csv``            Energy inflows  for ESS (e.g., storage hydro or open-loop pumped-storage hydro) by load level
-``oH_Data_VariableMinOutflows.csv``      Minimum product outflows for ESS (e.g., kg of H2) by load level
-``oH_Data_VariableMaxOutflows.csv``      Maximum product outflows for ESS (e.g., kg of H2) by load level
+``oH_Data_VariableMinOutflows.csv``      Minimum product outflows for ESS (e.g., kgH2) by load level
+``oH_Data_VariableMaxOutflows.csv``      Maximum product outflows for ESS (e.g., kgH2) by load level
 ``oH_Data_VariableMaxGeneration.csv``    Variable maximum power generation  by load level
 ``oH_Data_VariableMinGeneration.csv``    Variable minimum power generation  by load level
 ``oH_Data_VariableMaxConsumption.csv``   Variable maximum power consumption by load level
 ``oH_Data_VariableMinConsumption.csv``   Variable minimum power consumption by load level
 ``oH_Data_VariableMaxStorage.csv``       Variable maximum storage           by load level
 ``oH_Data_VariableMinStorage.csv``       Variable minimum storage           by load level
-==========================================  ==========================================================================================================
+=======================================  ==========================================================================================================
 
 In any input file, only the columns indicated in this document will be read. For example, you can add a column for comments or additional information as needed, but it will not be read by the model.
 
