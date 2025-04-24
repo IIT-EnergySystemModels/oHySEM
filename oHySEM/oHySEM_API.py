@@ -158,7 +158,7 @@ df_duration.loc[f't{(hour_of_year+time_steps):04d}':, 'Duration'] = 0
 df_hydrogen_demand.loc[(slice(None), slice(None), slice(None))] = ''
 
 # modify in all the columns of df_hydrogen_demand in the third level of the index equal to loadlevel
-df_hydrogen_demand.loc[(slice(None), slice(None), loadlevel), 'Node4'] = 0.1
+#df_hydrogen_demand.loc[(slice(None), slice(None), loadlevel), 'Node4'] = 0.1
 
 # Save the modified dataset
 if st.button('Save the modified time steps'):
@@ -316,6 +316,149 @@ with col2:
 
 with col3:
     modified_df['RampDemand'] = st.number_input("Enter the Maximum H2 Up/Down Delivery Ramp [kgH2/h]:", value=modified_df['RampDemand'][0])
+
+
+#########################################################
+#HYDROGEN SCHEDULED IMPLEMENTATION
+df_hydrogen_schedule = load_csv('oH_Data_HydrogenSchedule_{}.csv'.format(st.session_state['case_name']), 1)
+# Filter out empty rows (rows where all values are NaN or empty strings)
+#df_hydrogen_schedule = df_hydrogen_schedule.dropna(how="all")  # Remove fully empty rows
+#df_hydrogen_schedule = df_hydrogen_schedule.replace("", pd.NA).dropna(how="all")
+#df_hydrogen_schedule = df_hydrogen_schedule.dropna(axis=1, how="all")  # Drop fully empty columns
+
+#copy of the original hydrogen schedule
+df_hydrogen_schedule_orig = df_hydrogen_schedule.copy()
+
+# Filter Duration <> 1
+df_hydrogen_schedule = df_hydrogen_schedule[df_hydrogen_schedule['Duration'] == 1]
+
+# Initialize session state for table data
+if 'table_hydrogen_schedule' not in st.session_state:
+    st.session_state['table_hydrogen_schedule'] = df_hydrogen_schedule.to_dict(orient="records")
+
+# Function to add new row
+def add_row():
+    st.session_state['table_hydrogen_schedule'].append({"InitialHour": "", "FinalHour": "", "TargetDemandSeg": ""})
+
+# Function to delete a row
+def delete_row(index):
+    st.session_state['table_hydrogen_schedule'].pop(index)
+    st.rerun()  # Corrected the rerun function for updated Streamlit
+
+
+import re  # Import regex for format validation
+
+
+# Function to validate hour format
+def is_valid_hour(hour_input):
+    return bool(re.match(r'^h(0[1-9]|1[0-9]|2[0-4])$', hour_input.strip()))
+
+
+# Display dynamic table
+st.write("### Hydrogen Demand Schedule")
+st.info("""
+**ℹ️ Important Information**
+- Please ensure the ['Initial Hour', ..., 'End Hour'] follows the **format ['h01', ..., 'h24']**.
+- The Hydrogen Demand Schedule must have a **maximum of 6 segments**.
+""")
+
+# Button to add new rows (limit to max 6 segments)
+if len(st.session_state['table_hydrogen_schedule']) < 6:
+    if st.button("➕ Add Row"):
+        add_row()
+else:
+    st.warning("⚠️ Maximum of 6 segments reached. Delete a row to add a new one.")
+
+# Editable table
+data = pd.DataFrame(st.session_state['table_hydrogen_schedule'])
+
+# Display editable inputs for each row
+updated_data = []
+validation_errors = False  # Track if there are invalid entries
+
+for idx, row in data.iterrows():
+    cols = st.columns(4)  # Added an extra column for delete buttons
+
+    # Inputs for hours with conditional validation
+    initial_hour_input = cols[0].text_input("Initial Hour", value=row["InitialHour"], key=f"initial_{idx}")
+    final_hour_input = cols[1].text_input("Final Hour", value=row["FinalHour"], key=f"final_{idx}")
+
+    updated_data.append({
+        "InitialHour": initial_hour_input,
+        "FinalHour": final_hour_input,
+        "TargetDemandSeg": cols[2].text_input("≥ Quantity [kgH2]", value=row["TargetDemandSeg"], key=f"quantity_{idx}")
+    })
+
+    # Show errors only if the user has provided an invalid entry (not when adding a blank row)
+    if initial_hour_input.strip() and not is_valid_hour(initial_hour_input):
+        st.error(f"❌ Row {idx + 1}: Invalid 'Initial Hour' format. Please use 'h01' to 'h24'.")
+        validation_errors = True  # Mark validation failure
+
+    if final_hour_input.strip() and not is_valid_hour(final_hour_input):
+        st.error(f"❌ Row {idx + 1}: Invalid 'End Hour' format. Please use 'h01' to 'h24'.")
+        validation_errors = True  # Mark validation failure
+
+    # Delete button for each row
+    if cols[3].button("🗑️", key=f"delete_{idx}"):
+        delete_row(idx)  # Trigger deletion and refresh
+
+# Prevent saving data if there are validation errors
+if validation_errors:
+    st.error("❌ Cannot proceed: Please correct the hour format errors above.")
+else:
+    # Update session state with modified data
+    st.session_state['table_hydrogen_schedule'] = updated_data
+
+    # Display the updated table
+    st.write("#### Updated Hydrogen Demand Schedule")
+    st.dataframe(pd.DataFrame(updated_data))
+
+if st.button("Save the modified Hydrogen Demand Schedule"):
+    try:
+        # Verificar si hay valores vacíos en la tabla editada
+        empty_or_invalid_values = False
+
+        for row in updated_data:
+            if not row["InitialHour"].strip() or not row["FinalHour"].strip() or not row["TargetDemandSeg"].strip():
+                empty_or_invalid_values = True
+            else:
+                try:
+                    target_value = float(row["TargetDemandSeg"])
+                    if target_value < 0:
+                        empty_or_invalid_values = True
+                except ValueError:
+                    empty_or_invalid_values = True
+
+        if empty_or_invalid_values:
+            st.error(
+                "❌ Cannot proceed: Please ensure all fields are filled and 'Target Demand' is a valid number ≥ 0.")
+        else:
+            st.session_state['table_hydrogen_schedule'] = updated_data
+            # Load edited table from Streamlit
+            df_edited = pd.DataFrame(st.session_state['table_hydrogen_schedule'])
+
+            # Get original table and index
+            df_to_save = df_hydrogen_schedule_orig.copy()
+            original_index = df_hydrogen_schedule_orig.index.tolist()
+
+            # Step 1: Reset all values (optional safety)
+            df_to_save[["InitialHour", "FinalHour", "TargetDemandSeg"]] = ""
+            df_to_save["Duration"] = 0
+
+            # Step 2: For each row in the edited table, update corresponding index row in original table
+            for i, row in df_edited.iterrows():
+                seg = original_index[i]  # Preserve ordering (sg01, sg02, ..., sg06)
+                df_to_save.loc[seg, "InitialHour"] = row["InitialHour"]
+                df_to_save.loc[seg, "FinalHour"] = row["FinalHour"]
+                df_to_save.loc[seg, "TargetDemandSeg"] = row["TargetDemandSeg"]
+                df_to_save.loc[seg, "Duration"] = 1  # Mark as edited
+
+            # Save the updated table to CSV
+            df_to_save.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], 'oH_Data_HydrogenSchedule_{}.csv'.format(st.session_state['case_name'])), index=True)
+            st.success("Dataset saved sucessfully")
+    except Exception as e:
+        st.error(f"❌ Error saving file: {e}")
+
 
 #Explanation of Contracted H2 Demand Conditions
 col1, col2 = st.columns([0.80, 0.95])
@@ -576,7 +719,7 @@ list_h2ess_units = df[df['Technology'] == 'H2ESS'].index
 unit = st.selectbox('Modify the dataset below, select a unit:', list(list_h2ess_units))
 
 # User inputs
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
     modified_df.loc[unit, 'MaximumPower'] = st.number_input("Enter the Maximum H2 OutFlow  [kg/h]:", value=modified_df.loc[unit, 'MaximumPower'])
@@ -593,6 +736,9 @@ with col4:
 with col5:
     modified_df.loc[unit, 'InitialStorage'] = st.number_input("Enter the Initial Storage  [tH2]:", value=modified_df.loc[unit, 'InitialStorage'], format="%.3f")
 
+with col6:
+    modified_df.loc[unit, 'MaxCompressorConsumption'] = st.number_input("Enter the Maximum Consumption Tank Compressor  [MW]:", value=modified_df.loc[unit, 'MaxCompressorConsumption'], format="%.3f")
+
 #Explanation of H2ESS Data
 col1, col2 = st.columns([0.50, 0.95])
 
@@ -602,6 +748,7 @@ with col1:
          - **Maximum Power OutFlow**: Maximum H2 flow FROM the H2ESS in kilograms per hour
          - **Maximum Power InFlow**: Maximum H2 flow INTO the H2ESS in kilograms per hour
          - **Initial/Minimum/Maximum Storage**: H2 stored in the H2ESS in tons of H2
+         - **Maximum Consumption Tank Compressor**: Maximum power required by the H2ESS in MW 
          """)
 
 
@@ -609,7 +756,7 @@ with col1:
 if st.button('Save the modified H2ESS Data'):
     modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['H2ESS']), index=True)
     st.success("Dataset saved successfully!")
-    st.write(modified_df[['MaximumPower', 'MaximumCharge', 'MinimumStorage','MaximumStorage', 'InitialStorage']].head())
+    st.write(modified_df[['MaximumPower', 'MaximumCharge', 'MinimumStorage','MaximumStorage', 'InitialStorage', 'MaxCompressorConsumption']].head())
 
 
 
