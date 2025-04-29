@@ -44,6 +44,10 @@ Change Log
 ---------------------
 - [CHANGED] streamlit allows change in MaxGeneration
 
+[1.0.7] - 2024-11-05
+---------------------
+- [CHANGED] streamlit allows change in MaxGeneration
+
 [1.0.6] - 2024-10-15
 ---------------------
 - [CHANGED] allow the use with GAMS-HIGHS
