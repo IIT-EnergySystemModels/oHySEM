@@ -186,11 +186,40 @@ or using the Python script:
 
 **Running the API:**
 
-To run the Streamlit API, execute the following command in the terminal that should be located in the path where the API.py file is located:
+To run the Streamlit API, navigate to the directory containing the ``oHySEM_API.py`` file (typically the root of the ``oHySEM`` package or the repository root if running from source) and execute:
 
 .. code-block:: bash
 
     streamlit run oHySEM_API.py
+
+This will open the interface in your web browser.
+
+The Streamlit API provides an interactive web interface for a more user-friendly workflow with oHySEM. Key functionalities include:
+
+- **Project and Run Configuration:**
+    - Set essential parameters for the model run such as the case directory, specific case name, choice of solver, and simulation start date and duration.
+    - Toggle options for saving detailed raw results and generating plots.
+
+- **Input Data Management and Modification:**
+    - **Time Horizon:** Define the active time steps for the simulation by adjusting the ``oH_Data_Duration_{case_name}.csv`` file.
+    - **Electricity Tariffs:** Activate or deactivate specific electricity purchase tariffs. This modifies ``oH_Data_ElectricityCost_{case_name}.csv`` by setting costs for deactivated tariffs to a high prohibitive value.
+    - **Hydrogen Demand:**
+        - Configure overall H2 demand parameters like ``DemandType`` (Hourly, Daily, Weekly), ``TargetDemand``, and ``RampDemand`` (modifies ``oH_Data_Parameter_{case_name}.csv``).
+        - Detail daily demand profiles using a dynamic scheduler for up to 6 time segments (modifies ``oH_Data_HydrogenSchedule_{case_name}.csv``).
+    - **H2 Market Conditions:** Set market prices for selling H2 and costs for buying H2.
+    - **Technology Parameters:** Adjust operational parameters for specific units of various technologies (Electrolyzers, Wind, Solar PV, BESS, H2ESS), impacting their respective data files. For example, changes to Wind/Solar PV capacities will proportionally scale their ``VarMaxGeneration`` data.
+    - Changes to these datasets can be saved directly through the interface.
+    - The API also allows for visualization of various input time series data (e.g., electricity prices, demand forecasts) before running the model.
+
+- **Model Execution:**
+    - Launch the oHySEM optimization model directly from the interface using the configured settings and modified data.
+    - Receive feedback on the execution status (success or error).
+
+- **Result Visualization:**
+    - **KPI Dashboard:** View key performance indicators such as total net cost, hydrogen production, and electricity sales/purchases.
+    - **Interactive Charts:** Explore results through various Altair charts, including operating costs, energy balances (electricity and hydrogen), storage levels (BESS and H2ESS), and electrolyzer commitment status.
+
+This interface facilitates scenario analysis by allowing users to easily modify inputs, run the model, and immediately see the impact on results through integrated visualizations.
 
 ---
 
