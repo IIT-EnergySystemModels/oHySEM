@@ -215,7 +215,7 @@ The Streamlit API provides an interactive web interface for a more user-friendly
     - Launch the oHySEM optimization model directly from the interface using the configured settings and modified data.
     - Receive feedback on the execution status (success or error).
 
-- **Results Visualization:**
+- **Result Visualization:**
     - **KPI Dashboard:** View key performance indicators such as total net cost, hydrogen production, and electricity sales/purchases.
     - **Interactive Charts:** Explore results through various Altair charts, including operating costs, energy balances (electricity and hydrogen), storage levels (BESS and H2ESS), and electrolyzer commitment status.
 
