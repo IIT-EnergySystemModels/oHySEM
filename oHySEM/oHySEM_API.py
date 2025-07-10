@@ -693,11 +693,64 @@ with col3:
 with col4:
     modified_df.loc[unit, 'InitialStorage'] = st.number_input("Enter the Initial Storage  [GWh]:", value=modified_df.loc[unit, 'InitialStorage'], format="%.3f")
 
-# save the modified battery dataset
+
+st.markdown("### Battery Capacity Degradation")
+
+col6, col7, col8 = st.columns(3)
+with col6:
+    modified_df.loc[unit, 'DoDP1'] = st.number_input("DoD Segment 1 [%]", value=modified_df.loc[unit, 'DoDP1'], min_value=0.0, max_value=100.0, format="%.1f")
+with col7:
+    modified_df.loc[unit, 'DoDP2'] = st.number_input("DoD Segment 2 [%]", value=modified_df.loc[unit, 'DoDP2'], min_value=0.0, max_value=100.0, format="%.1f")
+with col8:
+    modified_df.loc[unit, 'DoDP3'] = st.number_input("DoD Segment 3 [%]", value=modified_df.loc[unit, 'DoDP3'], min_value=0.0, max_value=100.0, format="%.1f")
+
+col9, col10, col11 = st.columns(3)
+with col9:
+    modified_df.loc[unit, 'DoDC1'] = st.number_input("DoD Cost Segment 1 [EUR/MWh]", value=modified_df.loc[unit, 'DoDC1'], format="%.3f")
+with col10:
+    modified_df.loc[unit, 'DoDC2'] = st.number_input("DoD Cost Segment 2 [EUR/MWh]", value=modified_df.loc[unit, 'DoDC2'], format="%.3f")
+with col11:
+    modified_df.loc[unit, 'DoDC3'] = st.number_input("DoD Cost Segment 3 [EUR/MWh]", value=modified_df.loc[unit, 'DoDC3'], format="%.3f")
+
+# Validate DoDP sum and DoDC order
+p1 = modified_df.loc[unit, 'DoDP1']
+p2 = modified_df.loc[unit, 'DoDP2']
+p3 = modified_df.loc[unit, 'DoDP3']
+c1 = modified_df.loc[unit, 'DoDC1']
+c2 = modified_df.loc[unit, 'DoDC2']
+c3 = modified_df.loc[unit, 'DoDC3']
+
+valid_sum = abs((p1 + p2 + p3) - 100.0) < 1e-2
+valid_order = c1 <= c2 <= c3
+
+if not valid_sum:
+    st.error("❌ DoDP1 + DoDP2 + DoDP3 must equal 100%.")
+if not valid_order:
+    st.error("❌ DoDC1 ≤ DoDC2 ≤ DoDC3 must be satisfied.")
+
+
+#Explanation of Battery Data
+col1, col2 = st.columns([0.80, 0.95])
+
+with col1:
+    with st.expander("Battery Data?"):
+         st.write("""
+         - **Maximum Power Output**: Maximum Power Output of Battery in MW
+         - **Minimum Storage**: Minimum SoC of the Battery in GWh
+         - **Maximum Storage**: Maximum SoC of the Battery in GWh
+         - **Initial Storage**: Initial SoC of the Battery in GWh
+         - **DoD Segment 1, 2, 3:** Percentage weights of total depth of discharge per day (DoD), **DoDS1 + DoDS2 + DoDS3 must equal 100%**
+         - **DoD Cost Segment 1, 2, 3:** Penalty costs per segment o DoD in €/MWh, **DoDC1 ≤ DoDC2 ≤ DoDC3** must be satisfied
+         """)
+
 if st.button('Save the modified Battery Data'):
-    modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['BESS']), index=True)
-    st.success("Dataset saved successfully!")
-    st.write(modified_df[['MaximumPower', 'MinimumStorage','MaximumStorage', 'InitialStorage']].head())
+    if valid_sum and valid_order:
+        modified_df.to_csv(os.path.join(st.session_state['dir_name'], st.session_state['case_name'], datasets_gen['BESS']), index=True)
+        st.success("Dataset saved successfully!")
+        st.write(modified_df[['MaximumPower', 'MinimumStorage','MaximumStorage', 'InitialStorage',
+                              'DoDP1', 'DoDP2', 'DoDP3', 'DoDC1', 'DoDC2', 'DoDC3']].head())
+    else:
+        st.warning("Please fix validation errors before saving.")
 
 # List of Battery Units
 st.title("Hydrogen Tank Data (H2ESS)")
@@ -818,19 +871,21 @@ if st.button('Launch the model'):
         total_cost            = load_result_csv(f'oH_Result_rTotalCost_{st.session_state["case_name"]}.csv')
         commitment_hz         = load_result_csv(f'oH_Result_rCommitment_hz_{st.session_state["case_name"]}.csv')
 
-        # Filter unnecessary rows
+        # Filters
         hydrogen_balance = hydrogen_balance[~hydrogen_balance['Component'].isin(['HydrogenFlowIn', 'HydrogenFlowOut', 'Wind', 'BESS'])]
         electricity_balance = electricity_balance[~electricity_balance['Component'].isin(['PowerFlowIn', 'PowerFlowOut'])]
+        bess_deg_df = total_cost[total_cost['Component'] == 'TotalDegCost']
+        total_bess_deg_cost = bess_deg_df['kEUR'].sum() # Battery Degradation cost
+        total_cost_value = total_cost['kEUR'].sum() #Total Cost Value
 
         # Key Performance Indicators (KPIs)
         st.subheader("Key Performance Indicators")
 
-        total_cost_value = total_cost['kEUR'].sum()
+        total_net_cost_value = total_cost_value - total_bess_deg_cost
         total_hydrogen = hydrogen_balance[hydrogen_balance['Component'] == 'Electrolyzer']['kgH2'].sum()
         total_hydrogen_storage = hydrogen_balance[(hydrogen_balance['Component'] == 'H2ESS') & (hydrogen_balance['kgH2'] > 0)]['kgH2'].sum()
         total_electricity_sell = electricity_balance[electricity_balance['Component'] == 'ElectricitySell']['MWh'].sum()
         total_electricity_buy = electricity_balance[electricity_balance['Component'] == 'ElectricityBuy']['MWh'].sum()
-
 
         def style_kpi(label, value, background_color):
             return f"""
@@ -850,7 +905,7 @@ if st.button('Launch the model'):
 
         # Mostrar KPIs con colores suaves
         with kpi1:
-            st.markdown(style_kpi("Net Cost (kEUR)", f"{total_cost_value:.2f}", "#f0f8ff"),
+            st.markdown(style_kpi("Net Cost (kEUR)", f"{total_net_cost_value:.2f}", "#f0f8ff"),
                         unsafe_allow_html=True)  # AliceBlue
         with kpi2:
             st.markdown(style_kpi("Total Hydrogen Production (kgH2)", f"{total_hydrogen:.2f}", "#f5fffa"),
@@ -864,6 +919,15 @@ if st.button('Launch the model'):
         with kpi5:
             st.markdown(style_kpi("Total Electricity Purchased (MWh)", f"{total_electricity_buy:.2f}", "#fff5ee"),
                         unsafe_allow_html=True)  # SeaShell
+
+        # Degradation Cost Indicators (KPIs)
+        st.subheader("Degradation Cost Indicators")
+
+        kpi6, kpi7, kpi8, kpi9, kpi10 = st.columns(5)
+        # Mostrar KPIs con colores suaves
+        with kpi6:
+            st.markdown(style_kpi("Battery Degradation Cost (kEUR)", f"{total_bess_deg_cost:.2f}", "#E1F6FF"),
+                        unsafe_allow_html=True)  # LightBlue
 
         # Creating a layout for energy balances and network flows
         st.subheader("TIME ANALYSIS")
@@ -890,6 +954,7 @@ if st.button('Launch the model'):
             with st.expander("Cost Components?"):
                 st.markdown("""
                 - **vTotalCCost**: Consumption Operation Cost = Electricity Consumption Cost of Batteries and Electrolyzer (mainly O&M)
+                - **vTotalDegCost**: Battery Degradation Cost = Depth of Discharge (DoD) Battery Cost
                 - **vTotalECost**: Emission Cost = **Electricity** Generation Emission Cost
                 - **vTotalGCost**: Operation Cost = **Electricity** (Generation + Commitment + StartUp + ShutDown) Cost + **Hydrogen** (Commitment + Ramp + StartUp + ShutDown) Cost
                 - **vTotalMCost**: Market Cost = **Electricity** Purchasing Cost **- Electricity** Selling Income **+ Hydrogen** Purchasing Cost **- Hydrogen** Selling Cost **+ Non supplied** Penalties           
@@ -915,6 +980,8 @@ if st.button('Launch the model'):
 
                     # Helper function to create individual donut chart with labels
                     def create_donut_chart(df, title):
+
+                        #df = df[df['kEUR'] > 0].copy() # new to improve readability
                         # Create the donut chart
                         donut_chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
                             theta=alt.Theta(field="kEUR", type="quantitative"),
@@ -927,7 +994,10 @@ if st.button('Launch the model'):
                         )
 
                         # Add labels to the donut chart showing both percentage and kEUR
-                        labels = alt.Chart(df).mark_text(radius=200, size=text_fontsize).encode(
+                        # New: Filter zero values only for the labels
+                        df_labels = df[df['kEUR'] > 0].copy()
+
+                        labels = alt.Chart(df_labels).mark_text(radius=200,  dy=-10, size=text_fontsize).encode(
                             theta=alt.Theta(field="kEUR", type="quantitative"),
                             text=alt.Text(field="label", type="nominal"),
                             color=alt.value('black')  # Ensures the label color is consistent
@@ -936,9 +1006,9 @@ if st.button('Launch the model'):
                         return donut_chart + labels
 
                     # Add a label column that combines kEUR and Percentage
-                    costs['label'] = costs.apply(lambda row: f'{row["kEUR"]:.1f} kEUR ({row["Percentage"]:.1f}%)',
+                    costs['label'] = costs.apply(lambda row: f'{row["kEUR"]:.2f} kEUR ({row["Percentage"]:.1f}%)',
                                                  axis=1)
-                    incomes['label'] = incomes.apply(lambda row: f'{row["kEUR"]:.1f} kEUR ({row["Percentage"]:.1f}%)',
+                    incomes['label'] = incomes.apply(lambda row: f'{row["kEUR"]:.2f} kEUR ({row["Percentage"]:.1f}%)',
                                                      axis=1)
 
                     # Create donut charts for costs and profits
