@@ -304,7 +304,7 @@ def data_processing(DirName, CaseName, model):
 
     # generation indicators
     generation_ind = data_frames['dfGeneration'].columns.to_list()
-    idx_factoring  = ['MaximumPower', 'MinimumPower', 'StandByPower', 'MaximumCharge', 'MinimumCharge', 'OMVariableCost', 'ProductionFunctionMin', 'ProductionFunctionMax', 'MaxCompressorConsumption',
+    idx_factoring  = ['MaximumPower', 'MinimumPower', 'StandByPower', 'MaximumCharge', 'MinimumCharge', 'OMVariableCost', 'DoDC1', 'DoDC2', 'DoDC3', 'ProductionFunctionMin', 'ProductionFunctionMax', 'MaxCompressorConsumption',
                       'RampUp', 'RampDown', 'CO2EmissionRate', 'MaxOutflowsProd', 'MinOutflowsProd', 'MaxInflowsCons', 'MinInflowsCons', 'OutflowsRampDown', 'OutflowsRampUp']
     for idx in generation_ind:
         if idx in idx_factoring:
@@ -378,9 +378,10 @@ def data_processing(DirName, CaseName, model):
     #model.ps   = Set(initialize=model.p*model.sc                                   , ordered=True , doc='periods/scenarios     ', filter=lambda model, value: value in model.p * model.sc and parameters_dict['pScenProb']   [value[0], value[1]] >  0.0)
     model.ps = Set(doc='periods/scenarios', ordered=True, initialize= [(p,sc) for p,sc in model.p*model.sc if parameters_dict['pScenProb'][p,sc] >  0.0])
     #model.n    = Set(initialize=model.nn                                           , ordered=True , doc='load levels           ', filter=lambda model, value: value in model.nn          and  parameters_dict['pDuration']                [value] >  0  )
-    model.n  = Set(doc='load levels      ', ordered=True, initialize= [ nn for nn in model.nn if parameters_dict['pDuration'][nn] > 0])
+    model.n    = Set(doc='load levels      ', ordered=True, initialize= [ nn for nn in model.nn if parameters_dict['pDuration'][nn] > 0])
     #model.n2   = Set(initialize=model.nn                                           , ordered=True , doc='load levels           ', filter=lambda model, value: value in model.nn          and  parameters_dict['pDuration']                [value] >  0  )
-    model.n2 = Set(doc='load levels      ', ordered=True, initialize= [ nn for nn in model.nn if parameters_dict['pDuration'][nn] > 0])
+    model.n2   = Set(doc='load levels      ', ordered=True, initialize= [ nn for nn in model.nn if parameters_dict['pDuration'][nn] > 0])
+    model.nday = Set(doc='Day index from hourly load levels', ordered=True, initialize=sorted({f'd{(model.n.ord(n) - 1) // 24 + 1}' for n in model.n}))
     #model.g    = Set(initialize=model.gg                                           , ordered=False, doc='generating      units ', filter=lambda model, value: value in model.gg
     model.sg = Set(doc='segments         ', ordered=True, initialize= [ sgg for sgg in model.sgg if parameters_dict['pHydrogenSchedule'].loc[sgg]['Duration'] > 0])
     model.g  = Set(doc='generating units', ordered=False, initialize= [ gg for gg in model.gg if (parameters_dict['pGenMaximumPower'][gg] > 0.0 or parameters_dict['pGenMaximumCharge'][gg] > 0.0) and parameters_dict['pGenInitialPeriod'][gg] <= parameters_dict['pParEconomicBaseYear'] and parameters_dict['pGenFinalPeriod'][gg] >= parameters_dict['pParEconomicBaseYear']])
@@ -480,6 +481,8 @@ def data_processing(DirName, CaseName, model):
     model.psnre    = [(p, sc, n, re        )     for p, sc, n, re             in model.psn   * model.re ]
     model.psnnr    = [(p, sc, n, nr        )     for p, sc, n, nr             in model.psn   * model.nr ]
     model.psnes    = [(p, sc, n, es        )     for p, sc, n, es             in model.psn   * model.es ]
+    model.psd      = [(p, sc, d            )     for p, sc, d                 in model.psc   * model.nday]
+    model.psdes    = [(p, sc, d, es        )     for p, sc, d, es             in model.psc   * model.nday * model.es]
     model.psnec    = [(p, sc, n, ec        )     for p, sc, n, ec             in model.psn   * model.ec ]
     model.psnhz    = [(p, sc, n, hz        )     for p, sc, n, hz             in model.psn   * model.hz ]
     model.psnnd    = [(p, sc, n, nd        )     for p, sc, n, nd             in model.psn   * model.nd ]
@@ -865,6 +868,8 @@ def create_variables(model, optmodel):
     setattr(optmodel, 'vTotalMCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable market                      cost [MEUR]'))
     setattr(optmodel, 'vTotalGCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable operation                   cost [MEUR]'))
     setattr(optmodel, 'vTotalCCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total variable consumption operation       cost [MEUR]'))
+    setattr(optmodel, 'vTotalDegCost',                      Var(model.psd,   within=           Reals,                                                                                                                                                                                                 doc='total variable battery degradation         cost [MEUR]'))
+
     setattr(optmodel, 'vTotalECost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total system   emission                    cost [MEUR]'))
     setattr(optmodel, 'vTotalRCost',                        Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total system   reliability                 cost [MEUR]'))
     setattr(optmodel, 'vTotalEleTradeCost',                 Var(model.psn,   within=           Reals,                                                                                                                                                                                                 doc='total energy buy                           cost [MEUR]'))
@@ -891,6 +896,12 @@ def create_variables(model, optmodel):
     setattr(optmodel, f'vEleEnergyInflows',                 Var(model.psnes,  within=NonNegativeReals, bounds=lambda model,p,sc,n,es:(                     model.Par[f'pMinInflows' ][es][p,sc,n], model.Par[f'pMaxInflows'          ][es][p,sc,n]),                                                  doc=f'unscheduled inflows  of all ESS units           [GWh]'))
     setattr(optmodel, f'vEleEnergyOutflows',                Var(model.psnes,  within=NonNegativeReals, bounds=lambda model,p,sc,n,es:(                                                        0.0, model.Par[f'pMaxOutflows'         ][es][p,sc,n]),                                                  doc=f'scheduled   outflows of all ESS units           [GWh]'))
     setattr(optmodel, f'vEleInventory',                     Var(model.psnes,  within=NonNegativeReals, bounds=lambda model,p,sc,n,es:(                     model.Par[f'pMinStorage' ][es][p,sc,n], model.Par[f'pMaxStorage'          ][es][p,sc,n]),                                                  doc=f'ESS inventory                                   [GWh]'))
+    setattr(optmodel, f'vEleInventoryMinDay',               Var(model.psdes,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'Minimum battery inventory per day               [GWh]'))
+    setattr(optmodel, f'vEleInventoryMaxDay',               Var(model.psdes,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'Maximum battery inventory per day               [GWh]'))
+    setattr(optmodel, f'vEleInventoryDoDDay',               Var(model.psdes,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'Battery Depth of Discharge per day              [GWh]'))
+    setattr(optmodel, f'vEleInventoryDoDS1Day',             Var(model.psdes,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'Battery Depth of Discharge per day  S1          [GWh]'))
+    setattr(optmodel, f'vEleInventoryDoDS2Day',             Var(model.psdes,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'Battery Depth of Discharge per day  S2          [GWh]'))
+    setattr(optmodel, f'vEleInventoryDoDS3Day',             Var(model.psdes,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'Battery Depth of Discharge per day  S3          [GWh]'))
     setattr(optmodel, f'vEleSpillage',                      Var(model.psnes,  within=NonNegativeReals,                                                                                                                                                                                                doc=f'ESS spillage                                    [GWh]'))
 
     setattr(optmodel, 'vHydrogenBuy',                       Var(model.psnnd,  within=NonNegativeReals, bounds=lambda model,p,sc,n,nd:(                                                        0.0,                                             1e4),                                                  doc='hydrogen buy        in node                      [tH2]'))
@@ -1305,7 +1316,8 @@ def create_objective_function(model, optmodel):
     optmodel.__setattr__('eTotalSCost', Objective(rule=eTotalSCost, sense=minimize, doc='Total system cost [MEUR]'))
 
     def eTotalTCost(optmodel):
-        return optmodel.vTotalSCost == sum(optmodel.Par['pDiscountFactor'][idx[0]] * (optmodel.__getattribute__(f'vTotalMCost')[idx] + optmodel.__getattribute__(f'vTotalGCost')[idx] + optmodel.__getattribute__(f'vTotalECost')[idx] + optmodel.__getattribute__(f'vTotalCCost')[idx] - optmodel.__getattribute__(f'vTotalRCost')[idx]) for idx in model.psn)
+        return (optmodel.vTotalSCost == sum(optmodel.Par['pDiscountFactor'][idx[0]] * (optmodel.__getattribute__(f'vTotalMCost')[idx] + optmodel.__getattribute__(f'vTotalGCost')[idx] + optmodel.__getattribute__(f'vTotalECost')[idx] + optmodel.__getattribute__(f'vTotalCCost')[idx] - optmodel.__getattribute__(f'vTotalRCost')[idx]) for idx in model.psn)
+                                     +  sum(optmodel.Par['pDiscountFactor'][idx[0]] * (optmodel.__getattribute__(f'vTotalDegCost')[idx]) for idx in model.psd))
     optmodel.__setattr__('eTotalTCost', Constraint(rule=eTotalTCost, doc='Total system cost [MEUR]'))
 
     print('--- Declaring the totals components of the ObjFunc:                    {} seconds'.format(round(time.time() - StartTime)))
@@ -1355,10 +1367,18 @@ def create_objective_function_market(model, optmodel):
     def eTotalECost(optmodel, p,sc,n):
         return optmodel.vTotalECost[p,sc,n] == sum(model.Par['pDuration'][n] * model.Par['pGenCO2EmissionCost'][nr] * optmodel.vEleTotalOutput[p,sc,n,nr] for nr in model.nr)
     optmodel.__setattr__('eTotalECost', Constraint(optmodel.psn, rule=eTotalECost, doc='Total emission cost in the DA market [MEUR]'))
+
+
     # Consumption operation cost in DA [M€]
     def eTotalCCost(optmodel, p,sc,n):
-        return optmodel.vTotalCCost[p,sc,n] == sum(model.Par['pDuration'][n] * model.Par['pGenLinearTerm'][g] * optmodel.vEleTotalCharge[p,sc,n,g] for g in model.es)
+        return (optmodel.vTotalCCost[p,sc,n] == sum(model.Par['pDuration'][n] * model.Par['pGenLinearTerm'][g] * optmodel.vEleTotalCharge[p,sc,n,g] for g in model.es))
     optmodel.__setattr__('eTotalCCost', Constraint(optmodel.psn, rule=eTotalCCost, doc='Total consumption cost in the DA market [MEUR]'))
+
+    # Consumption operation cost in DA [M€]
+    def eTotalDegCost(optmodel, p,sc,d):
+        return (optmodel.vTotalDegCost[p,sc,d] == sum(model.Par['pGenDoDC1'][g] * optmodel.vEleInventoryDoDS1Day[p,sc,d,g] + model.Par['pGenDoDC2'][g] * optmodel.vEleInventoryDoDS2Day[p,sc,d,g] + model.Par['pGenDoDC3'][g] * optmodel.vEleInventoryDoDS3Day[p,sc,d,g] for g in model.es ))
+    optmodel.__setattr__('eTotalDegCost', Constraint(optmodel.psd, rule=eTotalDegCost, doc='Total battery degradation cost [MEUR]'))
+
     # Reserve operation revenue in DA [M€]
     def eTotalRCost(optmodel, p,sc,n):
         return optmodel.vTotalRCost[p,sc,n] == (sum(                            sum(model.Par[f'pOperatingReservePrice_{idx}'][p,sc,n]                                                           * optmodel.__getattribute__(f'vEleReserveProd_{idx}')[p,sc,n,nr] for idx in ['Up_SR','Down_SR'                  ]) for nr in model.nr if model.Par['pGenNoOperatingReserve'][nr] == 0) +
@@ -1656,6 +1676,90 @@ def create_constraints(model, optmodel):
     print('--- Declaring the ESS energy inventory:                                {} seconds'.format(round(time.time() - StartTime)))
     StartTime = time.time() # to compute elapsed time
 
+
+    # Map each n (e.g. 't1') to a day number
+    def hour_to_day_init(m, n):
+        return (m.n.ord(n) - 1) // 24 + 1
+    model.HourToDay = Param(model.n, initialize=hour_to_day_init, within=PositiveIntegers)
+
+    # ESS SoC Min per Day[GWh]
+    def eEleInventoryMinDay(optmodel, p,sc,n,es):
+        if   model.n.ord(n) >  model.Par['pCycleTimeStep'][es]:
+             day = f'd{model.HourToDay[n]}'
+             return optmodel.vEleInventoryMinDay[p,sc,day,es] <= optmodel.vEleInventory[p,sc,n,es]
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryMinDay', Constraint(optmodel.psnes, rule=eEleInventoryMinDay, doc='ESS inventory Min Day [GWh]'))
+
+    # ESS SoC Max per Day[GWh]
+    def eEleInventoryMaxDay(optmodel, p,sc,n,es):
+        if   model.n.ord(n) >  model.Par['pCycleTimeStep'][es]:
+             day = f'd{model.HourToDay[n]}'
+             return optmodel.vEleInventoryMaxDay[p,sc,day,es] >= optmodel.vEleInventory[p,sc,n,es]
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryMaxDay', Constraint(optmodel.psnes, rule=eEleInventoryMaxDay, doc='ESS inventory Max Day [GWh]'))
+
+    # ESS DoD per Day[GWh]
+    def eEleInventoryDoD(optmodel, p,sc,d,es):
+        if model.Par['pGenMaximumStorage'][es]>0:
+            return optmodel.vEleInventoryDoDDay[p,sc,d,es] == optmodel.vEleInventoryMaxDay[p,sc,d,es] - optmodel.vEleInventoryMinDay[p,sc,d,es]
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryDoD', Constraint(optmodel.psdes, rule=eEleInventoryDoD, doc='ESS Depth of Discharge (DoD) [GWh]'))
+
+    #Total ESS DoD per Day (Segments) and [GWh]
+    def eEleInventoryDoDSegments(optmodel, p,sc,d,es):
+        if model.Par['pGenMaximumStorage'][es]>0:
+            return optmodel.vEleInventoryDoDDay[p,sc,d,es] == optmodel.vEleInventoryDoDS1Day[p,sc,d,es] + optmodel.vEleInventoryDoDS2Day[p,sc,d,es] + optmodel.vEleInventoryDoDS3Day[p,sc,d,es]
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryDoDSegments', Constraint(optmodel.psdes, rule=eEleInventoryDoDSegments, doc='Total ESS Depth of Discharge (DoD) per Segment [GWh]'))
+
+    #Total ESS DoD per Day (Segment 1) and [GWh]
+    def eEleInventoryDoDS1Upper(optmodel, p,sc,d,es):
+        if model.Par['pGenMaximumStorage'][es]>0:
+            return optmodel.vEleInventoryDoDS1Day[p,sc,d,es] <= (model.Par['pGenDoDP1'][es]/100)* model.Par['pGenMaximumStorage'][es]
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryDoDS1Upper', Constraint(optmodel.psdes, rule=eEleInventoryDoDS1Upper, doc='ESS Depth of Discharge (DoD) per Segment 1 Up [GWh]'))
+
+    def eEleInventoryDoDS1Lower(optmodel, p,sc,d,es):
+        if model.Par['pGenMaximumStorage'][es]>0:
+            return optmodel.vEleInventoryDoDS1Day[p,sc,d,es] >= 0
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryDoDS1Lower', Constraint(optmodel.psdes, rule=eEleInventoryDoDS1Lower, doc='ESS Depth of Discharge (DoD) per Segment 1 Lower [GWh]'))
+
+    #Total ESS DoD per Day (Segment 2) and [GWh]
+    def eEleInventoryDoDS2Upper(optmodel, p,sc,d,es):
+        if model.Par['pGenMaximumStorage'][es]>0:
+            return optmodel.vEleInventoryDoDS2Day[p,sc,d,es] <= (model.Par['pGenDoDP2'][es]/100)* model.Par['pGenMaximumStorage'][es]
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryDoDS2Upper', Constraint(optmodel.psdes, rule=eEleInventoryDoDS2Upper, doc='ESS Depth of Discharge (DoD) per Segment 2 Upper [GWh]'))
+
+    def eEleInventoryDoDS2Lower(optmodel, p,sc,d,es):
+        if model.Par['pGenMaximumStorage'][es]>0:
+            return optmodel.vEleInventoryDoDS2Day[p,sc,d,es] >= 0
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryDoDS2Lower', Constraint(optmodel.psdes, rule=eEleInventoryDoDS2Lower, doc='ESS Depth of Discharge (DoD) per Segment 2 Lower [GWh]'))
+
+    #Total ESS DoD per Day (Segment 3) and [GWh]
+    def eEleInventoryDoDS3Upper(optmodel, p,sc,d,es):
+        if model.Par['pGenMaximumStorage'][es]>0:
+            return optmodel.vEleInventoryDoDS3Day[p,sc,d,es] <= (model.Par['pGenDoDP3'][es]/100)* model.Par['pGenMaximumStorage'][es]
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryDoDS3Upper', Constraint(optmodel.psdes, rule=eEleInventoryDoDS3Upper, doc='ESS Depth of Discharge (DoD) per Segment 3 Upper [GWh]'))
+
+    def eEleInventoryDoDS3Lower(optmodel, p,sc,d,es):
+        if model.Par['pGenMaximumStorage'][es]>0:
+            return optmodel.vEleInventoryDoDS3Day[p,sc,d,es] >= 0
+        else:
+            return Constraint.Skip
+    optmodel.__setattr__('eEleInventoryDoDS3Lower', Constraint(optmodel.psdes, rule=eEleInventoryDoDS3Lower, doc='ESS Depth of Discharge (DoD) per Segment 3 Lower [GWh]'))
     # Energy conversion from energy from electricity to hydrogen and vice versa [p.u.]
 #    def eAllEnergy2Hyd(optmodel, p,sc,n, hz):
 #        if model.Par['pMaxPower'][hz][p,sc,n] and hz in model.h:
@@ -1669,8 +1773,10 @@ def create_constraints(model, optmodel):
 #            return Constraint.Skip
 #    optmodel.__setattr__('eAllEnergy2Hyd', Constraint(optmodel.psnhz, rule=eAllEnergy2Hyd, doc='energy conversion from different energy type to hydrogen [p.u.]'))
 
+# Energy conversion from energy from electricity to hydrogen., PREVIOUS VERSION 3 PIECEWISE
 
     # Energy conversion from energy from electricity to hydrogen and vice versa [p.u.] - P_min
+    """
     def eAllEnergy2Hyd1(optmodel, p, sc, n, hz):
         if model.Par['pMaxPower'][hz][p, sc, n] and hz in model.h:
             #'''
@@ -1744,6 +1850,44 @@ def create_constraints(model, optmodel):
 
     optmodel.__setattr__('eAllEnergy2Hyd3', Constraint(optmodel.psnhz, rule=eAllEnergy2Hyd3,
                                                       doc='energy conversion from different energy type to hydrogen [p.u.] segment 3'))
+    """
+# Energy conversion from energy from electricity to hydrogen
+# General function for any number of segments
+    def eAllEnergy2Hyd_general(optmodel, p, sc, n, hz, segment, n_segments):
+        if model.Par['pMaxPower'][hz][p, sc, n] and hz in model.h:
+            # Calculate the inverse of production functions (conversion from energy to hydrogen)
+            R_min = 1 / model.Par['pGenProductionFunctionMin'][hz]
+            R_max = 1 / model.Par['pGenProductionFunctionMax'][hz]
+
+            # Maximum and minimum charging powers
+            P_max = model.Par['pGenMaximumCharge'][hz]
+            P_min = model.Par['pGenMinimumCharge'][hz]
+
+            # Compute delta: the step between each point
+            delta = round((P_max - P_min) / (n_segments - 1),4)  # (n_segments - 1) intervals between n_segments points
+
+            # Determine the specific power point for this segment
+            P = round(P_min + (segment - 1) * delta,4)
+
+            # Calculate H(P) and its derivative H'(P)
+            H_P = round(((R_max - R_min) / (P_max - P_min)) * (P ** 2) + (R_min - ((R_max - R_min) / (P_max - P_min)) * P_min) * P,4)
+            H_M_P = round(((R_max - R_min) / (P_max - P_min)) * (2 * P) + R_min - ((R_max - R_min) / (P_max - P_min)) * P_min,4)
+
+            # Define the piecewise linear constraint for this segment
+            return optmodel.vHydTotalOutput[p, sc, n, hz] <= H_P + H_M_P * (optmodel.vEleTotalCharge[p, sc, n, hz] - P)
+
+        else:
+            return Constraint.Skip  # Skip the constraint if the generator is not active
+
+    # Set the desired number of segments
+    # You can change this to 2, 3, 5, 7, 10, etc. (controls how many linear segments you want)
+    n_segments = 3
+
+    # Create a constraint for each segment
+    for i in range(1, n_segments + 1):
+        optmodel.__setattr__(f'eAllEnergy2Hyd_seg{i}',
+                             Constraint(optmodel.psnhz,
+                                        rule=lambda optmodel, p, sc, n, hz, seg=i: eAllEnergy2Hyd_general(optmodel,p, sc, n, hz, seg, n_segments), doc=f'Energy conversion from different energy type to hydrogen [p.u.] segment {i} out of {n_segments}'))
 
     def eAllEnergy2Ele(optmodel, p,sc,n, g):
         if model.Par['pMaxPower'][g][p,sc,n] and g in model.t:
@@ -2489,7 +2633,7 @@ def solving_model(DirName, CaseName, SolverName, optmodel, pWriteLP):
         # Solver.options['BarConvTol'    ] = 1e-9
         Solver.options['BarQCPConvTol' ] = 0.03
         # Solver.options['NumericFocus'  ] = 3
-        Solver.options['MIPGap'] = 0.01
+        Solver.options['MIPGap'] = 0.03
         Solver.options['Threads'] = int((psutil.cpu_count(logical=True) + psutil.cpu_count(logical=False)) / 2)
         Solver.options['TimeLimit'] = 1800
         Solver.options['IterationLimit'] = 18000000
@@ -2665,7 +2809,10 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
     OutputResults3 = pd.Series(data=[ optmodel.vTotalECost     [p,sc,n]()*1e3*model.Par['pDuration'][n] for p,sc,n in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalECost'     )
     OutputResults4 = pd.Series(data=[ optmodel.vTotalCCost     [p,sc,n]()*1e3*model.Par['pDuration'][n] for p,sc,n in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalCCost'     )
     OutputResults5 = pd.Series(data=[-optmodel.vTotalRCost     [p,sc,n]()*1e3*model.Par['pDuration'][n] for p,sc,n in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalRCost'     )
-    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5], axis=1).stack().to_frame(name='kEUR')
+    OutputResults6d = pd.Series(data=[optmodel.vTotalDegCost   [p,sc,d]()*1e3                           for p,sc,d in model.psd], index=pd.Index(model.psd)).to_frame(name='TotalDegCostd'   )
+    OutputResults6n = pd.Series(data=[((optmodel.vTotalDegCost[p, s, f'd{model.HourToDay[n]}']).value*1e3)/24 for (p, s, n) in model.psn], index=pd.Index(model.psn)).to_frame(name='TotalDegCost'   )
+
+    OutputResults  = pd.concat([OutputResults1, OutputResults2, OutputResults3, OutputResults4, OutputResults5,OutputResults6n], axis=1).stack().to_frame(name='kEUR')
 
     # select the third level of the index and create a new column date using the Date as a initial date with format YYYY-MM-DD HH:MM:SS
     OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
@@ -2837,11 +2984,25 @@ def saving_results(DirName, CaseName, Date, model, optmodel):
 
     # select the third level of the index and create a new column date using the Date as a initial date
     OutputResults['Date'] = OutputResults.index.get_level_values(2).map(lambda x: Date + pd.Timedelta(hours=(int(x[1:]) - int(hour_of_year[1:])))).strftime('%Y-%m-%d %H:%M:%S')
-
     OutputResults = OutputResults.set_index('Date', append=True).rename_axis(['Period', 'Scenario', 'LoadLevel', 'ESS', 'Date'], axis=0).reset_index()
     Output_vEleInventory = OutputResults
     Output_vEleInventory.to_csv(_path + '/oH_Result_rEleInventory_' + CaseName + '.csv', index=False, sep=',')
     model.Output_vEleInventory = Output_vEleInventory
+
+    # Battery Degradation Output
+    records = []
+    for p, sc, d, es in model.psdes:
+        value = optmodel.vEleInventoryDoDDay[p, sc, d, es]()
+        max_storage = model.Par['pGenMaximumStorage'][es]
+        dod_pct = round((value / max_storage) * 100, 2) if max_storage > 0 else None
+        records.append((p, sc, d, es, value * 1e3, dod_pct))  # value in MWh
+
+    OutputResults = pd.DataFrame(records, columns=['Period', 'Scenario', 'Day', 'ESS', 'MWh', 'DoD[%]'])
+
+    # saving the results of the Electricity inventory levels
+    Output_vEleInventoryDoDDay = OutputResults
+    Output_vEleInventoryDoDDay.to_csv(_path + '/oH_Result_rEleDoDDay_' + CaseName + '.csv', index=False, sep=',')
+    model.Output_vEleInventoryDoDDay = Output_vEleInventoryDoDDay
 
     # saving the results of the hydrogen network flows
     OutputResults = pd.Series(data=[optmodel.vHydNetFlow[p,sc,n,ni,nf,cc]() for p,sc,n,ni,nf,cc in model.psnhpa], index=pd.Index(model.psnhpa)).to_frame(name='MW').rename_axis(['Period', 'Scenario', 'LoadLevel', 'InitialNode', 'FinalNode', 'Circuit'], axis=0)
