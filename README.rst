@@ -244,3 +244,12 @@ License
 =======
 
 oHySEM is licensed under the GPL-3.0 license. See the `LICENSE file <https://github.com/IIT-EnergySystemModels/oHySEM/blob/main/LICENSE>`_ for details.
+
+---
+
+How to Cite
+===========
+
+If you use oHySEM in your research, please cite the following publication:
+
+- E.F. Alvarez, P. Sánchez-Martín and A. Ramos, "Self-Scheduling for a Hydrogen-Based Virtual Power Plant in Day-Ahead Energy and Reserve Electricity Markets," 20th International Conference on the European Energy Market (EEM), Istanbul, Turkiye, June 2024, pp. 1-6, `10.1109/EEM60825.2024.10608848 <https://doi.org/10.1109/EEM60825.2024.10608848>`_.
