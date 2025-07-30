@@ -257,7 +257,7 @@ If you use oHySEM in your research, please cite the following publication:
 .. code-block:: bibtex
 
     @INPROCEEDINGS{10608848,
-      author={Álvarez, Erik F. and Sánchez-Martín, Pedro and Ramos, Andrés},
+      author={Alvarez, Erik F. and Sánchez-Martín, Pedro and Ramos, Andrés},
       booktitle={2024 20th International Conference on the European Energy Market (EEM)},
       title={Self-Scheduling for a Hydrogen-Based Virtual Power Plant in Day-Ahead Energy and Reserve Electricity Markets},
       year={2024},
